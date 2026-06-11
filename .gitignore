@@ -1,0 +1,72 @@
+# Build output
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+build/
+publish/
+out/
+
+# .NET
+project.lock.json
+project.fragment.lock.json
+artifacts/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.userprefs
+.dotnet/
+.packages/
+
+# NuGet
+*.nupkg
+*.snupkg
+.nuget/
+packages/
+!packages/build/
+*.nuget.props
+*.nuget.targets
+
+# Avalonia
+*.g.cs
+*.g.i.cs
+
+# Visual Studio / Rider / VS Code
+.vs/
+.vscode/
+.idea/
+*.suo
+*.user
+*.userprefs
+_ReSharper*/
+*.DotSettings.user
+
+# Roslyn cache directories
+*.ide/
+
+# Test / coverage results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+*.coverage
+*.coveragexml
+coverage/
+TestResults/
+
+# Logs and temp
+*.log
+*.tmp
+*.cache
+
+# Rider
+*.sln.iml
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
