@@ -1,0 +1,71 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:DesktopMetrics.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        x:Class="DesktopMetrics.Views.SettingsWindow"
+        x:DataType="vm:SettingsViewModel"
+        Title="Desktop Metrics Settings"
+        Width="360"
+        SizeToContent="Height"
+        CanResize="False"
+        WindowStartupLocation="CenterScreen"
+        Background="#0B0D14"
+        FontFamily="avares://Avalonia.Fonts.Inter/Assets#Inter">
+
+    <StackPanel Margin="20" Spacing="18">
+
+        <StackPanel Spacing="8">
+            <TextBlock Text="Background color" FontWeight="SemiBold" Foreground="#EDEFF2" />
+            <WrapPanel>
+                <WrapPanel.Styles>
+                    <Style Selector="Button.swatch">
+                        <Setter Property="Width" Value="34" />
+                        <Setter Property="Height" Value="34" />
+                        <Setter Property="Margin" Value="0,0,8,8" />
+                        <Setter Property="CornerRadius" Value="8" />
+                        <Setter Property="BorderThickness" Value="1" />
+                        <Setter Property="BorderBrush" Value="#33FFFFFF" />
+                    </Style>
+                </WrapPanel.Styles>
+                <Button Classes="swatch" Background="#0F121D"
+                        Command="{Binding SelectPresetCommand}" CommandParameter="#0F121D" />
+                <Button Classes="swatch" Background="#1A1F2B"
+                        Command="{Binding SelectPresetCommand}" CommandParameter="#1A1F2B" />
+                <Button Classes="swatch" Background="#18181B"
+                        Command="{Binding SelectPresetCommand}" CommandParameter="#18181B" />
+                <Button Classes="swatch" Background="#0C1A2B"
+                        Command="{Binding SelectPresetCommand}" CommandParameter="#0C1A2B" />
+                <Button Classes="swatch" Background="#1E1726"
+                        Command="{Binding SelectPresetCommand}" CommandParameter="#1E1726" />
+                <Button Classes="swatch" Background="#11231C"
+                        Command="{Binding SelectPresetCommand}" CommandParameter="#11231C" />
+            </WrapPanel>
+            <TextBox Text="{Binding BackgroundColor}" Watermark="#RRGGBB" Width="120" HorizontalAlignment="Left" />
+        </StackPanel>
+
+        <StackPanel Spacing="8">
+            <TextBlock Text="Opacity" FontWeight="SemiBold" Foreground="#EDEFF2" />
+            <Grid ColumnDefinitions="*,Auto">
+                <Slider Grid.Column="0" Minimum="0" Maximum="100"
+                        Value="{Binding Opacity}" />
+                <TextBlock Grid.Column="1"
+                           Text="{Binding Opacity, StringFormat='{}{0:0}%'}"
+                           Width="44"
+                           TextAlignment="Right"
+                           VerticalAlignment="Center"
+                           Foreground="#9AA1AC" />
+            </Grid>
+        </StackPanel>
+
+        <StackPanel Spacing="8">
+            <TextBlock Text="Metrics" FontWeight="SemiBold" Foreground="#EDEFF2" />
+            <CheckBox Content="CPU" IsChecked="{Binding CpuVisible}" Foreground="#EDEFF2" />
+            <CheckBox Content="RAM" IsChecked="{Binding RamVisible}" Foreground="#EDEFF2" />
+            <CheckBox Content="GPU" IsChecked="{Binding GpuVisible}" Foreground="#EDEFF2" />
+            <CheckBox Content="VRAM" IsChecked="{Binding VramVisible}" Foreground="#EDEFF2" />
+        </StackPanel>
+
+    </StackPanel>
+</Window>

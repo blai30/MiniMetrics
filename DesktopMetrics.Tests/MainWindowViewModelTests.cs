@@ -43,4 +43,17 @@ public class MainWindowViewModelTests
         vm.ApplySnapshot(WithGpu() with { Gpu = null });
         Assert.Equal(new[] { "cpu", "ram" }, vm.Rows.Select(r => r.Key).ToArray());
     }
+
+    [Fact]
+    public void ApplyAppearance_sets_a_gradient_brush_from_derived_stops()
+    {
+        var viewModel = new MainWindowViewModel();
+
+        viewModel.ApplyAppearance("#0F121D", 100);
+
+        var brush = Assert.IsType<Avalonia.Media.LinearGradientBrush>(viewModel.CardBackground);
+        Assert.Equal(2, brush.GradientStops.Count);
+        Assert.Equal(Avalonia.Media.Color.Parse("#FF141827"), brush.GradientStops[0].Color);
+        Assert.Equal(Avalonia.Media.Color.Parse("#FF0B0D15"), brush.GradientStops[1].Color);
+    }
 }

@@ -40,14 +40,16 @@
             BorderThickness="1"
             CornerRadius="16"
             Padding="22,16,22,18"
+            Background="{Binding CardBackground}"
             TextElement.FontFeatures="+tnum">
-        <Border.Background>
-            <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
-                <GradientStop Offset="0" Color="#F6141926" />
-                <GradientStop Offset="1" Color="#F60B0D14" />
-            </LinearGradientBrush>
-        </Border.Background>
                 <ItemsControl ItemsSource="{Binding Rows}">
+                    <ItemsControl.Styles>
+                        <!-- Collapse the generated item container itself for hidden rows so the
+                             ItemsPanel skips them in layout and adds no spacing around them. -->
+                        <Style Selector="ContentPresenter" x:DataType="vm:MetricRowViewModel">
+                            <Setter Property="IsVisible" Value="{Binding IsVisible}" />
+                        </Style>
+                    </ItemsControl.Styles>
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
                             <StackPanel Spacing="10" />
@@ -55,7 +57,7 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="vm:MetricRowViewModel">
-                            <StackPanel IsVisible="{Binding IsVisible}">
+                            <StackPanel>
                                 <!-- Columns: label (flex) | value (aligned) | trailing (temp + detail, right). -->
                                 <Grid ColumnDefinitions="*,56,110" Margin="0,0,0,6">
                                     <TextBlock Grid.Column="0"

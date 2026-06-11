@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Data.Core.Plugins;
-using System.Linq;
 using Avalonia.Markup.Xaml;
 using Avalonia.Platform;
 using Avalonia.Threading;
@@ -29,7 +27,7 @@ public partial class App : Application
     private TrayIcon? _trayIcon;
     private NativeMenuItem _showHideItem = null!;
     private NativeMenuItem _lockItem = null!;
-    private readonly Dictionary<string, NativeMenuItem> _metricItems = new();
+    private SettingsWindow? _settingsWindow;
 
     public override void Initialize()
     {
@@ -41,13 +39,13 @@ public partial class App : Application
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
-            DisableAvaloniaDataAnnotationValidation();
 
             _settingsStore = new SettingsStore(SettingsStore.DefaultPath);
             _settings = _settingsStore.Load();
 
             _viewModel = new MainWindowViewModel();
             _viewModel.LoadVisibility(_settings.Visibility);
+            _viewModel.ApplyAppearance(_settings.BackgroundColor, _settings.Opacity);
 
             _source = OperatingSystem.IsWindows()
                 ? new LibreHardwareSensorSource()
@@ -126,7 +124,7 @@ public partial class App : Application
 
         _lockItem = new NativeMenuItem("Lock position")
         {
-            ToggleType = NativeMenuItemToggleType.CheckBox,
+            ToggleType = MenuItemToggleType.CheckBox,
             IsChecked = _settings.Locked,
         };
         _lockItem.Click += OnToggleLock;
@@ -134,21 +132,9 @@ public partial class App : Application
 
         menu.Add(new NativeMenuItemSeparator());
 
-        foreach (var (key, label) in new[]
-                 {
-                     ("cpu", "CPU"), ("ram", "RAM"), ("gpu", "GPU"), ("vram", "VRAM"),
-                 })
-        {
-            // `key` is a fresh variable per iteration, so capturing it in the handler is safe.
-            var item = new NativeMenuItem(label)
-            {
-                ToggleType = NativeMenuItemToggleType.CheckBox,
-                IsChecked = _settings.Visibility.GetValueOrDefault(key, true),
-            };
-            item.Click += (_, _) => ToggleMetric(key, item);
-            _metricItems[key] = item;
-            menu.Add(item);
-        }
+        var settingsItem = new NativeMenuItem("Settings...");
+        settingsItem.Click += OnOpenSettings;
+        menu.Add(settingsItem);
 
         menu.Add(new NativeMenuItemSeparator());
 
@@ -198,12 +184,39 @@ public partial class App : Application
         Save();
     }
 
-    private void ToggleMetric(string key, NativeMenuItem item)
+    private void OnOpenSettings(object? sender, EventArgs e)
     {
-        bool visible = !_settings.Visibility.GetValueOrDefault(key, true);
+        // Single instance: focus the existing window instead of opening a second one.
+        if (_settingsWindow is not null)
+        {
+            _settingsWindow.Activate();
+            return;
+        }
+
+        var viewModel = new SettingsViewModel(_settings);
+        viewModel.AppearanceChanged += () => OnAppearanceChanged(viewModel);
+        viewModel.MetricVisibilityChanged += OnMetricVisibilityChanged;
+
+        _settingsWindow = new SettingsWindow { DataContext = viewModel };
+        _settingsWindow.Closed += (_, _) => _settingsWindow = null;
+        _settingsWindow.Show();
+    }
+
+    private void OnAppearanceChanged(SettingsViewModel viewModel)
+    {
+        _settings.BackgroundColor = viewModel.BackgroundColor;
+        _settings.Opacity = viewModel.Opacity;
+        _viewModel.ApplyAppearance(_settings.BackgroundColor, _settings.Opacity);
+
+        // Reuse the existing debounce so dragging the opacity slider writes once.
+        _saveTimer!.Stop();
+        _saveTimer.Start();
+    }
+
+    private void OnMetricVisibilityChanged(string key, bool visible)
+    {
         _settings.Visibility[key] = visible;
         _viewModel.SetVisibility(key, visible);
-        item.IsChecked = visible;
         Save();
     }
 
@@ -229,15 +242,4 @@ public partial class App : Application
     }
 
     private void Save() => _settingsStore.Save(_settings);
-
-    private void DisableAvaloniaDataAnnotationValidation()
-    {
-        var dataValidationPluginsToRemove =
-            BindingPlugins.DataValidators.OfType<DataAnnotationsValidationPlugin>().ToArray();
-
-        foreach (var plugin in dataValidationPluginsToRemove)
-        {
-            BindingPlugins.DataValidators.Remove(plugin);
-        }
-    }
 }

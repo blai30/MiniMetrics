@@ -1,6 +1,9 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using Avalonia;
+using Avalonia.Media;
+using CommunityToolkit.Mvvm.ComponentModel;
 using DesktopMetrics.Lib;
 using DesktopMetrics.Models;
 
@@ -11,6 +14,26 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly Dictionary<string, bool> _visibility = new();
 
     public ObservableCollection<MetricRowViewModel> Rows { get; } = new();
+
+    [ObservableProperty]
+    private IBrush _cardBackground = Brushes.Transparent;
+
+    // Recomputes the card background gradient from a base color and opacity.
+    public void ApplyAppearance(string backgroundColor, int opacity)
+    {
+        (string top, string bottom) = AppearanceGradient.Derive(backgroundColor, opacity);
+
+        CardBackground = new LinearGradientBrush
+        {
+            StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative),
+            EndPoint = new RelativePoint(0, 1, RelativeUnit.Relative),
+            GradientStops =
+            {
+                new GradientStop(Color.Parse(top), 0),
+                new GradientStop(Color.Parse(bottom), 1),
+            },
+        };
+    }
 
     // Reconciles the bound row collection against a freshly built row list,
     // updating existing rows in place so the UI animates smoothly and bindings stay alive.
