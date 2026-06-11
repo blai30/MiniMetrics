@@ -8,18 +8,6 @@
         <local:ViewLocator/>
     </Application.DataTemplates>
 
-    <TrayIcon.Icons>
-        <TrayIcons>
-            <TrayIcon Icon="/Assets/avalonia-logo.ico" ToolTipText="Desktop Metrics">
-                <TrayIcon.Menu>
-                    <NativeMenu>
-                        <NativeMenuItem Header="Quit" Click="OnQuitClick" />
-                    </NativeMenu>
-                </TrayIcon.Menu>
-            </TrayIcon>
-        </TrayIcons>
-    </TrayIcon.Icons>
-
     <Application.Styles>
         <FluentTheme />
     </Application.Styles>

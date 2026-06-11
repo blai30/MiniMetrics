@@ -1,11 +1,14 @@
 using System;
+using System.Collections.Generic;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using System.Linq;
 using Avalonia.Markup.Xaml;
+using Avalonia.Platform;
 using Avalonia.Threading;
+using DesktopMetrics.Models;
 using DesktopMetrics.Services;
 using DesktopMetrics.ViewModels;
 using DesktopMetrics.Views;
@@ -16,6 +19,17 @@ public partial class App : Application
 {
     private MetricsPoller? _poller;
     private ISensorSource? _source;
+    private SettingsStore _settingsStore = null!;
+    private Settings _settings = null!;
+    private MainWindowViewModel _viewModel = null!;
+    private MainWindow _window = null!;
+    private DesktopWindow _desktop = null!;
+    private DispatcherTimer? _saveTimer;
+
+    private TrayIcon? _trayIcon;
+    private NativeMenuItem _showHideItem = null!;
+    private NativeMenuItem _lockItem = null!;
+    private readonly Dictionary<string, NativeMenuItem> _metricItems = new();
 
     public override void Initialize()
     {
@@ -26,12 +40,14 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            // The widget lives in the tray. Hiding or closing its window must not quit the app.
             desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
-
             DisableAvaloniaDataAnnotationValidation();
 
-            var viewModel = new MainWindowViewModel();
+            _settingsStore = new SettingsStore(SettingsStore.DefaultPath);
+            _settings = _settingsStore.Load();
+
+            _viewModel = new MainWindowViewModel();
+            _viewModel.LoadVisibility(_settings.Visibility);
 
             _source = OperatingSystem.IsWindows()
                 ? new LibreHardwareSensorSource()
@@ -39,16 +55,58 @@ public partial class App : Application
 
             _poller = new MetricsPoller(_source, TimeSpan.FromSeconds(1));
             _poller.SnapshotReady += snapshot =>
-                Dispatcher.UIThread.Post(() => viewModel.ApplySnapshot(snapshot));
+                Dispatcher.UIThread.Post(() => _viewModel.ApplySnapshot(snapshot));
 
-            var window = new MainWindow { DataContext = viewModel };
-            desktop.MainWindow = window;
-            window.Show();
+            _window = new MainWindow
+            {
+                DataContext = _viewModel,
+                WindowStartupLocation = WindowStartupLocation.Manual,
+                IsLocked = _settings.Locked,
+            };
+
+            _desktop = new DesktopWindow(_window);
+            _desktop.Attach();
+
+            // Restore the saved position before the window appears, if one exists.
+            if (_settings.X is int x && _settings.Y is int y)
+            {
+                _window.Position = new PixelPoint(x, y);
+            }
+
+            // Throttle position saves so a drag results in one write, not hundreds.
+            _saveTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(600) };
+            _saveTimer.Tick += (_, _) =>
+            {
+                _saveTimer!.Stop();
+                Save();
+            };
+            _window.PositionChanged += (_, _) =>
+            {
+                _settings.X = _window.Position.X;
+                _settings.Y = _window.Position.Y;
+                _saveTimer!.Stop();
+                _saveTimer.Start();
+            };
+
+            _window.Opened += (_, _) =>
+            {
+                _desktop.SendToBottom();
+                _desktop.SetClickThrough(_settings.Locked);
+            };
+
+            desktop.MainWindow = _window;
+            if (!_settings.Hidden)
+            {
+                _window.Show();
+            }
 
             _poller.Start();
 
+            BuildTray();
+
             desktop.ShutdownRequested += (_, _) =>
             {
+                Save();
                 _poller?.Dispose();
                 (_source as IDisposable)?.Dispose();
             };
@@ -57,13 +115,98 @@ public partial class App : Application
         base.OnFrameworkInitializationCompleted();
     }
 
-    private void OnQuitClick(object? sender, EventArgs e)
+    private void BuildTray()
     {
-        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        var menu = new NativeMenu();
+
+        _showHideItem = new NativeMenuItem(_settings.Hidden ? "Show widget" : "Hide widget");
+        _showHideItem.Click += OnToggleShowHide;
+        menu.Add(_showHideItem);
+
+        _lockItem = new NativeMenuItem("Lock position")
         {
-            desktop.Shutdown();
+            ToggleType = NativeMenuItemToggleType.CheckBox,
+            IsChecked = _settings.Locked,
+        };
+        _lockItem.Click += OnToggleLock;
+        menu.Add(_lockItem);
+
+        menu.Add(new NativeMenuItemSeparator());
+
+        foreach (var (key, label) in new[]
+                 {
+                     ("cpu", "CPU"), ("ram", "RAM"), ("gpu", "GPU"), ("vram", "VRAM"),
+                 })
+        {
+            // `key` is a fresh variable per iteration, so capturing it in the handler is safe.
+            var item = new NativeMenuItem(label)
+            {
+                ToggleType = NativeMenuItemToggleType.CheckBox,
+                IsChecked = _settings.Visibility.GetValueOrDefault(key, true),
+            };
+            item.Click += (_, _) => ToggleMetric(key, item);
+            _metricItems[key] = item;
+            menu.Add(item);
         }
+
+        menu.Add(new NativeMenuItemSeparator());
+
+        var quit = new NativeMenuItem("Quit");
+        quit.Click += (_, _) =>
+        {
+            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            {
+                desktop.Shutdown();
+            }
+        };
+        menu.Add(quit);
+
+        _trayIcon = new TrayIcon
+        {
+            Icon = new WindowIcon(AssetLoader.Open(new Uri("avares://DesktopMetrics/Assets/avalonia-logo.ico"))),
+            ToolTipText = "Desktop Metrics",
+            Menu = menu,
+        };
+
+        TrayIcon.SetIcons(this, new TrayIcons { _trayIcon });
     }
+
+    private void OnToggleShowHide(object? sender, EventArgs e)
+    {
+        _settings.Hidden = !_settings.Hidden;
+        if (_settings.Hidden)
+        {
+            _window.Hide();
+        }
+        else
+        {
+            _window.Show();
+            _desktop.SendToBottom();
+        }
+
+        _showHideItem.Header = _settings.Hidden ? "Show widget" : "Hide widget";
+        Save();
+    }
+
+    private void OnToggleLock(object? sender, EventArgs e)
+    {
+        _settings.Locked = !_settings.Locked;
+        _window.IsLocked = _settings.Locked;
+        _desktop.SetClickThrough(_settings.Locked);
+        _lockItem.IsChecked = _settings.Locked;
+        Save();
+    }
+
+    private void ToggleMetric(string key, NativeMenuItem item)
+    {
+        bool visible = !_settings.Visibility.GetValueOrDefault(key, true);
+        _settings.Visibility[key] = visible;
+        _viewModel.SetVisibility(key, visible);
+        item.IsChecked = visible;
+        Save();
+    }
+
+    private void Save() => _settingsStore.Save(_settings);
 
     private void DisableAvaloniaDataAnnotationValidation()
     {

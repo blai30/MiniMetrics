@@ -8,6 +8,8 @@ namespace DesktopMetrics.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {
+    private readonly Dictionary<string, bool> _visibility = new();
+
     public ObservableCollection<MetricRowViewModel> Rows { get; } = new();
 
     // Reconciles the bound row collection against a freshly built row list,
@@ -43,6 +45,33 @@ public partial class MainWindowViewModel : ViewModelBase
             existing.Detail = row.Detail;
             existing.BarPercent = row.BarPercent;
             existing.Color = row.Color;
+            existing.IsVisible = _visibility.GetValueOrDefault(row.Key, true);
+        }
+    }
+
+    // Loads the initial visibility map from persisted settings. Applies to any rows already present.
+    public void LoadVisibility(IDictionary<string, bool> map)
+    {
+        foreach (var pair in map)
+        {
+            _visibility[pair.Key] = pair.Value;
+        }
+
+        foreach (var row in Rows)
+        {
+            row.IsVisible = _visibility.GetValueOrDefault(row.Key, true);
+        }
+    }
+
+    // Toggles a single metric's visibility and updates the row immediately if present.
+    public void SetVisibility(string key, bool visible)
+    {
+        _visibility[key] = visible;
+
+        var row = Rows.FirstOrDefault(r => r.Key == key);
+        if (row is not null)
+        {
+            row.IsVisible = visible;
         }
     }
 }

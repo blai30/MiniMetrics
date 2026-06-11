@@ -10,7 +10,7 @@
         Title="DesktopMetrics"
         SystemDecorations="None"
         Background="Transparent"
-        TransparencyLevelHint="AcrylicBlur"
+        TransparencyLevelHint="Transparent"
         ShowInTaskbar="False"
         Topmost="False"
         CanResize="False"
@@ -36,22 +36,17 @@
         </Style>
     </Window.Styles>
 
-    <Border CornerRadius="16" ClipToBounds="True">
-        <Panel>
-            <ExperimentalAcrylicBorder IsHitTestVisible="False">
-                <ExperimentalAcrylicBorder.Material>
-                    <ExperimentalAcrylicMaterial BackgroundSource="Digger"
-                                                 TintColor="#12151D"
-                                                 TintOpacity="1.0"
-                                                 MaterialOpacity="0.87" />
-                </ExperimentalAcrylicBorder.Material>
-            </ExperimentalAcrylicBorder>
-
-            <Border BorderBrush="#1FFFFFFF"
-                    BorderThickness="1"
-                    CornerRadius="16"
-                    Padding="22,18"
-                    TextElement.FontFeatures="+tnum">
+    <Border BorderBrush="#1FFFFFFF"
+            BorderThickness="1"
+            CornerRadius="16"
+            Padding="22,18,22,22"
+            TextElement.FontFeatures="+tnum">
+        <Border.Background>
+            <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                <GradientStop Offset="0" Color="#F01D2231" />
+                <GradientStop Offset="1" Color="#F012151D" />
+            </LinearGradientBrush>
+        </Border.Background>
                 <ItemsControl ItemsSource="{Binding Rows}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
@@ -103,7 +98,5 @@
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
-            </Border>
-        </Panel>
     </Border>
 </Window>
