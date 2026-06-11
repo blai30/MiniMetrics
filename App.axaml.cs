@@ -90,6 +90,7 @@ public partial class App : Application
 
             _window.Opened += (_, _) =>
             {
+                EnsureOnScreen();
                 _desktop.SendToBottom();
                 _desktop.SetClickThrough(_settings.Locked);
             };
@@ -204,6 +205,27 @@ public partial class App : Application
         _viewModel.SetVisibility(key, visible);
         item.IsChecked = visible;
         Save();
+    }
+
+    // If the restored position lands off every monitor (display unplugged or resolution changed),
+    // pull the widget back onto the primary screen so it cannot get lost.
+    private void EnsureOnScreen()
+    {
+        var screens = _window.Screens;
+        if (screens is null || screens.All.Count == 0)
+        {
+            return;
+        }
+
+        if (screens.ScreenFromPoint(_window.Position) is null)
+        {
+            var primary = screens.Primary ?? screens.All[0];
+            var area = primary.WorkingArea;
+            _window.Position = new PixelPoint(area.X + 48, area.Y + 48);
+            _settings.X = _window.Position.X;
+            _settings.Y = _window.Position.Y;
+            Save();
+        }
     }
 
     private void Save() => _settingsStore.Save(_settings);

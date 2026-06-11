@@ -89,7 +89,7 @@ public static class RowBuilder
     // Thresholds tuned for GPU load temperatures; revisited when CPU temp and per-sensor
     // customization arrive in a later plan.
     private static TempLevel LevelFor(double celsius)
-        => celsius >= 85 ? TempLevel.Hot
-            : celsius >= 70 ? TempLevel.Warm
+        => celsius >= 84 ? TempLevel.Hot
+            : celsius >= 65 ? TempLevel.Warm
             : TempLevel.Cool;
 }
