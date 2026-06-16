@@ -61,7 +61,7 @@
         </StackPanel>
 
         <StackPanel Spacing="8">
-            <TextBlock Text="Timezone" FontWeight="SemiBold" Foreground="#EDEFF2" />
+            <TextBlock Text="Time zone" FontWeight="SemiBold" Foreground="#EDEFF2" />
             <ComboBox ItemsSource="{Binding TimeZones}"
                       SelectedItem="{Binding SelectedTimeZone}"
                       HorizontalAlignment="Stretch"

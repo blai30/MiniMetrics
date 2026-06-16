@@ -120,6 +120,8 @@ public partial class SettingsViewModel : ObservableObject
             }
         }
 
+        // Last resort if the system list somehow lacks the local zone; the dropdown shows no
+        // selection in that case.
         return TimeZoneInfo.Local;
     }
 }
