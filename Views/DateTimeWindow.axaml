@@ -1,0 +1,38 @@
+<views:OverlayWindow xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:MiniMetrics.ViewModels"
+        xmlns:views="using:MiniMetrics.Views"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        x:Class="MiniMetrics.Views.DateTimeWindow"
+        x:DataType="vm:DateTimeWidgetViewModel"
+        Title="MiniMetrics Clock"
+        WindowDecorations="None"
+        Background="Transparent"
+        TransparencyLevelHint="Transparent"
+        ShowInTaskbar="False"
+        Topmost="False"
+        CanResize="False"
+        Width="640"
+        Height="176"
+        FontFamily="avares://Avalonia.Fonts.Inter/Assets#Inter">
+
+    <Border BorderBrush="#1FFFFFFF"
+            BorderThickness="1"
+            CornerRadius="0"
+            Background="{Binding CardBackground}"
+            TextElement.FontFeatures="+tnum">
+        <StackPanel VerticalAlignment="Center" Margin="28,0,28,0">
+            <TextBlock Text="{Binding TimeText}"
+                       FontSize="64"
+                       FontWeight="Bold"
+                       Foreground="#EEF0F3" />
+            <TextBlock Text="{Binding DateText}"
+                       FontSize="16"
+                       FontWeight="SemiBold"
+                       Foreground="#C2C9D4"
+                       Margin="2,6,0,0" />
+        </StackPanel>
+    </Border>
+</views:OverlayWindow>
