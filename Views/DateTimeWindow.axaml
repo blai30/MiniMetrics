@@ -21,18 +21,17 @@
     <Border BorderBrush="#1FFFFFFF"
             BorderThickness="1"
             CornerRadius="0"
-            Background="{Binding CardBackground}"
-            TextElement.FontFeatures="+tnum">
+            Background="{Binding CardBackground}">
         <StackPanel VerticalAlignment="Center" Margin="28,0,28,0">
             <TextBlock Text="{Binding TimeText}"
-                       FontSize="64"
-                       FontWeight="Bold"
+                       FontSize="80"
+                       FontWeight="Medium"
                        Foreground="#EEF0F3" />
             <TextBlock Text="{Binding DateText}"
-                       FontSize="16"
+                       FontSize="28"
                        FontWeight="SemiBold"
                        Foreground="#C2C9D4"
-                       Margin="2,6,0,0" />
+                       Margin="2,8,0,0" />
         </StackPanel>
     </Border>
 </views:OverlayWindow>
