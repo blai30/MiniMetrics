@@ -23,6 +23,7 @@ public partial class App : Application
     private MainWindow _window = null!;
     private DesktopWindow _desktop = null!;
     private DispatcherTimer? _saveTimer;
+    private DispatcherTimer? _trimTimer;
 
     private TrayIcon? _trayIcon;
     private NativeMenuItem _showHideItem = null!;
@@ -100,6 +101,18 @@ public partial class App : Application
                 _desktop.SetAlwaysOnTop(_settings.AlwaysOnTop);
                 _desktop.SetClickThrough(_settings.Locked);
             };
+
+            // The CLR, JIT and Avalonia commit far more than the idle widget keeps touching, so the
+            // resident set balloons at startup. Trim it back to the working pages once warmup has
+            // settled (first tick), then top up periodically. The 60s steady interval keeps a trim
+            // from landing mid-drag, where evicted pages would refault and stutter the move.
+            _trimTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(10) };
+            _trimTimer.Tick += (_, _) =>
+            {
+                MemoryTrimmer.Trim();
+                _trimTimer!.Interval = TimeSpan.FromSeconds(60);
+            };
+            _trimTimer.Start();
 
             desktop.MainWindow = _window;
             if (!_settings.Hidden)
