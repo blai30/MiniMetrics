@@ -6,12 +6,12 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Platform;
 using Avalonia.Threading;
-using DesktopMetrics.Models;
-using DesktopMetrics.Services;
-using DesktopMetrics.ViewModels;
-using DesktopMetrics.Views;
+using MiniMetrics.Models;
+using MiniMetrics.Services;
+using MiniMetrics.ViewModels;
+using MiniMetrics.Views;
 
-namespace DesktopMetrics;
+namespace MiniMetrics;
 
 public partial class App : Application
 {
@@ -150,8 +150,8 @@ public partial class App : Application
 
         _trayIcon = new TrayIcon
         {
-            Icon = new WindowIcon(AssetLoader.Open(new Uri("avares://DesktopMetrics/Assets/avalonia-logo.ico"))),
-            ToolTipText = "Desktop Metrics",
+            Icon = new WindowIcon(AssetLoader.Open(new Uri("avares://MiniMetrics/Assets/avalonia-logo.ico"))),
+            ToolTipText = "Mini Metrics",
             Menu = menu,
         };
 

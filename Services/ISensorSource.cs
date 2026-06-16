@@ -1,6 +1,6 @@
-using DesktopMetrics.Models;
+using MiniMetrics.Models;
 
-namespace DesktopMetrics.Services;
+namespace MiniMetrics.Services;
 
 // Reads one snapshot of current hardware metrics. Implementations may be stateful.
 public interface ISensorSource

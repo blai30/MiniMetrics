@@ -1,7 +1,7 @@
 using System;
 using System.Globalization;
 
-namespace DesktopMetrics.Lib;
+namespace MiniMetrics.Lib;
 
 // Derives the card's two gradient stops from a single opaque base color and an
 // opacity percentage. Pure and Avalonia-free; a view model turns the hex strings

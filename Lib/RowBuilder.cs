@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using DesktopMetrics.Models;
+using MiniMetrics.Models;
 
-namespace DesktopMetrics.Lib;
+namespace MiniMetrics.Lib;
 
 public enum RowColor
 {

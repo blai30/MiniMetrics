@@ -1,9 +1,9 @@
 using System;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
-using DesktopMetrics.ViewModels;
+using MiniMetrics.ViewModels;
 
-namespace DesktopMetrics;
+namespace MiniMetrics;
 
 public class ViewLocator : IDataTemplate
 {

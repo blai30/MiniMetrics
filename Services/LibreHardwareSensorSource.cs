@@ -1,9 +1,9 @@
 using System;
 using System.Linq;
-using DesktopMetrics.Models;
+using MiniMetrics.Models;
 using LibreHardwareMonitor.Hardware;
 
-namespace DesktopMetrics.Services;
+namespace MiniMetrics.Services;
 
 public sealed class LibreHardwareSensorSource : ISensorSource, IDisposable
 {

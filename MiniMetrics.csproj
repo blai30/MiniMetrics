@@ -7,7 +7,7 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <!-- The test project is nested under the repo root, so exclude it from this project's default file globbing. -->
-    <DefaultItemExcludes>$(DefaultItemExcludes);DesktopMetrics.Tests\**</DefaultItemExcludes>
+    <DefaultItemExcludes>$(DefaultItemExcludes);MiniMetrics.Tests\**</DefaultItemExcludes>
   </PropertyGroup>
 
   <ItemGroup>

@@ -1,4 +1,4 @@
-namespace DesktopMetrics.Models;
+namespace MiniMetrics.Models;
 
 // The full set of readings produced once per poll. Gpu is null when no NVIDIA GPU is present.
 public sealed record MetricsSnapshot(

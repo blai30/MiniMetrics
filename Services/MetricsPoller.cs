@@ -1,9 +1,9 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using DesktopMetrics.Models;
+using MiniMetrics.Models;
 
-namespace DesktopMetrics.Services;
+namespace MiniMetrics.Services;
 
 public sealed class MetricsPoller : IDisposable
 {

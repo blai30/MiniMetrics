@@ -1,6 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace DesktopMetrics.ViewModels;
+namespace MiniMetrics.ViewModels;
 
 public class ViewModelBase : ObservableObject
 {

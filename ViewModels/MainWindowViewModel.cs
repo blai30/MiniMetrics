@@ -4,10 +4,10 @@ using System.Linq;
 using Avalonia;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
-using DesktopMetrics.Lib;
-using DesktopMetrics.Models;
+using MiniMetrics.Lib;
+using MiniMetrics.Models;
 
-namespace DesktopMetrics.ViewModels;
+namespace MiniMetrics.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {

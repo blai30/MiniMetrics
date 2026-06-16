@@ -1,9 +1,9 @@
 using System;
 using System.IO;
 using System.Text.Json;
-using DesktopMetrics.Models;
+using MiniMetrics.Models;
 
-namespace DesktopMetrics.Services;
+namespace MiniMetrics.Services;
 
 public sealed class SettingsStore
 {
@@ -13,10 +13,10 @@ public sealed class SettingsStore
 
     public SettingsStore(string path) => _path = path;
 
-    // %APPDATA%\DesktopMetrics\settings.json
+    // %APPDATA%\MiniMetrics\settings.json
     public static string DefaultPath => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "DesktopMetrics",
+        "MiniMetrics",
         "settings.json");
 
     public Settings Load()

@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using DesktopMetrics.Models;
+using MiniMetrics.Models;
 
-namespace DesktopMetrics.ViewModels;
+namespace MiniMetrics.ViewModels;
 
 public partial class SettingsViewModel : ObservableObject
 {

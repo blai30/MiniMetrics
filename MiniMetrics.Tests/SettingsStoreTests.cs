@@ -1,9 +1,9 @@
 using System.IO;
-using DesktopMetrics.Models;
-using DesktopMetrics.Services;
+using MiniMetrics.Models;
+using MiniMetrics.Services;
 using Xunit;
 
-namespace DesktopMetrics.Tests;
+namespace MiniMetrics.Tests;
 
 public class SettingsStoreTests
 {

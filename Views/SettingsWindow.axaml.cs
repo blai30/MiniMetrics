@@ -1,6 +1,6 @@
 using Avalonia.Controls;
 
-namespace DesktopMetrics.Views;
+namespace MiniMetrics.Views;
 
 public partial class SettingsWindow : Window
 {

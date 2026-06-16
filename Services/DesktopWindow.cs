@@ -2,7 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 using Avalonia.Controls;
 
-namespace DesktopMetrics.Services;
+namespace MiniMetrics.Services;
 
 // Encapsulates the Windows-only window behavior: no taskbar/alt-tab entry, never steals focus,
 // always pinned to the bottom of the z-order, and optional click-through. No-op off Windows.

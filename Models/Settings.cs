@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace DesktopMetrics.Models;
+namespace MiniMetrics.Models;
 
 public sealed class Settings
 {

@@ -1,7 +1,7 @@
-using DesktopMetrics.Lib;
+using MiniMetrics.Lib;
 using Xunit;
 
-namespace DesktopMetrics.Tests;
+namespace MiniMetrics.Tests;
 
 public class AppearanceGradientTests
 {

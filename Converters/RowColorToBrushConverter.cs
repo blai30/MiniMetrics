@@ -3,9 +3,9 @@ using System.Globalization;
 using Avalonia;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
-using DesktopMetrics.Lib;
+using MiniMetrics.Lib;
 
-namespace DesktopMetrics.Converters;
+namespace MiniMetrics.Converters;
 
 public sealed class RowColorToBrushConverter : IValueConverter
 {

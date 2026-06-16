@@ -1,8 +1,8 @@
-using DesktopMetrics.Models;
-using DesktopMetrics.ViewModels;
+using MiniMetrics.Models;
+using MiniMetrics.ViewModels;
 using Xunit;
 
-namespace DesktopMetrics.Tests;
+namespace MiniMetrics.Tests;
 
 public class SettingsViewModelTests
 {

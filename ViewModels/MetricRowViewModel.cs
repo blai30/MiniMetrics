@@ -1,7 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
-using DesktopMetrics.Lib;
+using MiniMetrics.Lib;
 
-namespace DesktopMetrics.ViewModels;
+namespace MiniMetrics.ViewModels;
 
 public partial class MetricRowViewModel : ObservableObject
 {

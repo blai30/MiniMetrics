@@ -1,9 +1,9 @@
 using System.Linq;
-using DesktopMetrics.Lib;
-using DesktopMetrics.Models;
+using MiniMetrics.Lib;
+using MiniMetrics.Models;
 using Xunit;
 
-namespace DesktopMetrics.Tests;
+namespace MiniMetrics.Tests;
 
 public class RowBuilderTests
 {

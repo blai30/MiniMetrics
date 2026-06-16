@@ -1,6 +1,6 @@
 using LibreHardwareMonitor.Hardware;
 
-namespace DesktopMetrics.Services;
+namespace MiniMetrics.Services;
 
 // Walks the hardware tree and refreshes every device's sensors. Required before reading values.
 public sealed class UpdateVisitor : IVisitor

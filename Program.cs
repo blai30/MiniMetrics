@@ -1,7 +1,7 @@
 ﻿using Avalonia;
 using System;
 
-namespace DesktopMetrics;
+namespace MiniMetrics;
 
 sealed class Program
 {

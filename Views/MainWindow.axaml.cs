@@ -1,7 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 
-namespace DesktopMetrics.Views;
+namespace MiniMetrics.Views;
 
 public partial class MainWindow : Window
 {

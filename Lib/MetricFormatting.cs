@@ -1,6 +1,6 @@
 using System;
 
-namespace DesktopMetrics.Lib;
+namespace MiniMetrics.Lib;
 
 public static class MetricFormatting
 {

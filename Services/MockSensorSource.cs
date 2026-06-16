@@ -1,7 +1,7 @@
 using System;
-using DesktopMetrics.Models;
+using MiniMetrics.Models;
 
-namespace DesktopMetrics.Services;
+namespace MiniMetrics.Services;
 
 public sealed class MockSensorSource : ISensorSource
 {
