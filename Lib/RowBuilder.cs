@@ -42,7 +42,9 @@ public static class RowBuilder
                 "cpu",
                 "CPU",
                 MetricFormatting.FormatPercent(snapshot.Cpu.UsagePercent),
-                snapshot.Cpu.TempCelsius is double cpuTemp ? MetricFormatting.FormatTemp(cpuTemp) : "",
+                // CPU temperature is deferred (needs the kernel driver). Until then the hero slot
+                // shows a muted placeholder rather than going blank.
+                snapshot.Cpu.TempCelsius is double cpuTemp ? MetricFormatting.FormatTempValue(cpuTemp) : "--",
                 snapshot.Cpu.TempCelsius is double cpuLevel ? LevelFor(cpuLevel) : TempLevel.None,
                 "",
                 snapshot.Cpu.UsagePercent,
@@ -64,9 +66,9 @@ public static class RowBuilder
                 "gpu",
                 "GPU",
                 MetricFormatting.FormatPercent(gpu.UsagePercent),
-                MetricFormatting.FormatTemp(gpu.TempCelsius),
+                MetricFormatting.FormatTempValue(gpu.TempCelsius),
                 LevelFor(gpu.TempCelsius),
-                $"· {MetricFormatting.FormatPower(gpu.PowerWatts)}",
+                MetricFormatting.FormatPower(gpu.PowerWatts),
                 gpu.UsagePercent,
                 RowColor.Amber));
             rows.Add(new(

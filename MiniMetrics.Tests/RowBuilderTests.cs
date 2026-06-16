@@ -26,8 +26,8 @@ public class RowBuilderTests
         var cpu = rows.Single(r => r.Key == "cpu");
         var ram = rows.Single(r => r.Key == "ram");
 
-        Assert.Equal("34%", cpu.Value);
-        Assert.Equal("", cpu.Temp); // no CPU temp in v1
+        Assert.Equal("34", cpu.Value);
+        Assert.Equal("--", cpu.Temp); // CPU temp deferred: muted placeholder
         Assert.Equal(TempLevel.None, cpu.TempLevel);
         Assert.Equal("", cpu.Detail);
         Assert.Equal(RowColor.Cyan, cpu.Color);
@@ -45,9 +45,9 @@ public class RowBuilderTests
         var gpu = rows.Single(r => r.Key == "gpu");
         var vram = rows.Single(r => r.Key == "vram");
 
-        Assert.Equal("78%", gpu.Value);
-        Assert.Equal("71°C", gpu.Temp);
-        Assert.Equal("· 185W", gpu.Detail);
+        Assert.Equal("78", gpu.Value);
+        Assert.Equal("71", gpu.Temp);
+        Assert.Equal("185W", gpu.Detail);
         Assert.Equal(RowColor.Amber, gpu.Color);
 
         Assert.Equal("6.4", vram.Value);

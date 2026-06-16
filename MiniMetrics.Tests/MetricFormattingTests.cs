@@ -6,9 +6,9 @@ namespace MiniMetrics.Tests;
 public class MetricFormattingTests
 {
     [Theory]
-    [InlineData(34.4, "34%")]
-    [InlineData(77.6, "78%")]
-    public void FormatPercent_rounds_to_whole_number(double value, string expected)
+    [InlineData(34.4, "34")]
+    [InlineData(77.6, "78")]
+    public void FormatPercent_rounds_to_a_bare_whole_number(double value, string expected)
     {
         Assert.Equal(expected, MetricFormatting.FormatPercent(value));
     }
@@ -28,9 +28,9 @@ public class MetricFormattingTests
     }
 
     [Fact]
-    public void FormatTemp_appends_celsius()
+    public void FormatTempValue_rounds_to_a_bare_whole_number()
     {
-        Assert.Equal("62°C", MetricFormatting.FormatTemp(62.0));
+        Assert.Equal("62", MetricFormatting.FormatTempValue(62.0));
     }
 
     [Fact]

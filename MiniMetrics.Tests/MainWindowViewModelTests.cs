@@ -18,7 +18,7 @@ public class MainWindowViewModelTests
         var vm = new MainWindowViewModel();
         vm.ApplySnapshot(WithGpu());
         Assert.Equal(new[] { "cpu", "ram", "gpu", "vram" }, vm.Rows.Select(r => r.Key).ToArray());
-        Assert.Equal("34%", vm.Rows.Single(r => r.Key == "cpu").Value);
+        Assert.Equal("34", vm.Rows.Single(r => r.Key == "cpu").Value);
     }
 
     [Fact]
@@ -32,7 +32,7 @@ public class MainWindowViewModelTests
         vm.ApplySnapshot(updated);
 
         Assert.Same(cpuRow, vm.Rows.Single(r => r.Key == "cpu"));
-        Assert.Equal("50%", cpuRow.Value);
+        Assert.Equal("50", cpuRow.Value);
     }
 
     [Fact]
@@ -42,6 +42,31 @@ public class MainWindowViewModelTests
         vm.ApplySnapshot(WithGpu());
         vm.ApplySnapshot(WithGpu() with { Gpu = null });
         Assert.Equal(new[] { "cpu", "ram" }, vm.Rows.Select(r => r.Key).ToArray());
+    }
+
+    [Fact]
+    public void Column_accessors_map_to_the_matching_rows()
+    {
+        var vm = new MainWindowViewModel();
+        vm.ApplySnapshot(WithGpu());
+
+        Assert.Equal("cpu", vm.Cpu!.Key);
+        Assert.Equal("ram", vm.Ram!.Key);
+        Assert.Equal("gpu", vm.Gpu!.Key);
+        Assert.Equal("vram", vm.Vram!.Key);
+        Assert.True(vm.HasGpu);
+    }
+
+    [Fact]
+    public void HasGpu_is_false_and_gpu_accessors_null_without_a_gpu()
+    {
+        var vm = new MainWindowViewModel();
+        vm.ApplySnapshot(WithGpu() with { Gpu = null });
+
+        Assert.NotNull(vm.Cpu);
+        Assert.Null(vm.Gpu);
+        Assert.Null(vm.Vram);
+        Assert.False(vm.HasGpu);
     }
 
     [Fact]

@@ -14,6 +14,16 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public ObservableCollection<MetricRowViewModel> Rows { get; } = new();
 
+    // Named accessors onto the four fixed metrics so the two-column layout can bind each slot
+    // directly. Rows stays the source of truth; these reflect whatever it currently holds.
+    public MetricRowViewModel? Cpu => Rows.FirstOrDefault(r => r.Key == "cpu");
+    public MetricRowViewModel? Ram => Rows.FirstOrDefault(r => r.Key == "ram");
+    public MetricRowViewModel? Gpu => Rows.FirstOrDefault(r => r.Key == "gpu");
+    public MetricRowViewModel? Vram => Rows.FirstOrDefault(r => r.Key == "vram");
+
+    // Drives the right column and the divider: both collapse when no NVIDIA GPU is present.
+    public bool HasGpu => Gpu is not null;
+
     [ObservableProperty]
     private IBrush _cardBackground = Brushes.Transparent;
 
@@ -28,6 +38,9 @@ public partial class MainWindowViewModel : ViewModelBase
     // updating existing rows in place so the UI animates smoothly and bindings stay alive.
     public void ApplySnapshot(MetricsSnapshot snapshot)
     {
+        bool wasEmpty = Rows.Count == 0;
+        bool hadGpu = Gpu is not null;
+
         IReadOnlyList<MetricRow> built = RowBuilder.Build(snapshot);
 
         // Remove rows that no longer exist (for example GPU and VRAM when no GPU is present).
@@ -58,6 +71,17 @@ public partial class MainWindowViewModel : ViewModelBase
             existing.BarPercent = row.BarPercent;
             existing.Color = row.Color;
             existing.IsVisible = _visibility.GetValueOrDefault(row.Key, true);
+        }
+
+        // The accessor properties read from Rows, so they only need to re-notify when the set of
+        // rows actually changes identity: the first populate, or the GPU appearing/disappearing.
+        if (wasEmpty || hadGpu != (Gpu is not null))
+        {
+            OnPropertyChanged(nameof(Cpu));
+            OnPropertyChanged(nameof(Ram));
+            OnPropertyChanged(nameof(Gpu));
+            OnPropertyChanged(nameof(Vram));
+            OnPropertyChanged(nameof(HasGpu));
         }
     }
 

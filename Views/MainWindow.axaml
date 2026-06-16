@@ -14,13 +14,88 @@
         ShowInTaskbar="False"
         Topmost="False"
         CanResize="False"
-        SizeToContent="Height"
-        Width="296"
+        Width="400"
+        Height="176"
         FontFamily="avares://Avalonia.Fonts.Inter/Assets#Inter">
 
     <Window.Resources>
         <conv:RowColorToBrushConverter x:Key="RowColorToBrush" />
         <conv:TempLevelToBrushConverter x:Key="TempLevelToBrush" />
+
+        <!-- A compute metric (CPU, GPU): temperature is the hero number, usage is the strong
+        second, and an optional power draw sits at the top right. -->
+        <DataTemplate x:Key="ComputeTemplate" x:DataType="vm:MetricRowViewModel">
+            <StackPanel>
+                <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,7">
+                    <TextBlock Grid.Column="0"
+                               Text="{Binding Label}"
+                               FontSize="14"
+                               FontWeight="Bold"
+                               Foreground="#C2C9D4"
+                               VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1"
+                               Text="{Binding Detail}"
+                               IsVisible="{Binding HasDetail}"
+                               FontSize="14"
+                               FontWeight="Bold"
+                               Foreground="#BCC3CE"
+                               VerticalAlignment="Center" />
+                </Grid>
+
+                <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,10">
+                    <!-- Temperature hero: big value with a small, top-aligned unit whose degree
+                    sign is superscripted. -->
+                    <StackPanel Grid.Column="0"
+                                Orientation="Horizontal"
+                                VerticalAlignment="Center">
+                        <TextBlock Text="{Binding Temp}"
+                                   FontSize="42"
+                                   FontWeight="Bold"
+                                   LineHeight="40"
+                                   VerticalAlignment="Bottom"
+                                   Foreground="{Binding TempLevel, Converter={StaticResource TempLevelToBrush}}" />
+                        <TextBlock VerticalAlignment="Top"
+                                   Margin="2,4,0,0"
+                                   FontSize="19"
+                                   FontWeight="SemiBold"
+                                   Foreground="{Binding TempLevel, Converter={StaticResource TempLevelToBrush}}"><Run Text="°" FontSize="13" BaselineAlignment="Superscript" /><Run Text="C" /></TextBlock>
+                    </StackPanel>
+
+                    <!-- Usage: strong but secondary to the temperature. -->
+                    <TextBlock Grid.Column="1"
+                               VerticalAlignment="Bottom"
+                               Foreground="#EEF0F3"><Run Text="{Binding Value}" FontSize="24" FontWeight="Bold" /><Run Text="%" FontSize="14" FontWeight="SemiBold" /></TextBlock>
+                </Grid>
+
+                <ProgressBar Classes="metric"
+                             Minimum="0"
+                             Maximum="100"
+                             Value="{Binding BarPercent}"
+                             Foreground="{Binding Color, Converter={StaticResource RowColorToBrush}}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <!-- A memory metric (RAM, VRAM): a quiet used / total readout above its bar. -->
+        <DataTemplate x:Key="MemoryTemplate" x:DataType="vm:MetricRowViewModel">
+            <StackPanel>
+                <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,8">
+                    <TextBlock Grid.Column="0"
+                               Text="{Binding Label}"
+                               FontSize="12"
+                               FontWeight="Bold"
+                               Foreground="#AEB6C2"
+                               VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1"
+                               VerticalAlignment="Center"><Run Text="{Binding Value}" FontSize="16" FontWeight="Bold" Foreground="#EEF0F3" /><Run Text=" " /><Run Text="{Binding Detail}" FontSize="13" FontWeight="SemiBold" Foreground="#AEB6C2" /></TextBlock>
+                </Grid>
+
+                <ProgressBar Classes="metric"
+                             Minimum="0"
+                             Maximum="100"
+                             Value="{Binding BarPercent}"
+                             Foreground="{Binding Color, Converter={StaticResource RowColorToBrush}}" />
+            </StackPanel>
+        </DataTemplate>
     </Window.Resources>
 
     <Window.Styles>
@@ -39,69 +114,45 @@
     <Border BorderBrush="#1FFFFFFF"
             BorderThickness="1"
             CornerRadius="0"
-            Padding="22,16,22,18"
             Background="{Binding CardBackground}"
             TextElement.FontFeatures="+tnum">
-        <ItemsControl ItemsSource="{Binding Rows}">
-            <ItemsControl.Styles>
-                <!-- Collapse the generated item container itself for hidden rows so the
-                ItemsPanel skips them in layout and adds no spacing around them. -->
-                <Style Selector="ContentPresenter" x:DataType="vm:MetricRowViewModel">
-                    <Setter Property="IsVisible" Value="{Binding IsVisible}" />
-                </Style>
-            </ItemsControl.Styles>
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <StackPanel Spacing="10" />
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate>
-                <DataTemplate x:DataType="vm:MetricRowViewModel">
-                    <StackPanel>
-                        <!-- Columns: label (flex) | value (aligned) | trailing (temp + detail, right). -->
-                        <Grid ColumnDefinitions="*,56,110" Margin="0,0,0,6">
-                            <TextBlock Grid.Column="0"
-                                       Text="{Binding Label}"
-                                       FontSize="16"
-                                       FontWeight="SemiBold"
-                                       Foreground="#EDEFF2"
-                                       VerticalAlignment="Center" />
-                            <TextBlock Grid.Column="1"
-                                       Text="{Binding Value}"
-                                       TextAlignment="Right"
-                                       FontSize="18"
-                                       FontWeight="Bold"
-                                       Foreground="#FFFFFF"
-                                       VerticalAlignment="Center" />
-                            <StackPanel Grid.Column="2"
-                                        Orientation="Horizontal"
-                                        Spacing="6"
-                                        HorizontalAlignment="Right"
-                                        VerticalAlignment="Center">
-                                <TextBlock Text="{Binding Temp}"
-                                           Width="40"
-                                           TextAlignment="Right"
-                                           IsVisible="{Binding HasTemp}"
-                                           FontSize="15"
-                                           FontWeight="SemiBold"
-                                           Foreground="{Binding TempLevel, Converter={StaticResource TempLevelToBrush}}" />
-                                <TextBlock Text="{Binding Detail}"
-                                           Width="62"
-                                           TextAlignment="Right"
-                                           IsVisible="{Binding HasDetail}"
-                                           FontSize="15"
-                                           FontWeight="Medium"
-                                           Foreground="#9AA1AC" />
-                            </StackPanel>
-                        </Grid>
-                        <ProgressBar Classes="metric"
-                                     Minimum="0"
-                                     Maximum="100"
-                                     Value="{Binding BarPercent}"
-                                     Foreground="{Binding Color, Converter={StaticResource RowColorToBrush}}" />
-                    </StackPanel>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
+        <Grid ColumnDefinitions="*,Auto,*">
+            <!-- Left column: CPU over RAM. -->
+            <Grid Grid.Column="0" RowDefinitions="*,Auto" Margin="20,14,20,16">
+                <ContentControl Grid.Row="0"
+                                Content="{Binding Cpu}"
+                                ContentTemplate="{StaticResource ComputeTemplate}"
+                                IsVisible="{Binding Cpu.IsVisible, FallbackValue=False}"
+                                VerticalContentAlignment="Center" />
+                <ContentControl Grid.Row="1"
+                                Margin="0,14,0,0"
+                                Content="{Binding Ram}"
+                                ContentTemplate="{StaticResource MemoryTemplate}"
+                                IsVisible="{Binding Ram.IsVisible, FallbackValue=False}" />
+            </Grid>
+
+            <!-- Divider and right column collapse together when there is no GPU. -->
+            <Border Grid.Column="1"
+                    Width="1"
+                    Background="#14FFFFFF"
+                    IsVisible="{Binding HasGpu}" />
+
+            <!-- Right column: GPU over VRAM. -->
+            <Grid Grid.Column="2"
+                  RowDefinitions="*,Auto"
+                  Margin="20,14,20,16"
+                  IsVisible="{Binding HasGpu}">
+                <ContentControl Grid.Row="0"
+                                Content="{Binding Gpu}"
+                                ContentTemplate="{StaticResource ComputeTemplate}"
+                                IsVisible="{Binding Gpu.IsVisible, FallbackValue=False}"
+                                VerticalContentAlignment="Center" />
+                <ContentControl Grid.Row="1"
+                                Margin="0,14,0,0"
+                                Content="{Binding Vram}"
+                                ContentTemplate="{StaticResource MemoryTemplate}"
+                                IsVisible="{Binding Vram.IsVisible, FallbackValue=False}" />
+            </Grid>
+        </Grid>
     </Border>
 </Window>
