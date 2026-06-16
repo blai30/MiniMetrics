@@ -36,6 +36,6 @@ public class MetricFormattingTests
     [Fact]
     public void FormatPower_appends_watts()
     {
-        Assert.Equal("185W", MetricFormatting.FormatPower(185.0));
+        Assert.Equal("185 W", MetricFormatting.FormatPower(185.0));
     }
 }

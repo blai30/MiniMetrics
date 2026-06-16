@@ -29,7 +29,7 @@
                 <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,7">
                     <TextBlock Grid.Column="0"
                                Text="{Binding Label}"
-                               FontSize="14"
+                               FontSize="16"
                                FontWeight="Bold"
                                Foreground="#C2C9D4"
                                VerticalAlignment="Center" />
@@ -47,24 +47,24 @@
                     sign is superscripted. -->
                     <StackPanel Grid.Column="0"
                                 Orientation="Horizontal"
-                                VerticalAlignment="Center">
+                                VerticalAlignment="Bottom">
                         <TextBlock Text="{Binding Temp}"
                                    FontSize="42"
                                    FontWeight="Bold"
-                                   LineHeight="40"
                                    VerticalAlignment="Bottom"
                                    Foreground="{Binding TempLevel, Converter={StaticResource TempLevelToBrush}}" />
                         <TextBlock VerticalAlignment="Top"
-                                   Margin="2,4,0,0"
+                                   Margin="2,8,0,0"
                                    FontSize="19"
                                    FontWeight="SemiBold"
                                    Foreground="{Binding TempLevel, Converter={StaticResource TempLevelToBrush}}"><Run Text="°" FontSize="13" BaselineAlignment="Superscript" /><Run Text="C" /></TextBlock>
                     </StackPanel>
 
-                    <!-- Usage: strong but secondary to the temperature. -->
+                    <!-- Usage: strong but secondary; sits on the temperature's baseline. -->
                     <TextBlock Grid.Column="1"
                                VerticalAlignment="Bottom"
-                               Foreground="#EEF0F3"><Run Text="{Binding Value}" FontSize="24" FontWeight="Bold" /><Run Text="%" FontSize="14" FontWeight="SemiBold" /></TextBlock>
+                               Margin="0,0,0,4"
+                               Foreground="#EEF0F3"><Run Text="{Binding Value}" FontSize="24" FontWeight="Bold" /><Run Text=" " FontSize="8" /><Run Text="%" FontSize="14" FontWeight="SemiBold" /></TextBlock>
                 </Grid>
 
                 <ProgressBar Classes="metric"
@@ -81,7 +81,7 @@
                 <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,8">
                     <TextBlock Grid.Column="0"
                                Text="{Binding Label}"
-                               FontSize="12"
+                               FontSize="16"
                                FontWeight="Bold"
                                Foreground="#AEB6C2"
                                VerticalAlignment="Center" />
@@ -104,7 +104,7 @@
             <Setter Property="Height" Value="5" />
             <Setter Property="MinWidth" Value="0" />
             <Setter Property="CornerRadius" Value="0" />
-            <Setter Property="Background" Value="#1FFFFFFF" />
+            <Setter Property="Background" Value="#40FFFFFF" />
         </Style>
         <Style Selector="ProgressBar.metric /template/ Border#PART_Indicator">
             <Setter Property="CornerRadius" Value="0" />

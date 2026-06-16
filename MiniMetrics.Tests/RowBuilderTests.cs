@@ -47,7 +47,7 @@ public class RowBuilderTests
 
         Assert.Equal("78", gpu.Value);
         Assert.Equal("71", gpu.Temp);
-        Assert.Equal("185W", gpu.Detail);
+        Assert.Equal("185 W", gpu.Detail);
         Assert.Equal(RowColor.Amber, gpu.Color);
 
         Assert.Equal("6.4", vram.Value);
