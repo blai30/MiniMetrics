@@ -22,7 +22,11 @@ public sealed class MetricsPoller : IDisposable
     public void Start()
     {
         _cts = new CancellationTokenSource();
-        _ = RunAsync(_cts.Token);
+
+        // Start the loop is invoked from the UI thread, which carries Avalonia's SynchronizationContext.
+        // Task.Run hops to the thread pool so the loop (and every sensor read) runs off the UI thread;
+        // otherwise the await continuation would post each read back to the UI thread and stutter drags.
+        _ = Task.Run(() => RunAsync(_cts.Token));
     }
 
     private async Task RunAsync(CancellationToken token)
