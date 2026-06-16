@@ -20,9 +20,12 @@ public partial class App : Application
     private ISensorSource? _source;
     private SettingsStore _settingsStore = null!;
     private Settings _settings = null!;
-    private MainWindowViewModel _viewModel = null!;
-    private MainWindow _window = null!;
-    private DesktopWindow _desktop = null!;
+    private MetricWidgetViewModel _cpuViewModel = null!;
+    private MetricWidgetViewModel _gpuViewModel = null!;
+    private MetricWidgetWindow _cpuWindow = null!;
+    private MetricWidgetWindow _gpuWindow = null!;
+    private DesktopWindow _cpuDesktop = null!;
+    private DesktopWindow _gpuDesktop = null!;
     private DateTimeWidgetViewModel _dateTimeViewModel = null!;
     private DateTimeWindow _dateTimeWindow = null!;
     private DesktopWindow _dateTimeDesktop = null!;
@@ -31,7 +34,8 @@ public partial class App : Application
     private DispatcherTimer? _trimTimer;
 
     private TrayIcon? _trayIcon;
-    private NativeMenuItem _showHideItem = null!;
+    private NativeMenuItem _cpuShowHideItem = null!;
+    private NativeMenuItem _gpuShowHideItem = null!;
     private NativeMenuItem _clockShowHideItem = null!;
     private NativeMenuItem _lockItem = null!;
     private NativeMenuItem _alwaysOnTopItem = null!;
@@ -55,9 +59,13 @@ public partial class App : Application
             _settings = _settingsStore.Load();
             MigrateVisibility();
 
-            _viewModel = new MainWindowViewModel();
-            _viewModel.LoadVisibility(_settings.Visibility);
-            _viewModel.ApplyAppearance(_settings.BackgroundColor, _settings.Opacity);
+            _cpuViewModel = new MetricWidgetViewModel("cpu", "ram");
+            _cpuViewModel.LoadVisibility(_settings.Visibility);
+            _cpuViewModel.ApplyAppearance(_settings.BackgroundColor, _settings.Opacity);
+
+            _gpuViewModel = new MetricWidgetViewModel("gpu", "vram");
+            _gpuViewModel.LoadVisibility(_settings.Visibility);
+            _gpuViewModel.ApplyAppearance(_settings.BackgroundColor, _settings.Opacity);
 
             _dateTimeViewModel = new DateTimeWidgetViewModel();
             _dateTimeViewModel.ApplyAppearance(_settings.BackgroundColor, _settings.Opacity);
@@ -67,24 +75,42 @@ public partial class App : Application
                 ? new LibreHardwareSensorSource()
                 : new MockSensorSource();
 
-            // Release any device whose every metric is hidden before the first poll runs.
+            // Release any device whose widget is hidden or whose every metric is hidden before the
+            // first poll runs.
             ApplyActiveDevices();
 
             _poller = new MetricsPoller(_source, TimeSpan.FromSeconds(1));
             _poller.SnapshotReady += snapshot =>
-                Dispatcher.UIThread.Post(() => _viewModel.ApplySnapshot(snapshot));
+                Dispatcher.UIThread.Post(() =>
+                {
+                    _cpuViewModel.ApplySnapshot(snapshot);
+                    _gpuViewModel.ApplySnapshot(snapshot);
 
-            _window = new MainWindow
+                    // The GPU widget appears only once a GPU is actually present and not hidden.
+                    UpdateGpuWindowVisibility();
+                });
+
+            _cpuWindow = new MetricWidgetWindow
             {
-                DataContext = _viewModel,
+                DataContext = _cpuViewModel,
                 WindowStartupLocation = WindowStartupLocation.Manual,
                 IsLocked = _settings.Locked,
                 SnapEnabled = _settings.SnapToEdges,
             };
+            _cpuDesktop = new DesktopWindow(_cpuWindow);
+            _cpuDesktop.Attach();
+            _cpuDesktop.SetAlwaysOnTop(_settings.AlwaysOnTop);
 
-            _desktop = new DesktopWindow(_window);
-            _desktop.Attach();
-            _desktop.SetAlwaysOnTop(_settings.AlwaysOnTop);
+            _gpuWindow = new MetricWidgetWindow
+            {
+                DataContext = _gpuViewModel,
+                WindowStartupLocation = WindowStartupLocation.Manual,
+                IsLocked = _settings.Locked,
+                SnapEnabled = _settings.SnapToEdges,
+            };
+            _gpuDesktop = new DesktopWindow(_gpuWindow);
+            _gpuDesktop.Attach();
+            _gpuDesktop.SetAlwaysOnTop(_settings.AlwaysOnTop);
 
             _dateTimeWindow = new DateTimeWindow
             {
@@ -93,15 +119,54 @@ public partial class App : Application
                 IsLocked = _settings.Locked,
                 SnapEnabled = _settings.SnapToEdges,
             };
-
             _dateTimeDesktop = new DesktopWindow(_dateTimeWindow);
             _dateTimeDesktop.Attach();
             _dateTimeDesktop.SetAlwaysOnTop(_settings.AlwaysOnTop);
+
+            // Restore saved positions before each window appears, if one exists.
+            if (_settings.X is int x && _settings.Y is int y)
+            {
+                _cpuWindow.Position = new PixelPoint(x, y);
+            }
+
+            if (_settings.GpuX is int gx && _settings.GpuY is int gy)
+            {
+                _gpuWindow.Position = new PixelPoint(gx, gy);
+            }
 
             if (_settings.DateTimeX is int dtx && _settings.DateTimeY is int dty)
             {
                 _dateTimeWindow.Position = new PixelPoint(dtx, dty);
             }
+
+            // Each widget snaps against the others only while they are actually shown.
+            _cpuWindow.PeerRects = () => VisiblePeerRects(_gpuWindow, _dateTimeWindow);
+            _gpuWindow.PeerRects = () => VisiblePeerRects(_cpuWindow, _dateTimeWindow);
+            _dateTimeWindow.PeerRects = () => VisiblePeerRects(_cpuWindow, _gpuWindow);
+
+            // Throttle position saves so a drag results in one write, not hundreds.
+            _saveTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(600) };
+            _saveTimer.Tick += (_, _) =>
+            {
+                _saveTimer!.Stop();
+                Save();
+            };
+
+            _cpuWindow.PositionChanged += (_, _) =>
+            {
+                _settings.X = _cpuWindow.Position.X;
+                _settings.Y = _cpuWindow.Position.Y;
+                _saveTimer!.Stop();
+                _saveTimer.Start();
+            };
+
+            _gpuWindow.PositionChanged += (_, _) =>
+            {
+                _settings.GpuX = _gpuWindow.Position.X;
+                _settings.GpuY = _gpuWindow.Position.Y;
+                _saveTimer!.Stop();
+                _saveTimer.Start();
+            };
 
             _dateTimeWindow.PositionChanged += (_, _) =>
             {
@@ -109,6 +174,30 @@ public partial class App : Application
                 _settings.DateTimeY = _dateTimeWindow.Position.Y;
                 _saveTimer!.Stop();
                 _saveTimer.Start();
+            };
+
+            _cpuWindow.Opened += (_, _) =>
+            {
+                EnsureWindowOnScreen(_cpuWindow,
+                    () => _settings.X = _cpuWindow.Position.X,
+                    () => _settings.Y = _cpuWindow.Position.Y);
+                _cpuDesktop.SetAlwaysOnTop(_settings.AlwaysOnTop);
+                _cpuDesktop.SetClickThrough(_settings.Locked);
+            };
+
+            _gpuWindow.Opened += (_, _) =>
+            {
+                // On first appearance with no saved position, sit flush-right of the CPU widget.
+                if (_settings.GpuX is null || _settings.GpuY is null)
+                {
+                    PlaceGpuWindowDefault();
+                }
+
+                EnsureWindowOnScreen(_gpuWindow,
+                    () => _settings.GpuX = _gpuWindow.Position.X,
+                    () => _settings.GpuY = _gpuWindow.Position.Y);
+                _gpuDesktop.SetAlwaysOnTop(_settings.AlwaysOnTop);
+                _gpuDesktop.SetClickThrough(_settings.Locked);
             };
 
             _dateTimeWindow.Opened += (_, _) =>
@@ -120,45 +209,7 @@ public partial class App : Application
                 _dateTimeDesktop.SetClickThrough(_settings.Locked);
             };
 
-            // Each widget snaps against the other only while the other is actually shown.
-            _window.PeerRects = () => _dateTimeWindow.IsVisible
-                ? new[] { RectOf(_dateTimeWindow) }
-                : Array.Empty<EdgeSnap.Rect>();
-            _dateTimeWindow.PeerRects = () => _window.IsVisible
-                ? new[] { RectOf(_window) }
-                : Array.Empty<EdgeSnap.Rect>();
-
-            // Restore the saved position before the window appears, if one exists.
-            if (_settings.X is int x && _settings.Y is int y)
-            {
-                _window.Position = new PixelPoint(x, y);
-            }
-
-            // Throttle position saves so a drag results in one write, not hundreds.
-            _saveTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(600) };
-            _saveTimer.Tick += (_, _) =>
-            {
-                _saveTimer!.Stop();
-                Save();
-            };
-            _window.PositionChanged += (_, _) =>
-            {
-                _settings.X = _window.Position.X;
-                _settings.Y = _window.Position.Y;
-                _saveTimer!.Stop();
-                _saveTimer.Start();
-            };
-
-            _window.Opened += (_, _) =>
-            {
-                EnsureWindowOnScreen(_window,
-                    () => _settings.X = _window.Position.X,
-                    () => _settings.Y = _window.Position.Y);
-                _desktop.SetAlwaysOnTop(_settings.AlwaysOnTop);
-                _desktop.SetClickThrough(_settings.Locked);
-            };
-
-            // The CLR, JIT and Avalonia commit far more than the idle widget keeps touching, so the
+            // The CLR, JIT and Avalonia commit far more than the idle widgets keep touching, so the
             // resident set balloons at startup. Trim it back to the working pages once warmup has
             // settled (first tick), then top up periodically. The 60s steady interval keeps a trim
             // from landing mid-drag, where evicted pages would refault and stutter the move.
@@ -170,11 +221,14 @@ public partial class App : Application
             };
             _trimTimer.Start();
 
-            desktop.MainWindow = _window;
+            desktop.MainWindow = _cpuWindow;
             if (!_settings.Hidden)
             {
-                _window.Show();
+                _cpuWindow.Show();
             }
+
+            // The GPU window is shown reactively by UpdateGpuWindowVisibility once the first
+            // snapshot confirms a GPU is present.
 
             if (!_settings.DateTimeHidden)
             {
@@ -206,13 +260,21 @@ public partial class App : Application
     {
         var menu = new NativeMenu();
 
-        _showHideItem = new NativeMenuItem("Show metrics widget")
+        _cpuShowHideItem = new NativeMenuItem("Show CPU widget")
         {
             ToggleType = MenuItemToggleType.CheckBox,
             IsChecked = !_settings.Hidden,
         };
-        _showHideItem.Click += OnToggleShowHide;
-        menu.Add(_showHideItem);
+        _cpuShowHideItem.Click += OnToggleCpuShowHide;
+        menu.Add(_cpuShowHideItem);
+
+        _gpuShowHideItem = new NativeMenuItem("Show GPU widget")
+        {
+            ToggleType = MenuItemToggleType.CheckBox,
+            IsChecked = !_settings.GpuHidden,
+        };
+        _gpuShowHideItem.Click += OnToggleGpuShowHide;
+        menu.Add(_gpuShowHideItem);
 
         _clockShowHideItem = new NativeMenuItem("Show clock widget")
         {
@@ -292,20 +354,30 @@ public partial class App : Application
         TrayIcon.SetIcons(this, new TrayIcons { _trayIcon });
     }
 
-    private void OnToggleShowHide(object? sender, EventArgs e)
+    private void OnToggleCpuShowHide(object? sender, EventArgs e)
     {
         _settings.Hidden = !_settings.Hidden;
         if (_settings.Hidden)
         {
-            _window.Hide();
+            _cpuWindow.Hide();
         }
         else
         {
-            _window.Show();
-            _desktop.SetAlwaysOnTop(_settings.AlwaysOnTop);
+            _cpuWindow.Show();
+            _cpuDesktop.SetAlwaysOnTop(_settings.AlwaysOnTop);
         }
 
-        _showHideItem.IsChecked = !_settings.Hidden;
+        _cpuShowHideItem.IsChecked = !_settings.Hidden;
+        ApplyActiveDevices();
+        Save();
+    }
+
+    private void OnToggleGpuShowHide(object? sender, EventArgs e)
+    {
+        _settings.GpuHidden = !_settings.GpuHidden;
+        UpdateGpuWindowVisibility();
+        _gpuShowHideItem.IsChecked = !_settings.GpuHidden;
+        ApplyActiveDevices();
         Save();
     }
 
@@ -329,8 +401,10 @@ public partial class App : Application
     private void OnToggleLock(object? sender, EventArgs e)
     {
         _settings.Locked = !_settings.Locked;
-        _window.IsLocked = _settings.Locked;
-        _desktop.SetClickThrough(_settings.Locked);
+        _cpuWindow.IsLocked = _settings.Locked;
+        _cpuDesktop.SetClickThrough(_settings.Locked);
+        _gpuWindow.IsLocked = _settings.Locked;
+        _gpuDesktop.SetClickThrough(_settings.Locked);
         _dateTimeWindow.IsLocked = _settings.Locked;
         _dateTimeDesktop.SetClickThrough(_settings.Locked);
         _lockItem.IsChecked = _settings.Locked;
@@ -360,7 +434,8 @@ public partial class App : Application
     {
         _settings.BackgroundColor = viewModel.BackgroundColor;
         _settings.Opacity = viewModel.Opacity;
-        _viewModel.ApplyAppearance(_settings.BackgroundColor, _settings.Opacity);
+        _cpuViewModel.ApplyAppearance(_settings.BackgroundColor, _settings.Opacity);
+        _gpuViewModel.ApplyAppearance(_settings.BackgroundColor, _settings.Opacity);
         _dateTimeViewModel.ApplyAppearance(_settings.BackgroundColor, _settings.Opacity);
 
         // Reuse the existing debounce so dragging the opacity slider writes once.
@@ -381,7 +456,8 @@ public partial class App : Application
     private void OnMetricVisibilityChanged(string key, bool visible)
     {
         _settings.Visibility[key] = visible;
-        _viewModel.SetVisibility(key, visible);
+        _cpuViewModel.SetVisibility(key, visible);
+        _gpuViewModel.SetVisibility(key, visible);
         ApplyActiveDevices();
         Save();
 
@@ -395,18 +471,63 @@ public partial class App : Application
         }
     }
 
-    // A device is polled while any of its metrics is visible; once they are all hidden it is
-    // released so its sensors stop refreshing.
+    // A device is polled while its widget is shown and any of its metrics is visible; otherwise it
+    // is released so its sensors stop refreshing.
     private void ApplyActiveDevices()
     {
-        bool Visible(string key) => _settings.Visibility.GetValueOrDefault(key, true);
+        DeviceActivation.Result result = DeviceActivation.Compute(
+            _settings.Visibility,
+            cpuWidgetShown: !_settings.Hidden,
+            gpuWidgetShown: !_settings.GpuHidden);
 
-        bool cpu = Visible("cpu.usage") || Visible("cpu.temp") || Visible("cpu.power");
-        bool memory = Visible("ram.usage");
-        bool gpu = Visible("gpu.usage") || Visible("gpu.temp")
-                   || Visible("gpu.power") || Visible("vram.usage");
+        _source?.SetActiveDevices(result.Cpu, result.Memory, result.Gpu);
+    }
 
-        _source?.SetActiveDevices(cpu, memory, gpu);
+    // Shows the GPU window only when a GPU is present and the widget is not hidden; idempotent so it
+    // is safe to call on every snapshot.
+    private void UpdateGpuWindowVisibility()
+    {
+        bool shouldShow = !_settings.GpuHidden && _gpuViewModel.HasContent;
+        if (shouldShow && !_gpuWindow.IsVisible)
+        {
+            _gpuWindow.Show();
+            _gpuDesktop.SetAlwaysOnTop(_settings.AlwaysOnTop);
+        }
+        else if (!shouldShow && _gpuWindow.IsVisible)
+        {
+            _gpuWindow.Hide();
+        }
+    }
+
+    // Places the GPU widget flush-right of the CPU widget and persists the position.
+    private void PlaceGpuWindowDefault()
+    {
+        EdgeSnap.Rect cpu = RectOf(_cpuWindow);
+        _gpuWindow.Position = new PixelPoint(cpu.X + cpu.Width, cpu.Y);
+        _settings.GpuX = _gpuWindow.Position.X;
+        _settings.GpuY = _gpuWindow.Position.Y;
+        Save();
+    }
+
+    // The physical-pixel rectangles of any peers that are currently shown, for edge snapping.
+    private static EdgeSnap.Rect[] VisiblePeerRects(Window first, Window second)
+    {
+        if (first.IsVisible && second.IsVisible)
+        {
+            return new[] { RectOf(first), RectOf(second) };
+        }
+
+        if (first.IsVisible)
+        {
+            return new[] { RectOf(first) };
+        }
+
+        if (second.IsVisible)
+        {
+            return new[] { RectOf(second) };
+        }
+
+        return Array.Empty<EdgeSnap.Rect>();
     }
 
     // Expands the legacy whole-card visibility keys (cpu/ram/gpu/vram) into the per-metric keys so
@@ -440,7 +561,8 @@ public partial class App : Application
     private void OnToggleAlwaysOnTop(object? sender, EventArgs e)
     {
         _settings.AlwaysOnTop = !_settings.AlwaysOnTop;
-        _desktop.SetAlwaysOnTop(_settings.AlwaysOnTop);
+        _cpuDesktop.SetAlwaysOnTop(_settings.AlwaysOnTop);
+        _gpuDesktop.SetAlwaysOnTop(_settings.AlwaysOnTop);
         _dateTimeDesktop.SetAlwaysOnTop(_settings.AlwaysOnTop);
         _alwaysOnTopItem.IsChecked = _settings.AlwaysOnTop;
         Save();
@@ -449,7 +571,8 @@ public partial class App : Application
     private void OnToggleSnap(object? sender, EventArgs e)
     {
         _settings.SnapToEdges = !_settings.SnapToEdges;
-        _window.SnapEnabled = _settings.SnapToEdges;
+        _cpuWindow.SnapEnabled = _settings.SnapToEdges;
+        _gpuWindow.SnapEnabled = _settings.SnapToEdges;
         _dateTimeWindow.SnapEnabled = _settings.SnapToEdges;
         _snapItem.IsChecked = _settings.SnapToEdges;
         Save();

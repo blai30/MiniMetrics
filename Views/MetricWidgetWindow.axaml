@@ -15,7 +15,7 @@
         ShowInTaskbar="False"
         Topmost="False"
         CanResize="False"
-        Width="200"
+        Width="210"
         Height="176"
         FontFamily="avares://Avalonia.Fonts.Inter/Assets#Inter">
 
@@ -38,13 +38,13 @@
                     <TextBlock Grid.Column="1"
                                Text="{Binding Detail}"
                                Opacity="{Binding PowerVisible, Converter={StaticResource BoolToOpacity}}"
-                               FontSize="16"
+                               FontSize="18"
                                FontWeight="Bold"
                                Foreground="#BCC3CE"
                                VerticalAlignment="Center" />
                 </Grid>
 
-                <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,10">
+                <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,2">
                     <!-- Temperature hero: big value with a small, top-aligned unit whose degree
                     sign is superscripted. -->
                     <StackPanel Grid.Column="0"
@@ -83,7 +83,7 @@
         <!-- A memory metric (RAM, VRAM): a quiet used / total readout above its bar. -->
         <DataTemplate x:Key="MemoryTemplate" x:DataType="vm:MetricRowViewModel">
             <StackPanel>
-                <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,8">
+                <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,6">
                     <TextBlock Grid.Column="0"
                                Text="{Binding Label}"
                                FontSize="16"
