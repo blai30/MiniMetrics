@@ -119,4 +119,41 @@ public class SettingsStoreTests
         Assert.Null(loaded.X);
         Assert.False(loaded.Locked);
     }
+
+    [Fact]
+    public void Save_then_Load_round_trips_datetime_fields()
+    {
+        var path = TempPath();
+        var store = new SettingsStore(path);
+        var settings = new Settings
+        {
+            DateTimeX = 200,
+            DateTimeY = 760,
+            DateTimeHidden = false,
+            TimeZoneId = "UTC",
+        };
+
+        store.Save(settings);
+        var loaded = store.Load();
+
+        Assert.Equal(200, loaded.DateTimeX);
+        Assert.Equal(760, loaded.DateTimeY);
+        Assert.False(loaded.DateTimeHidden);
+        Assert.Equal("UTC", loaded.TimeZoneId);
+    }
+
+    [Fact]
+    public void Load_defaults_datetime_widget_hidden_when_absent()
+    {
+        // A settings file written before the datetime widget existed.
+        var path = TempPath();
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        File.WriteAllText(path, "{ \"X\": 10, \"Y\": 20 }");
+
+        var loaded = new SettingsStore(path).Load();
+
+        Assert.True(loaded.DateTimeHidden);
+        Assert.Null(loaded.DateTimeX);
+        Assert.Null(loaded.TimeZoneId);
+    }
 }

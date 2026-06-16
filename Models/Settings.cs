@@ -12,5 +12,9 @@ public sealed class Settings
     public bool SnapToEdges { get; set; } = true;
     public string BackgroundColor { get; set; } = "#0F121D";
     public int Opacity { get; set; } = 96;
+    public int? DateTimeX { get; set; }
+    public int? DateTimeY { get; set; }
+    public bool DateTimeHidden { get; set; } = true;
+    public string? TimeZoneId { get; set; }
     public Dictionary<string, bool> Visibility { get; set; } = new();
 }
