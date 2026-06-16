@@ -14,7 +14,8 @@ public sealed class TempLevelToBrushConverter : IValueConverter
         {
             TempLevel.Cool => "#5ED6A8",
             TempLevel.Warm => "#F5B544",
-            TempLevel.Hot => "#F87171",
+            TempLevel.Hot => "#FB923C",
+            TempLevel.Critical => "#F87171",
             _ => "#9AA1AC",
         };
 

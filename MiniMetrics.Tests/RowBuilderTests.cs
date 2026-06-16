@@ -57,11 +57,13 @@ public class RowBuilderTests
 
     [Theory]
     [InlineData(55.0, TempLevel.Cool)]
-    [InlineData(64.0, TempLevel.Cool)]
-    [InlineData(65.0, TempLevel.Warm)]
-    [InlineData(83.0, TempLevel.Warm)]
-    [InlineData(84.0, TempLevel.Hot)]
-    [InlineData(95.0, TempLevel.Hot)]
+    [InlineData(59.0, TempLevel.Cool)]
+    [InlineData(60.0, TempLevel.Warm)]
+    [InlineData(69.0, TempLevel.Warm)]
+    [InlineData(70.0, TempLevel.Hot)]
+    [InlineData(79.0, TempLevel.Hot)]
+    [InlineData(80.0, TempLevel.Critical)]
+    [InlineData(95.0, TempLevel.Critical)]
     public void Build_color_codes_gpu_temperature_by_threshold(double temp, TempLevel expected)
     {
         var gpu = RowBuilder.Build(WithGpu(temp)).Single(r => r.Key == "gpu");

@@ -18,6 +18,7 @@ public enum TempLevel
     Cool,
     Warm,
     Hot,
+    Critical,
 }
 
 // A single display row. Value is the bold primary number. Temp is an optional color-coded
@@ -97,7 +98,8 @@ public static class RowBuilder
     // Thresholds tuned for GPU load temperatures; revisited when CPU temp and per-sensor
     // customization arrive in a later plan.
     private static TempLevel LevelFor(double celsius)
-        => celsius >= 84 ? TempLevel.Hot
-            : celsius >= 65 ? TempLevel.Warm
+        => celsius >= 80 ? TempLevel.Critical
+            : celsius >= 70 ? TempLevel.Hot
+            : celsius >= 60 ? TempLevel.Warm
             : TempLevel.Cool;
 }
