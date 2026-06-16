@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="MiniMetrics.csproj" />
+  <Project Path="MiniMetrics.Tests/MiniMetrics.Tests.csproj" />
+</Solution>
