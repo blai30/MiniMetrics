@@ -29,6 +29,9 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     private bool _alwaysOnTop;
 
+    [ObservableProperty]
+    private bool _snapToEdges;
+
     public SettingsViewModel(Settings settings)
     {
         _backgroundColor = settings.BackgroundColor;
@@ -38,6 +41,7 @@ public partial class SettingsViewModel : ObservableObject
         _gpuVisible = settings.Visibility.GetValueOrDefault("gpu", true);
         _vramVisible = settings.Visibility.GetValueOrDefault("vram", true);
         _alwaysOnTop = settings.AlwaysOnTop;
+        _snapToEdges = settings.SnapToEdges;
     }
 
     // Raised when the base color or opacity changes (live preview + persist).
@@ -48,6 +52,9 @@ public partial class SettingsViewModel : ObservableObject
 
     // Raised when the always-on-top toggle changes, with its new value.
     public event Action<bool>? AlwaysOnTopChanged;
+
+    // Raised when the snap-to-edges toggle changes, with its new value.
+    public event Action<bool>? SnapToEdgesChanged;
 
     [RelayCommand]
     private void SelectPreset(string hex) => BackgroundColor = hex;
@@ -65,4 +72,6 @@ public partial class SettingsViewModel : ObservableObject
     partial void OnVramVisibleChanged(bool value) => MetricVisibilityChanged?.Invoke("vram", value);
 
     partial void OnAlwaysOnTopChanged(bool value) => AlwaysOnTopChanged?.Invoke(value);
+
+    partial void OnSnapToEdgesChanged(bool value) => SnapToEdgesChanged?.Invoke(value);
 }

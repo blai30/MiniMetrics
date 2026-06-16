@@ -70,6 +70,7 @@
         <StackPanel Spacing="8">
             <TextBlock Text="Window" FontWeight="SemiBold" Foreground="#EDEFF2" />
             <CheckBox Content="Always on top" IsChecked="{Binding AlwaysOnTop}" Foreground="#EDEFF2" />
+            <CheckBox Content="Snap to edges" IsChecked="{Binding SnapToEdges}" Foreground="#EDEFF2" />
         </StackPanel>
 
     </StackPanel>

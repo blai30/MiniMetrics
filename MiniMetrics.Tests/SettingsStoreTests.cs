@@ -56,6 +56,32 @@ public class SettingsStoreTests
     }
 
     [Fact]
+    public void Save_then_Load_round_trips_snap_to_edges()
+    {
+        var path = TempPath();
+        var store = new SettingsStore(path);
+        var settings = new Settings { SnapToEdges = false };
+
+        store.Save(settings);
+        var loaded = store.Load();
+
+        Assert.False(loaded.SnapToEdges);
+    }
+
+    [Fact]
+    public void Load_defaults_snap_to_edges_on_when_absent()
+    {
+        // A settings file written before the snap feature existed.
+        var path = TempPath();
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        File.WriteAllText(path, "{ \"X\": 10, \"Y\": 20 }");
+
+        var loaded = new SettingsStore(path).Load();
+
+        Assert.True(loaded.SnapToEdges);
+    }
+
+    [Fact]
     public void Load_uses_appearance_defaults_when_absent()
     {
         // A settings file written before the appearance feature existed.

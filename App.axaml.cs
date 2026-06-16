@@ -60,6 +60,7 @@ public partial class App : Application
                 DataContext = _viewModel,
                 WindowStartupLocation = WindowStartupLocation.Manual,
                 IsLocked = _settings.Locked,
+                SnapEnabled = _settings.SnapToEdges,
             };
 
             _desktop = new DesktopWindow(_window);
@@ -198,6 +199,7 @@ public partial class App : Application
         viewModel.AppearanceChanged += () => OnAppearanceChanged(viewModel);
         viewModel.MetricVisibilityChanged += OnMetricVisibilityChanged;
         viewModel.AlwaysOnTopChanged += OnAlwaysOnTopChanged;
+        viewModel.SnapToEdgesChanged += OnSnapToEdgesChanged;
 
         _settingsWindow = new SettingsWindow { DataContext = viewModel };
         _settingsWindow.Closed += (_, _) => _settingsWindow = null;
@@ -226,6 +228,13 @@ public partial class App : Application
     {
         _settings.AlwaysOnTop = enabled;
         _desktop.SetAlwaysOnTop(enabled);
+        Save();
+    }
+
+    private void OnSnapToEdgesChanged(bool enabled)
+    {
+        _settings.SnapToEdges = enabled;
+        _window.SnapEnabled = enabled;
         Save();
     }
 

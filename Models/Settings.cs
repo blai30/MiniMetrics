@@ -9,6 +9,7 @@ public sealed class Settings
     public bool Locked { get; set; }
     public bool Hidden { get; set; }
     public bool AlwaysOnTop { get; set; }
+    public bool SnapToEdges { get; set; } = true;
     public string BackgroundColor { get; set; } = "#0F121D";
     public int Opacity { get; set; } = 96;
     public Dictionary<string, bool> Visibility { get; set; } = new();
