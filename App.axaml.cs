@@ -6,6 +6,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Platform;
 using Avalonia.Threading;
+using MiniMetrics.Lib;
 using MiniMetrics.Models;
 using MiniMetrics.Services;
 using MiniMetrics.ViewModels;
@@ -22,11 +23,16 @@ public partial class App : Application
     private MainWindowViewModel _viewModel = null!;
     private MainWindow _window = null!;
     private DesktopWindow _desktop = null!;
+    private DateTimeWidgetViewModel _dateTimeViewModel = null!;
+    private DateTimeWindow _dateTimeWindow = null!;
+    private DesktopWindow _dateTimeDesktop = null!;
+    private DispatcherTimer? _clockTimer;
     private DispatcherTimer? _saveTimer;
     private DispatcherTimer? _trimTimer;
 
     private TrayIcon? _trayIcon;
     private NativeMenuItem _showHideItem = null!;
+    private NativeMenuItem _clockShowHideItem = null!;
     private NativeMenuItem _lockItem = null!;
     private NativeMenuItem _alwaysOnTopItem = null!;
     private NativeMenuItem _snapItem = null!;
@@ -51,6 +57,10 @@ public partial class App : Application
             _viewModel.LoadVisibility(_settings.Visibility);
             _viewModel.ApplyAppearance(_settings.BackgroundColor, _settings.Opacity);
 
+            _dateTimeViewModel = new DateTimeWidgetViewModel();
+            _dateTimeViewModel.ApplyAppearance(_settings.BackgroundColor, _settings.Opacity);
+            _dateTimeViewModel.SetTimeZone(ResolveTimeZone(_settings.TimeZoneId));
+
             _source = OperatingSystem.IsWindows()
                 ? new LibreHardwareSensorSource()
                 : new MockSensorSource();
@@ -73,6 +83,48 @@ public partial class App : Application
             _desktop = new DesktopWindow(_window);
             _desktop.Attach();
             _desktop.SetAlwaysOnTop(_settings.AlwaysOnTop);
+
+            _dateTimeWindow = new DateTimeWindow
+            {
+                DataContext = _dateTimeViewModel,
+                WindowStartupLocation = WindowStartupLocation.Manual,
+                IsLocked = _settings.Locked,
+                SnapEnabled = _settings.SnapToEdges,
+            };
+
+            _dateTimeDesktop = new DesktopWindow(_dateTimeWindow);
+            _dateTimeDesktop.Attach();
+            _dateTimeDesktop.SetAlwaysOnTop(_settings.AlwaysOnTop);
+
+            if (_settings.DateTimeX is int dtx && _settings.DateTimeY is int dty)
+            {
+                _dateTimeWindow.Position = new PixelPoint(dtx, dty);
+            }
+
+            _dateTimeWindow.PositionChanged += (_, _) =>
+            {
+                _settings.DateTimeX = _dateTimeWindow.Position.X;
+                _settings.DateTimeY = _dateTimeWindow.Position.Y;
+                _saveTimer!.Stop();
+                _saveTimer.Start();
+            };
+
+            _dateTimeWindow.Opened += (_, _) =>
+            {
+                EnsureWindowOnScreen(_dateTimeWindow,
+                    () => _settings.DateTimeX = _dateTimeWindow.Position.X,
+                    () => _settings.DateTimeY = _dateTimeWindow.Position.Y);
+                _dateTimeDesktop.SetAlwaysOnTop(_settings.AlwaysOnTop);
+                _dateTimeDesktop.SetClickThrough(_settings.Locked);
+            };
+
+            // Each widget snaps against the other only while the other is actually shown.
+            _window.PeerRects = () => _dateTimeWindow.IsVisible
+                ? new[] { RectOf(_dateTimeWindow) }
+                : System.Array.Empty<EdgeSnap.Rect>();
+            _dateTimeWindow.PeerRects = () => _window.IsVisible
+                ? new[] { RectOf(_window) }
+                : System.Array.Empty<EdgeSnap.Rect>();
 
             // Restore the saved position before the window appears, if one exists.
             if (_settings.X is int x && _settings.Y is int y)
@@ -120,7 +172,18 @@ public partial class App : Application
                 _window.Show();
             }
 
+            if (!_settings.DateTimeHidden)
+            {
+                _dateTimeWindow.Show();
+            }
+
             _poller.Start();
+
+            // Drive the clock once per second. Tick immediately so the widget shows the time at once.
+            _dateTimeViewModel.Tick(DateTimeOffset.Now);
+            _clockTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+            _clockTimer.Tick += (_, _) => _dateTimeViewModel.Tick(DateTimeOffset.Now);
+            _clockTimer.Start();
 
             BuildTray();
 
@@ -139,9 +202,13 @@ public partial class App : Application
     {
         var menu = new NativeMenu();
 
-        _showHideItem = new NativeMenuItem(_settings.Hidden ? "Show widget" : "Hide widget");
+        _showHideItem = new NativeMenuItem(_settings.Hidden ? "Show metrics widget" : "Hide metrics widget");
         _showHideItem.Click += OnToggleShowHide;
         menu.Add(_showHideItem);
+
+        _clockShowHideItem = new NativeMenuItem(_settings.DateTimeHidden ? "Show clock widget" : "Hide clock widget");
+        _clockShowHideItem.Click += OnToggleClockShowHide;
+        menu.Add(_clockShowHideItem);
 
         _lockItem = new NativeMenuItem("Lock position")
         {
@@ -208,7 +275,24 @@ public partial class App : Application
             _desktop.SetAlwaysOnTop(_settings.AlwaysOnTop);
         }
 
-        _showHideItem.Header = _settings.Hidden ? "Show widget" : "Hide widget";
+        _showHideItem.Header = _settings.Hidden ? "Show metrics widget" : "Hide metrics widget";
+        Save();
+    }
+
+    private void OnToggleClockShowHide(object? sender, EventArgs e)
+    {
+        _settings.DateTimeHidden = !_settings.DateTimeHidden;
+        if (_settings.DateTimeHidden)
+        {
+            _dateTimeWindow.Hide();
+        }
+        else
+        {
+            _dateTimeWindow.Show();
+            _dateTimeDesktop.SetAlwaysOnTop(_settings.AlwaysOnTop);
+        }
+
+        _clockShowHideItem.Header = _settings.DateTimeHidden ? "Show clock widget" : "Hide clock widget";
         Save();
     }
 
@@ -217,6 +301,8 @@ public partial class App : Application
         _settings.Locked = !_settings.Locked;
         _window.IsLocked = _settings.Locked;
         _desktop.SetClickThrough(_settings.Locked);
+        _dateTimeWindow.IsLocked = _settings.Locked;
+        _dateTimeDesktop.SetClickThrough(_settings.Locked);
         _lockItem.IsChecked = _settings.Locked;
         Save();
     }
@@ -233,6 +319,7 @@ public partial class App : Application
         var viewModel = new SettingsViewModel(_settings);
         viewModel.AppearanceChanged += () => OnAppearanceChanged(viewModel);
         viewModel.MetricVisibilityChanged += OnMetricVisibilityChanged;
+        viewModel.TimeZoneChanged += () => OnTimeZoneChanged(viewModel);
 
         _settingsWindow = new SettingsWindow { DataContext = viewModel };
         _settingsWindow.Closed += (_, _) => _settingsWindow = null;
@@ -244,8 +331,19 @@ public partial class App : Application
         _settings.BackgroundColor = viewModel.BackgroundColor;
         _settings.Opacity = viewModel.Opacity;
         _viewModel.ApplyAppearance(_settings.BackgroundColor, _settings.Opacity);
+        _dateTimeViewModel.ApplyAppearance(_settings.BackgroundColor, _settings.Opacity);
 
         // Reuse the existing debounce so dragging the opacity slider writes once.
+        _saveTimer!.Stop();
+        _saveTimer.Start();
+    }
+
+    private void OnTimeZoneChanged(SettingsViewModel viewModel)
+    {
+        _settings.TimeZoneId = viewModel.SelectedTimeZone.Id;
+        _dateTimeViewModel.SetTimeZone(viewModel.SelectedTimeZone);
+
+        // Reuse the existing debounce so the write coalesces.
         _saveTimer!.Stop();
         _saveTimer.Start();
     }
@@ -304,6 +402,7 @@ public partial class App : Application
     {
         _settings.AlwaysOnTop = !_settings.AlwaysOnTop;
         _desktop.SetAlwaysOnTop(_settings.AlwaysOnTop);
+        _dateTimeDesktop.SetAlwaysOnTop(_settings.AlwaysOnTop);
         _alwaysOnTopItem.IsChecked = _settings.AlwaysOnTop;
         Save();
     }
@@ -312,6 +411,7 @@ public partial class App : Application
     {
         _settings.SnapToEdges = !_settings.SnapToEdges;
         _window.SnapEnabled = _settings.SnapToEdges;
+        _dateTimeWindow.SnapEnabled = _settings.SnapToEdges;
         _snapItem.IsChecked = _settings.SnapToEdges;
         Save();
     }
@@ -333,6 +433,61 @@ public partial class App : Application
             _window.Position = new PixelPoint(area.X + 48, area.Y + 48);
             _settings.X = _window.Position.X;
             _settings.Y = _window.Position.Y;
+            Save();
+        }
+    }
+
+    // Resolves the saved zone id to a TimeZoneInfo, falling back to local if it is missing or the
+    // id is unknown on this machine.
+    private static TimeZoneInfo ResolveTimeZone(string? id)
+    {
+        if (string.IsNullOrEmpty(id))
+        {
+            return TimeZoneInfo.Local;
+        }
+
+        try
+        {
+            return TimeZoneInfo.FindSystemTimeZoneById(id);
+        }
+        catch (TimeZoneNotFoundException)
+        {
+            return TimeZoneInfo.Local;
+        }
+        catch (InvalidTimeZoneException)
+        {
+            return TimeZoneInfo.Local;
+        }
+    }
+
+    // Physical-pixel rectangle of a window for peer snapping.
+    private static EdgeSnap.Rect RectOf(Window window)
+    {
+        double scale = window.RenderScaling;
+        return new EdgeSnap.Rect(
+            window.Position.X,
+            window.Position.Y,
+            (int)Math.Round(window.Width * scale),
+            (int)Math.Round(window.Height * scale));
+    }
+
+    // Generalized form of EnsureOnScreen for any widget window: if its restored position lands off
+    // every monitor, pull it back onto the primary screen and persist the corrected coordinates.
+    private void EnsureWindowOnScreen(Window window, Action saveX, Action saveY)
+    {
+        var screens = window.Screens;
+        if (screens is null || screens.All.Count == 0)
+        {
+            return;
+        }
+
+        if (screens.ScreenFromPoint(window.Position) is null)
+        {
+            var primary = screens.Primary ?? screens.All[0];
+            var area = primary.WorkingArea;
+            window.Position = new PixelPoint(area.X + 48, area.Y + 48);
+            saveX();
+            saveY();
             Save();
         }
     }
