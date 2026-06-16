@@ -42,6 +42,7 @@ public partial class App : Application
 
             _settingsStore = new SettingsStore(SettingsStore.DefaultPath);
             _settings = _settingsStore.Load();
+            MigrateVisibility();
 
             _viewModel = new MainWindowViewModel();
             _viewModel.LoadVisibility(_settings.Visibility);
@@ -50,6 +51,9 @@ public partial class App : Application
             _source = OperatingSystem.IsWindows()
                 ? new LibreHardwareSensorSource()
                 : new MockSensorSource();
+
+            // Release any device whose every metric is hidden before the first poll runs.
+            ApplyActiveDevices();
 
             _poller = new MetricsPoller(_source, TimeSpan.FromSeconds(1));
             _poller.SnapshotReady += snapshot =>
@@ -221,7 +225,50 @@ public partial class App : Application
     {
         _settings.Visibility[key] = visible;
         _viewModel.SetVisibility(key, visible);
+        ApplyActiveDevices();
         Save();
+    }
+
+    // A device is polled while any of its metrics is visible; once they are all hidden it is
+    // released so its sensors stop refreshing.
+    private void ApplyActiveDevices()
+    {
+        bool Visible(string key) => _settings.Visibility.GetValueOrDefault(key, true);
+
+        bool cpu = Visible("cpu.usage") || Visible("cpu.temp");
+        bool memory = Visible("ram.usage");
+        bool gpu = Visible("gpu.usage") || Visible("gpu.temp")
+                   || Visible("gpu.power") || Visible("vram.usage");
+
+        _source?.SetActiveDevices(cpu, memory, gpu);
+    }
+
+    // Expands the legacy whole-card visibility keys (cpu/ram/gpu/vram) into the per-metric keys so
+    // settings saved before this feature keep their hidden cards hidden.
+    private void MigrateVisibility()
+    {
+        Dictionary<string, bool> visibility = _settings.Visibility;
+
+        void Expand(string legacy, params string[] keys)
+        {
+            if (visibility.TryGetValue(legacy, out bool value))
+            {
+                foreach (string key in keys)
+                {
+                    if (!visibility.ContainsKey(key))
+                    {
+                        visibility[key] = value;
+                    }
+                }
+
+                visibility.Remove(legacy);
+            }
+        }
+
+        Expand("cpu", "cpu.usage", "cpu.temp");
+        Expand("ram", "ram.usage");
+        Expand("gpu", "gpu.usage", "gpu.temp", "gpu.power");
+        Expand("vram", "vram.usage");
     }
 
     private void OnAlwaysOnTopChanged(bool enabled)

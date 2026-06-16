@@ -38,17 +38,16 @@ public partial class MainWindowViewModel : ViewModelBase
     // updating existing rows in place so the UI animates smoothly and bindings stay alive.
     public void ApplySnapshot(MetricsSnapshot snapshot)
     {
-        bool wasEmpty = Rows.Count == 0;
-        bool hadGpu = Gpu is not null;
-
         IReadOnlyList<MetricRow> built = RowBuilder.Build(snapshot);
+        bool membershipChanged = false;
 
-        // Remove rows that no longer exist (for example GPU and VRAM when no GPU is present).
+        // Remove rows that no longer exist (a device released or absent drops its rows).
         for (int i = Rows.Count - 1; i >= 0; i--)
         {
             if (built.All(b => b.Key != Rows[i].Key))
             {
                 Rows.RemoveAt(i);
+                membershipChanged = true;
             }
         }
 
@@ -61,6 +60,7 @@ public partial class MainWindowViewModel : ViewModelBase
             {
                 existing = new MetricRowViewModel { Key = row.Key };
                 Rows.Insert(i < Rows.Count ? i : Rows.Count, existing);
+                membershipChanged = true;
             }
 
             existing.Label = row.Label;
@@ -70,12 +70,12 @@ public partial class MainWindowViewModel : ViewModelBase
             existing.Detail = row.Detail;
             existing.BarPercent = row.BarPercent;
             existing.Color = row.Color;
-            existing.IsVisible = _visibility.GetValueOrDefault(row.Key, true);
+            ApplyVisibility(existing);
         }
 
         // The accessor properties read from Rows, so they only need to re-notify when the set of
-        // rows actually changes identity: the first populate, or the GPU appearing/disappearing.
-        if (wasEmpty || hadGpu != (Gpu is not null))
+        // rows actually changes identity: a row appearing or disappearing.
+        if (membershipChanged)
         {
             OnPropertyChanged(nameof(Cpu));
             OnPropertyChanged(nameof(Ram));
@@ -95,19 +95,49 @@ public partial class MainWindowViewModel : ViewModelBase
 
         foreach (var row in Rows)
         {
-            row.IsVisible = _visibility.GetValueOrDefault(row.Key, true);
+            ApplyVisibility(row);
         }
     }
 
-    // Toggles a single metric's visibility and updates the row immediately if present.
+    // Toggles a single metric's visibility and updates the affected row element immediately.
     public void SetVisibility(string key, bool visible)
     {
         _visibility[key] = visible;
 
-        var row = Rows.FirstOrDefault(r => r.Key == key);
+        // The key identifies a single metric; find whichever row owns it and reapply.
+        string owner = key.Split('.')[0];
+        var row = Rows.FirstOrDefault(r => r.Key == owner);
         if (row is not null)
         {
-            row.IsVisible = visible;
+            ApplyVisibility(row);
+        }
+    }
+
+    // Maps the seven per-metric visibility keys onto a row's element-level flags. Compute cards
+    // (CPU, GPU) toggle individual elements so hiding one does not reflow the rest; memory cards
+    // (RAM, VRAM) are a single metric, so the whole card collapses via IsVisible.
+    private void ApplyVisibility(MetricRowViewModel row)
+    {
+        bool Visible(string key) => _visibility.GetValueOrDefault(key, true);
+
+        switch (row.Key)
+        {
+            case "cpu":
+                row.UsageVisible = Visible("cpu.usage");
+                row.TempVisible = Visible("cpu.temp");
+                row.PowerVisible = false;
+                break;
+            case "gpu":
+                row.UsageVisible = Visible("gpu.usage");
+                row.TempVisible = Visible("gpu.temp");
+                row.PowerVisible = Visible("gpu.power");
+                break;
+            case "ram":
+                row.IsVisible = Visible("ram.usage");
+                break;
+            case "vram":
+                row.IsVisible = Visible("vram.usage");
+                break;
         }
     }
 }

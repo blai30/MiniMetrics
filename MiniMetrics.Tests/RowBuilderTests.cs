@@ -75,4 +75,18 @@ public class RowBuilderTests
         var rows = RowBuilder.Build(snapshot);
         Assert.Equal(new[] { "cpu", "ram" }, rows.Select(r => r.Key).ToArray());
     }
+
+    [Fact]
+    public void Build_without_cpu_section_omits_cpu_row()
+    {
+        var rows = RowBuilder.Build(WithGpu() with { Cpu = null });
+        Assert.Equal(new[] { "ram", "gpu", "vram" }, rows.Select(r => r.Key).ToArray());
+    }
+
+    [Fact]
+    public void Build_without_memory_section_omits_ram_row()
+    {
+        var rows = RowBuilder.Build(WithGpu() with { Memory = null });
+        Assert.Equal(new[] { "cpu", "gpu", "vram" }, rows.Select(r => r.Key).ToArray());
+    }
 }

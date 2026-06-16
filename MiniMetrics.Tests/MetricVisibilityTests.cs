@@ -14,24 +14,36 @@ public class MetricVisibilityTests
         new GpuMetrics(78.0, 71.0, 6_871_947_674UL, 12_884_901_888UL, 185.0));
 
     [Fact]
-    public void LoadVisibility_hides_metric_on_next_snapshot()
+    public void LoadVisibility_hides_one_element_of_a_card_without_hiding_its_siblings()
     {
         var vm = new MainWindowViewModel();
-        vm.LoadVisibility(new Dictionary<string, bool> { ["gpu"] = false });
+        vm.LoadVisibility(new Dictionary<string, bool> { ["cpu.usage"] = false });
         vm.ApplySnapshot(WithGpu());
 
-        Assert.False(vm.Rows.Single(r => r.Key == "gpu").IsVisible);
-        Assert.True(vm.Rows.Single(r => r.Key == "cpu").IsVisible);
+        var cpu = vm.Rows.Single(r => r.Key == "cpu");
+        Assert.False(cpu.UsageVisible);
+        Assert.True(cpu.TempVisible);
     }
 
     [Fact]
-    public void SetVisibility_updates_existing_row_immediately()
+    public void SetVisibility_updates_the_owning_element_immediately()
     {
         var vm = new MainWindowViewModel();
         vm.ApplySnapshot(WithGpu());
-        vm.SetVisibility("cpu", false);
+        vm.SetVisibility("gpu.power", false);
 
-        Assert.False(vm.Rows.Single(r => r.Key == "cpu").IsVisible);
+        Assert.False(vm.Rows.Single(r => r.Key == "gpu").PowerVisible);
+        Assert.True(vm.Rows.Single(r => r.Key == "gpu").UsageVisible);
+    }
+
+    [Fact]
+    public void SetVisibility_hides_whole_memory_card()
+    {
+        var vm = new MainWindowViewModel();
+        vm.ApplySnapshot(WithGpu());
+        vm.SetVisibility("vram.usage", false);
+
+        Assert.False(vm.Rows.Single(r => r.Key == "vram").IsVisible);
     }
 
     [Fact]
@@ -39,9 +51,9 @@ public class MetricVisibilityTests
     {
         var vm = new MainWindowViewModel();
         vm.ApplySnapshot(WithGpu());
-        vm.SetVisibility("ram", false);
+        vm.SetVisibility("cpu.temp", false);
         vm.ApplySnapshot(WithGpu());
 
-        Assert.False(vm.Rows.Single(r => r.Key == "ram").IsVisible);
+        Assert.False(vm.Rows.Single(r => r.Key == "cpu").TempVisible);
     }
 }

@@ -36,29 +36,35 @@ public static class RowBuilder
 {
     public static IReadOnlyList<MetricRow> Build(MetricsSnapshot snapshot)
     {
-        var rows = new List<MetricRow>
+        var rows = new List<MetricRow>();
+
+        if (snapshot.Cpu is CpuMetrics cpu)
         {
-            new(
+            rows.Add(new(
                 "cpu",
                 "CPU",
-                MetricFormatting.FormatPercent(snapshot.Cpu.UsagePercent),
+                MetricFormatting.FormatPercent(cpu.UsagePercent),
                 // CPU temperature is deferred (needs the kernel driver). Until then the hero slot
                 // shows a muted placeholder rather than going blank.
-                snapshot.Cpu.TempCelsius is double cpuTemp ? MetricFormatting.FormatTempValue(cpuTemp) : "--",
-                snapshot.Cpu.TempCelsius is double cpuLevel ? LevelFor(cpuLevel) : TempLevel.None,
+                cpu.TempCelsius is double cpuTemp ? MetricFormatting.FormatTempValue(cpuTemp) : "--",
+                cpu.TempCelsius is double cpuLevel ? LevelFor(cpuLevel) : TempLevel.None,
                 "",
-                snapshot.Cpu.UsagePercent,
-                RowColor.Cyan),
-            new(
+                cpu.UsagePercent,
+                RowColor.Cyan));
+        }
+
+        if (snapshot.Memory is MemoryMetrics memory)
+        {
+            rows.Add(new(
                 "ram",
                 "RAM",
-                MetricFormatting.FormatGiB(snapshot.Memory.UsedBytes),
+                MetricFormatting.FormatGiB(memory.UsedBytes),
                 "",
                 TempLevel.None,
-                $"/ {MetricFormatting.FormatGiB(snapshot.Memory.TotalBytes, 0)} GB",
-                Percent(snapshot.Memory.UsedBytes, snapshot.Memory.TotalBytes),
-                RowColor.Green),
-        };
+                $"/ {MetricFormatting.FormatGiB(memory.TotalBytes, 0)} GB",
+                Percent(memory.UsedBytes, memory.TotalBytes),
+                RowColor.Green));
+        }
 
         if (snapshot.Gpu is GpuMetrics gpu)
         {

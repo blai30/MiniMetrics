@@ -21,6 +21,7 @@
     <Window.Resources>
         <conv:RowColorToBrushConverter x:Key="RowColorToBrush" />
         <conv:TempLevelToBrushConverter x:Key="TempLevelToBrush" />
+        <conv:BoolToOpacityConverter x:Key="BoolToOpacity" />
 
         <!-- A compute metric (CPU, GPU): temperature is the hero number, usage is the strong
         second, and an optional power draw sits at the top right. -->
@@ -35,7 +36,7 @@
                                VerticalAlignment="Center" />
                     <TextBlock Grid.Column="1"
                                Text="{Binding Detail}"
-                               IsVisible="{Binding HasDetail}"
+                               Opacity="{Binding PowerVisible, Converter={StaticResource BoolToOpacity}}"
                                FontSize="14"
                                FontWeight="Bold"
                                Foreground="#BCC3CE"
@@ -47,7 +48,8 @@
                     sign is superscripted. -->
                     <StackPanel Grid.Column="0"
                                 Orientation="Horizontal"
-                                VerticalAlignment="Bottom">
+                                VerticalAlignment="Bottom"
+                                Opacity="{Binding TempVisible, Converter={StaticResource BoolToOpacity}}">
                         <TextBlock Text="{Binding Temp}"
                                    FontSize="42"
                                    FontWeight="Bold"
@@ -64,6 +66,7 @@
                     <TextBlock Grid.Column="1"
                                VerticalAlignment="Bottom"
                                Margin="0,0,0,4"
+                               Opacity="{Binding UsageVisible, Converter={StaticResource BoolToOpacity}}"
                                Foreground="#EEF0F3"><Run Text="{Binding Value}" FontSize="24" FontWeight="Bold" /><Run Text=" " FontSize="8" /><Run Text="%" FontSize="14" FontWeight="SemiBold" /></TextBlock>
                 </Grid>
 
@@ -71,6 +74,7 @@
                              Minimum="0"
                              Maximum="100"
                              Value="{Binding BarPercent}"
+                             Opacity="{Binding UsageVisible, Converter={StaticResource BoolToOpacity}}"
                              Foreground="{Binding Color, Converter={StaticResource RowColorToBrush}}" />
             </StackPanel>
         </DataTemplate>

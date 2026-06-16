@@ -10,6 +10,10 @@ public sealed class LibreHardwareSensorSource : ISensorSource, IDisposable
     private readonly Computer _computer;
     private readonly UpdateVisitor _visitor = new();
 
+    private bool _cpuActive = true;
+    private bool _memoryActive = true;
+    private bool _gpuActive = true;
+
     public LibreHardwareSensorSource()
     {
         _computer = new Computer
@@ -19,6 +23,18 @@ public sealed class LibreHardwareSensorSource : ISensorSource, IDisposable
             IsGpuEnabled = true,
         };
         _computer.Open();
+    }
+
+    // Toggling IsXxxEnabled adds or removes the hardware from the tree, so a released device stops
+    // being refreshed by Accept() and its sensors are no longer read.
+    public void SetActiveDevices(bool cpu, bool memory, bool gpu)
+    {
+        _cpuActive = cpu;
+        _memoryActive = memory;
+        _gpuActive = gpu;
+        _computer.IsCpuEnabled = cpu;
+        _computer.IsMemoryEnabled = memory;
+        _computer.IsGpuEnabled = gpu;
     }
 
     public MetricsSnapshot Read()
@@ -37,17 +53,25 @@ public sealed class LibreHardwareSensorSource : ISensorSource, IDisposable
 
         IHardware? gpu = _computer.Hardware.FirstOrDefault(h => h.HardwareType == HardwareType.GpuNvidia);
 
-        double cpuLoad = SensorValue(cpu, SensorType.Load, "CPU Total") ?? 0;
-        var cpuMetrics = new CpuMetrics(cpuLoad, null); // CPU temperature is deferred to a later plan.
+        CpuMetrics? cpuMetrics = null;
+        if (_cpuActive)
+        {
+            double cpuLoad = SensorValue(cpu, SensorType.Load, "CPU Total") ?? 0;
+            cpuMetrics = new CpuMetrics(cpuLoad, null); // CPU temperature is deferred to a later plan.
+        }
 
-        double usedGib = SensorValue(memory, SensorType.Data, "Memory Used") ?? 0;
-        double availableGib = SensorValue(memory, SensorType.Data, "Memory Available") ?? 0;
-        var memoryMetrics = new MemoryMetrics(
-            GibToBytes(usedGib),
-            GibToBytes(usedGib + availableGib));
+        MemoryMetrics? memoryMetrics = null;
+        if (_memoryActive)
+        {
+            double usedGib = SensorValue(memory, SensorType.Data, "Memory Used") ?? 0;
+            double availableGib = SensorValue(memory, SensorType.Data, "Memory Available") ?? 0;
+            memoryMetrics = new MemoryMetrics(
+                GibToBytes(usedGib),
+                GibToBytes(usedGib + availableGib));
+        }
 
         GpuMetrics? gpuMetrics = null;
-        if (gpu is not null)
+        if (_gpuActive && gpu is not null)
         {
             double gpuLoad = SensorValue(gpu, SensorType.Load, "GPU Core") ?? 0;
             double gpuTemp = SensorValue(gpu, SensorType.Temperature, "GPU Core") ?? 0;

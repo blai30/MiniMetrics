@@ -32,13 +32,19 @@ public partial class MetricRowViewModel : ObservableObject
     [ObservableProperty]
     private bool _isVisible = true;
 
+    // Element-level visibility for the compute cards (CPU, GPU). Hiding one keeps the others in
+    // place: the view binds these to Opacity so the layout slot is preserved rather than collapsed.
+    [ObservableProperty]
+    private bool _usageVisible = true;
+
+    [ObservableProperty]
+    private bool _tempVisible = true;
+
+    [ObservableProperty]
+    private bool _powerVisible = true;
+
     // True when this row has a temperature to show, used to collapse the temp slot otherwise.
     public bool HasTemp => Temp.Length > 0;
 
-    // True when this row has trailing detail (power or memory total), used to collapse it otherwise.
-    public bool HasDetail => Detail.Length > 0;
-
     partial void OnTempChanged(string value) => OnPropertyChanged(nameof(HasTemp));
-
-    partial void OnDetailChanged(string value) => OnPropertyChanged(nameof(HasDetail));
 }

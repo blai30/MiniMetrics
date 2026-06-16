@@ -59,12 +59,31 @@
             </Grid>
         </StackPanel>
 
-        <StackPanel Spacing="8">
+        <StackPanel Spacing="10">
             <TextBlock Text="Metrics" FontWeight="SemiBold" Foreground="#EDEFF2" />
-            <CheckBox Content="CPU" IsChecked="{Binding CpuVisible}" Foreground="#EDEFF2" />
-            <CheckBox Content="RAM" IsChecked="{Binding RamVisible}" Foreground="#EDEFF2" />
-            <CheckBox Content="GPU" IsChecked="{Binding GpuVisible}" Foreground="#EDEFF2" />
-            <CheckBox Content="VRAM" IsChecked="{Binding VramVisible}" Foreground="#EDEFF2" />
+
+            <StackPanel Spacing="4">
+                <TextBlock Text="CPU" FontSize="12" Foreground="#9AA1AC" />
+                <CheckBox Content="Usage" IsChecked="{Binding CpuUsageVisible}" Foreground="#EDEFF2" />
+                <CheckBox Content="Temperature" IsChecked="{Binding CpuTempVisible}" Foreground="#EDEFF2" />
+            </StackPanel>
+
+            <StackPanel Spacing="4">
+                <TextBlock Text="RAM" FontSize="12" Foreground="#9AA1AC" />
+                <CheckBox Content="Usage" IsChecked="{Binding RamVisible}" Foreground="#EDEFF2" />
+            </StackPanel>
+
+            <StackPanel Spacing="4">
+                <TextBlock Text="GPU" FontSize="12" Foreground="#9AA1AC" />
+                <CheckBox Content="Usage" IsChecked="{Binding GpuUsageVisible}" Foreground="#EDEFF2" />
+                <CheckBox Content="Temperature" IsChecked="{Binding GpuTempVisible}" Foreground="#EDEFF2" />
+                <CheckBox Content="Power" IsChecked="{Binding GpuPowerVisible}" Foreground="#EDEFF2" />
+            </StackPanel>
+
+            <StackPanel Spacing="4">
+                <TextBlock Text="VRAM" FontSize="12" Foreground="#9AA1AC" />
+                <CheckBox Content="Usage" IsChecked="{Binding VramVisible}" Foreground="#EDEFF2" />
+            </StackPanel>
         </StackPanel>
 
         <StackPanel Spacing="8">

@@ -1,9 +1,10 @@
 namespace MiniMetrics.Models;
 
-// The full set of readings produced once per poll. Gpu is null when no NVIDIA GPU is present.
+// The full set of readings produced once per poll. Any section is null when its device is absent
+// or has been released because all of its metrics are hidden.
 public sealed record MetricsSnapshot(
-    CpuMetrics Cpu,
-    MemoryMetrics Memory,
+    CpuMetrics? Cpu,
+    MemoryMetrics? Memory,
     GpuMetrics? Gpu);
 
 // TempCelsius is null in v1 because CPU temperature requires the kernel driver, which is deferred.

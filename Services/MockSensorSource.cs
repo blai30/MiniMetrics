@@ -8,7 +8,18 @@ public sealed class MockSensorSource : ISensorSource
     private readonly bool _includeGpu;
     private int _tick;
 
+    private bool _cpuActive = true;
+    private bool _memoryActive = true;
+    private bool _gpuActive = true;
+
     public MockSensorSource(bool includeGpu = true) => _includeGpu = includeGpu;
+
+    public void SetActiveDevices(bool cpu, bool memory, bool gpu)
+    {
+        _cpuActive = cpu;
+        _memoryActive = memory;
+        _gpuActive = gpu;
+    }
 
     public MetricsSnapshot Read()
     {
@@ -16,10 +27,10 @@ public sealed class MockSensorSource : ISensorSource
         double wave(double mid, double amplitude, int phase)
             => mid + amplitude * Math.Sin((_tick + phase) / 5.0);
 
-        var cpu = new CpuMetrics(Clamp(wave(34, 20, 0)), null);
-        var memory = new MemoryMetrics(12_026_124_800UL, 34_359_738_368UL);
+        CpuMetrics? cpu = _cpuActive ? new CpuMetrics(Clamp(wave(34, 20, 0)), null) : null;
+        MemoryMetrics? memory = _memoryActive ? new MemoryMetrics(12_026_124_800UL, 34_359_738_368UL) : null;
 
-        GpuMetrics? gpu = _includeGpu
+        GpuMetrics? gpu = _gpuActive && _includeGpu
             ? new GpuMetrics(Clamp(wave(78, 15, 2)), 71, 6_871_947_674UL, 12_884_901_888UL, 185)
             : null;
 

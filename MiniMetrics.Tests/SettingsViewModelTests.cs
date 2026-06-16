@@ -12,7 +12,16 @@ public class SettingsViewModelTests
         Opacity = 96,
         AlwaysOnTop = true,
         SnapToEdges = true,
-        Visibility = { ["cpu"] = true, ["ram"] = false, ["gpu"] = true, ["vram"] = true },
+        Visibility =
+        {
+            ["cpu.usage"] = true,
+            ["cpu.temp"] = false,
+            ["ram.usage"] = false,
+            ["gpu.usage"] = true,
+            ["gpu.temp"] = true,
+            ["gpu.power"] = true,
+            ["vram.usage"] = true,
+        },
     };
 
     [Fact]
@@ -22,9 +31,22 @@ public class SettingsViewModelTests
 
         Assert.Equal("#0F121D", viewModel.BackgroundColor);
         Assert.Equal(96, viewModel.Opacity);
-        Assert.True(viewModel.CpuVisible);
+        Assert.True(viewModel.CpuUsageVisible);
+        Assert.False(viewModel.CpuTempVisible);
         Assert.False(viewModel.RamVisible);
         Assert.True(viewModel.AlwaysOnTop);
+    }
+
+    [Fact]
+    public void Seeds_per_metric_toggles_from_legacy_card_key()
+    {
+        var settings = new Settings { Visibility = { ["gpu"] = false } };
+
+        var viewModel = new SettingsViewModel(settings);
+
+        Assert.False(viewModel.GpuUsageVisible);
+        Assert.False(viewModel.GpuTempVisible);
+        Assert.False(viewModel.GpuPowerVisible);
     }
 
     [Fact]
@@ -60,7 +82,19 @@ public class SettingsViewModelTests
 
         viewModel.RamVisible = true;
 
-        Assert.Equal(("ram", true), last);
+        Assert.Equal(("ram.usage", true), last);
+    }
+
+    [Fact]
+    public void Toggling_gpu_power_raises_MetricVisibilityChanged_with_dotted_key()
+    {
+        var viewModel = new SettingsViewModel(SampleSettings());
+        (string Key, bool Value)? last = null;
+        viewModel.MetricVisibilityChanged += (key, value) => last = (key, value);
+
+        viewModel.GpuPowerVisible = false;
+
+        Assert.Equal(("gpu.power", false), last);
     }
 
     [Fact]
