@@ -10,6 +10,7 @@ public class SettingsViewModelTests
     {
         BackgroundColor = "#0F121D",
         Opacity = 96,
+        AlwaysOnTop = true,
         Visibility = { ["cpu"] = true, ["ram"] = false, ["gpu"] = true, ["vram"] = true },
     };
 
@@ -22,6 +23,7 @@ public class SettingsViewModelTests
         Assert.Equal(96, viewModel.Opacity);
         Assert.True(viewModel.CpuVisible);
         Assert.False(viewModel.RamVisible);
+        Assert.True(viewModel.AlwaysOnTop);
     }
 
     [Fact]
@@ -58,6 +60,18 @@ public class SettingsViewModelTests
         viewModel.RamVisible = true;
 
         Assert.Equal(("ram", true), last);
+    }
+
+    [Fact]
+    public void Toggling_always_on_top_raises_AlwaysOnTopChanged_with_value()
+    {
+        var viewModel = new SettingsViewModel(SampleSettings());
+        bool? last = null;
+        viewModel.AlwaysOnTopChanged += value => last = value;
+
+        viewModel.AlwaysOnTop = false;
+
+        Assert.Equal(false, last);
     }
 
     [Fact]

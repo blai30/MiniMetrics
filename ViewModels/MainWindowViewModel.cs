@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using Avalonia;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using MiniMetrics.Lib;
@@ -18,21 +17,11 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private IBrush _cardBackground = Brushes.Transparent;
 
-    // Recomputes the card background gradient from a base color and opacity.
+    // Recomputes the card's solid background color from a base color and opacity.
     public void ApplyAppearance(string backgroundColor, int opacity)
     {
-        (string top, string bottom) = AppearanceGradient.Derive(backgroundColor, opacity);
-
-        CardBackground = new LinearGradientBrush
-        {
-            StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative),
-            EndPoint = new RelativePoint(0, 1, RelativeUnit.Relative),
-            GradientStops =
-            {
-                new GradientStop(Color.Parse(top), 0),
-                new GradientStop(Color.Parse(bottom), 1),
-            },
-        };
+        string color = AppearanceColor.Derive(backgroundColor, opacity);
+        CardBackground = new SolidColorBrush(Color.Parse(color));
     }
 
     // Reconciles the bound row collection against a freshly built row list,

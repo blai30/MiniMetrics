@@ -26,6 +26,9 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     private bool _vramVisible;
 
+    [ObservableProperty]
+    private bool _alwaysOnTop;
+
     public SettingsViewModel(Settings settings)
     {
         _backgroundColor = settings.BackgroundColor;
@@ -34,6 +37,7 @@ public partial class SettingsViewModel : ObservableObject
         _ramVisible = settings.Visibility.GetValueOrDefault("ram", true);
         _gpuVisible = settings.Visibility.GetValueOrDefault("gpu", true);
         _vramVisible = settings.Visibility.GetValueOrDefault("vram", true);
+        _alwaysOnTop = settings.AlwaysOnTop;
     }
 
     // Raised when the base color or opacity changes (live preview + persist).
@@ -41,6 +45,9 @@ public partial class SettingsViewModel : ObservableObject
 
     // Raised when a single metric toggle changes, with its key and new value.
     public event Action<string, bool>? MetricVisibilityChanged;
+
+    // Raised when the always-on-top toggle changes, with its new value.
+    public event Action<bool>? AlwaysOnTopChanged;
 
     [RelayCommand]
     private void SelectPreset(string hex) => BackgroundColor = hex;
@@ -56,4 +63,6 @@ public partial class SettingsViewModel : ObservableObject
     partial void OnGpuVisibleChanged(bool value) => MetricVisibilityChanged?.Invoke("gpu", value);
 
     partial void OnVramVisibleChanged(bool value) => MetricVisibilityChanged?.Invoke("vram", value);
+
+    partial void OnAlwaysOnTopChanged(bool value) => AlwaysOnTopChanged?.Invoke(value);
 }

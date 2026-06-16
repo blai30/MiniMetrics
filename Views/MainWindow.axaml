@@ -8,7 +8,7 @@
         x:Class="MiniMetrics.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="MiniMetrics"
-        SystemDecorations="None"
+        WindowDecorations="None"
         Background="Transparent"
         TransparencyLevelHint="Transparent"
         ShowInTaskbar="False"
@@ -28,80 +28,80 @@
             <Setter Property="MinHeight" Value="5" />
             <Setter Property="Height" Value="5" />
             <Setter Property="MinWidth" Value="0" />
-            <Setter Property="CornerRadius" Value="2" />
+            <Setter Property="CornerRadius" Value="0" />
             <Setter Property="Background" Value="#1FFFFFFF" />
         </Style>
         <Style Selector="ProgressBar.metric /template/ Border#PART_Indicator">
-            <Setter Property="CornerRadius" Value="2" />
+            <Setter Property="CornerRadius" Value="0" />
         </Style>
     </Window.Styles>
 
     <Border BorderBrush="#1FFFFFFF"
             BorderThickness="1"
-            CornerRadius="16"
+            CornerRadius="0"
             Padding="22,16,22,18"
             Background="{Binding CardBackground}"
             TextElement.FontFeatures="+tnum">
-                <ItemsControl ItemsSource="{Binding Rows}">
-                    <ItemsControl.Styles>
-                        <!-- Collapse the generated item container itself for hidden rows so the
-                             ItemsPanel skips them in layout and adds no spacing around them. -->
-                        <Style Selector="ContentPresenter" x:DataType="vm:MetricRowViewModel">
-                            <Setter Property="IsVisible" Value="{Binding IsVisible}" />
-                        </Style>
-                    </ItemsControl.Styles>
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <StackPanel Spacing="10" />
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate x:DataType="vm:MetricRowViewModel">
-                            <StackPanel>
-                                <!-- Columns: label (flex) | value (aligned) | trailing (temp + detail, right). -->
-                                <Grid ColumnDefinitions="*,56,110" Margin="0,0,0,6">
-                                    <TextBlock Grid.Column="0"
-                                               Text="{Binding Label}"
-                                               FontSize="16"
-                                               FontWeight="SemiBold"
-                                               Foreground="#EDEFF2"
-                                               VerticalAlignment="Center" />
-                                    <TextBlock Grid.Column="1"
-                                               Text="{Binding Value}"
-                                               TextAlignment="Right"
-                                               FontSize="18"
-                                               FontWeight="Bold"
-                                               Foreground="#FFFFFF"
-                                               VerticalAlignment="Center" />
-                                    <StackPanel Grid.Column="2"
-                                                Orientation="Horizontal"
-                                                Spacing="6"
-                                                HorizontalAlignment="Right"
-                                                VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding Temp}"
-                                                   Width="40"
-                                                   TextAlignment="Right"
-                                                   IsVisible="{Binding HasTemp}"
-                                                   FontSize="15"
-                                                   FontWeight="SemiBold"
-                                                   Foreground="{Binding TempLevel, Converter={StaticResource TempLevelToBrush}}" />
-                                        <TextBlock Text="{Binding Detail}"
-                                                   Width="62"
-                                                   TextAlignment="Right"
-                                                   IsVisible="{Binding HasDetail}"
-                                                   FontSize="15"
-                                                   FontWeight="Medium"
-                                                   Foreground="#9AA1AC" />
-                                    </StackPanel>
-                                </Grid>
-                                <ProgressBar Classes="metric"
-                                             Minimum="0"
-                                             Maximum="100"
-                                             Value="{Binding BarPercent}"
-                                             Foreground="{Binding Color, Converter={StaticResource RowColorToBrush}}" />
+        <ItemsControl ItemsSource="{Binding Rows}">
+            <ItemsControl.Styles>
+                <!-- Collapse the generated item container itself for hidden rows so the
+                ItemsPanel skips them in layout and adds no spacing around them. -->
+                <Style Selector="ContentPresenter" x:DataType="vm:MetricRowViewModel">
+                    <Setter Property="IsVisible" Value="{Binding IsVisible}" />
+                </Style>
+            </ItemsControl.Styles>
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <StackPanel Spacing="10" />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:MetricRowViewModel">
+                    <StackPanel>
+                        <!-- Columns: label (flex) | value (aligned) | trailing (temp + detail, right). -->
+                        <Grid ColumnDefinitions="*,56,110" Margin="0,0,0,6">
+                            <TextBlock Grid.Column="0"
+                                       Text="{Binding Label}"
+                                       FontSize="16"
+                                       FontWeight="SemiBold"
+                                       Foreground="#EDEFF2"
+                                       VerticalAlignment="Center" />
+                            <TextBlock Grid.Column="1"
+                                       Text="{Binding Value}"
+                                       TextAlignment="Right"
+                                       FontSize="18"
+                                       FontWeight="Bold"
+                                       Foreground="#FFFFFF"
+                                       VerticalAlignment="Center" />
+                            <StackPanel Grid.Column="2"
+                                        Orientation="Horizontal"
+                                        Spacing="6"
+                                        HorizontalAlignment="Right"
+                                        VerticalAlignment="Center">
+                                <TextBlock Text="{Binding Temp}"
+                                           Width="40"
+                                           TextAlignment="Right"
+                                           IsVisible="{Binding HasTemp}"
+                                           FontSize="15"
+                                           FontWeight="SemiBold"
+                                           Foreground="{Binding TempLevel, Converter={StaticResource TempLevelToBrush}}" />
+                                <TextBlock Text="{Binding Detail}"
+                                           Width="62"
+                                           TextAlignment="Right"
+                                           IsVisible="{Binding HasDetail}"
+                                           FontSize="15"
+                                           FontWeight="Medium"
+                                           Foreground="#9AA1AC" />
                             </StackPanel>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
+                        </Grid>
+                        <ProgressBar Classes="metric"
+                                     Minimum="0"
+                                     Maximum="100"
+                                     Value="{Binding BarPercent}"
+                                     Foreground="{Binding Color, Converter={StaticResource RowColorToBrush}}" />
+                    </StackPanel>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
     </Border>
 </Window>

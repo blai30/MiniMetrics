@@ -45,15 +45,13 @@ public class MainWindowViewModelTests
     }
 
     [Fact]
-    public void ApplyAppearance_sets_a_gradient_brush_from_derived_stops()
+    public void ApplyAppearance_sets_a_solid_brush_from_derived_color()
     {
         var viewModel = new MainWindowViewModel();
 
         viewModel.ApplyAppearance("#0F121D", 100);
 
-        var brush = Assert.IsType<Avalonia.Media.LinearGradientBrush>(viewModel.CardBackground);
-        Assert.Equal(2, brush.GradientStops.Count);
-        Assert.Equal(Avalonia.Media.Color.Parse("#FF141827"), brush.GradientStops[0].Color);
-        Assert.Equal(Avalonia.Media.Color.Parse("#FF0B0D15"), brush.GradientStops[1].Color);
+        var brush = Assert.IsType<Avalonia.Media.SolidColorBrush>(viewModel.CardBackground);
+        Assert.Equal(Avalonia.Media.Color.Parse("#FF0F121D"), brush.Color);
     }
 }

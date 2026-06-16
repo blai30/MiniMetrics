@@ -42,7 +42,7 @@
                 <Button Classes="swatch" Background="#11231C"
                         Command="{Binding SelectPresetCommand}" CommandParameter="#11231C" />
             </WrapPanel>
-            <TextBox Text="{Binding BackgroundColor}" Watermark="#RRGGBB" Width="120" HorizontalAlignment="Left" />
+            <TextBox Text="{Binding BackgroundColor}" PlaceholderText="#RRGGBB" Width="120" HorizontalAlignment="Left" />
         </StackPanel>
 
         <StackPanel Spacing="8">
@@ -65,6 +65,11 @@
             <CheckBox Content="RAM" IsChecked="{Binding RamVisible}" Foreground="#EDEFF2" />
             <CheckBox Content="GPU" IsChecked="{Binding GpuVisible}" Foreground="#EDEFF2" />
             <CheckBox Content="VRAM" IsChecked="{Binding VramVisible}" Foreground="#EDEFF2" />
+        </StackPanel>
+
+        <StackPanel Spacing="8">
+            <TextBlock Text="Window" FontWeight="SemiBold" Foreground="#EDEFF2" />
+            <CheckBox Content="Always on top" IsChecked="{Binding AlwaysOnTop}" Foreground="#EDEFF2" />
         </StackPanel>
 
     </StackPanel>

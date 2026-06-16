@@ -20,8 +20,10 @@ public sealed class DesktopWindow
     private const uint SWP_NOACTIVATE = 0x0010;
 
     private static readonly IntPtr HWND_BOTTOM = new(1);
+    private static readonly IntPtr HWND_TOPMOST = new(-1);
 
     private readonly Window _window;
+    private bool _alwaysOnTop;
 
     public DesktopWindow(Window window) => _window = window;
 
@@ -37,15 +39,16 @@ public sealed class DesktopWindow
         Win32Properties.AddWindowStylesCallback(_window, (style, exStyle) =>
             (style, exStyle | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE));
 
-        // Force every z-order change to drop the window to the bottom, so it sits above the
-        // wallpaper but below all other windows, like a Rainmeter skin.
+        // Force every z-order change to the widget's pinned band: the bottom by default, so it
+        // sits above the wallpaper but below all other windows like a Rainmeter skin, or the
+        // topmost band when always-on-top is enabled.
         Win32Properties.AddWndProcHookCallback(_window,
             (IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam, ref bool handled) =>
             {
                 if (msg == WM_WINDOWPOSCHANGING)
                 {
                     var pos = Marshal.PtrToStructure<WINDOWPOS>(lParam);
-                    pos.hwndInsertAfter = HWND_BOTTOM;
+                    pos.hwndInsertAfter = _alwaysOnTop ? HWND_TOPMOST : HWND_BOTTOM;
                     pos.flags &= ~SWP_NOZORDER;
                     Marshal.StructureToPtr(pos, lParam, false);
                 }
@@ -54,15 +57,18 @@ public sealed class DesktopWindow
             });
     }
 
-    // Pushes the window to the bottom of the z-order once. Call after the window is opened.
-    public void SendToBottom()
+    // Pins the widget to either the bottom of the z-order (a desktop skin) or the topmost band
+    // (floating above all other windows). Updates the hook's target and applies it once now.
+    public void SetAlwaysOnTop(bool enabled)
     {
+        _alwaysOnTop = enabled;
         if (!OperatingSystem.IsWindows() || !TryGetHandle(out IntPtr hwnd))
         {
             return;
         }
 
-        SetWindowPos(hwnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+        IntPtr insertAfter = enabled ? HWND_TOPMOST : HWND_BOTTOM;
+        SetWindowPos(hwnd, insertAfter, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
     }
 
     // When enabled, the mouse passes through the widget to the desktop beneath it.

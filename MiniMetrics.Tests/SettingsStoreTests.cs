@@ -21,6 +21,7 @@ public class SettingsStoreTests
             Y = 340,
             Locked = true,
             Hidden = false,
+            AlwaysOnTop = true,
             Visibility = { ["gpu"] = false, ["cpu"] = true },
         };
 
@@ -31,6 +32,7 @@ public class SettingsStoreTests
         Assert.Equal(340, loaded.Y);
         Assert.True(loaded.Locked);
         Assert.False(loaded.Hidden);
+        Assert.True(loaded.AlwaysOnTop);
         Assert.False(loaded.Visibility["gpu"]);
         Assert.True(loaded.Visibility["cpu"]);
     }

@@ -64,6 +64,7 @@ public partial class App : Application
 
             _desktop = new DesktopWindow(_window);
             _desktop.Attach();
+            _desktop.SetAlwaysOnTop(_settings.AlwaysOnTop);
 
             // Restore the saved position before the window appears, if one exists.
             if (_settings.X is int x && _settings.Y is int y)
@@ -89,7 +90,7 @@ public partial class App : Application
             _window.Opened += (_, _) =>
             {
                 EnsureOnScreen();
-                _desktop.SendToBottom();
+                _desktop.SetAlwaysOnTop(_settings.AlwaysOnTop);
                 _desktop.SetClickThrough(_settings.Locked);
             };
 
@@ -168,7 +169,7 @@ public partial class App : Application
         else
         {
             _window.Show();
-            _desktop.SendToBottom();
+            _desktop.SetAlwaysOnTop(_settings.AlwaysOnTop);
         }
 
         _showHideItem.Header = _settings.Hidden ? "Show widget" : "Hide widget";
@@ -196,6 +197,7 @@ public partial class App : Application
         var viewModel = new SettingsViewModel(_settings);
         viewModel.AppearanceChanged += () => OnAppearanceChanged(viewModel);
         viewModel.MetricVisibilityChanged += OnMetricVisibilityChanged;
+        viewModel.AlwaysOnTopChanged += OnAlwaysOnTopChanged;
 
         _settingsWindow = new SettingsWindow { DataContext = viewModel };
         _settingsWindow.Closed += (_, _) => _settingsWindow = null;
@@ -217,6 +219,13 @@ public partial class App : Application
     {
         _settings.Visibility[key] = visible;
         _viewModel.SetVisibility(key, visible);
+        Save();
+    }
+
+    private void OnAlwaysOnTopChanged(bool enabled)
+    {
+        _settings.AlwaysOnTop = enabled;
+        _desktop.SetAlwaysOnTop(enabled);
         Save();
     }
 
