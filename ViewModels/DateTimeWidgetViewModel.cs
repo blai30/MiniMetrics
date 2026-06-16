@@ -50,6 +50,6 @@ public partial class DateTimeWidgetViewModel : ViewModelBase
     private void Refresh()
     {
         TimeText = ClockFormatting.FormatTime(_instant, _zone, Is24Hour);
-        DateText = ClockFormatting.FormatDate(_instant, _zone);
+        DateText = ClockFormatting.FormatDate(_instant, _zone, showZone: Is24Hour);
     }
 }

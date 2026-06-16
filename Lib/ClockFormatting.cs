@@ -16,10 +16,19 @@ public static class ClockFormatting
         return local.ToString(use24Hour ? "HH:mm:ss" : "h:mm:ss tt", Culture);
     }
 
-    // "dddd, MMMM d, yyyy" (Tuesday, June 16, 2026).
-    public static string FormatDate(DateTimeOffset instant, TimeZoneInfo zone)
+    // "dddd, MMMM d, yyyy" (Tuesday, June 16, 2026), optionally suffixed with the zone's UTC
+    // offset (Tuesday, June 16, 2026  UTC-08:00).
+    public static string FormatDate(DateTimeOffset instant, TimeZoneInfo zone, bool showZone = false)
     {
         DateTimeOffset local = TimeZoneInfo.ConvertTime(instant, zone);
-        return local.ToString("dddd, MMMM d, yyyy", Culture);
+        string date = local.ToString("dddd, MMMM d, yyyy", Culture);
+        return showZone ? $"{date}  {FormatZoneOffset(local.Offset)}" : date;
+    }
+
+    // "UTC-08:00" / "UTC+05:30" / "UTC+00:00".
+    private static string FormatZoneOffset(TimeSpan offset)
+    {
+        string sign = offset < TimeSpan.Zero ? "-" : "+";
+        return $"UTC{sign}{offset.Duration().ToString("hh\\:mm", Culture)}";
     }
 }

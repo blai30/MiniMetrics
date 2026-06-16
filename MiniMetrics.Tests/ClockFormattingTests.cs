@@ -59,4 +59,17 @@ public class ClockFormattingTests
         var lateNight = new DateTimeOffset(2026, 6, 16, 1, 0, 0, TimeSpan.Zero);
         Assert.Equal("Monday, June 15, 2026", ClockFormatting.FormatDate(lateNight, Offset(-5)));
     }
+
+    [Fact]
+    public void FormatDate_appends_negative_zone_offset_when_requested()
+    {
+        Assert.Equal("Tuesday, June 16, 2026  UTC-08:00", ClockFormatting.FormatDate(Instant, Offset(-8), showZone: true));
+    }
+
+    [Fact]
+    public void FormatDate_appends_positive_and_utc_zone_offsets_when_requested()
+    {
+        Assert.Equal("Tuesday, June 16, 2026  UTC+05:00", ClockFormatting.FormatDate(Instant, Offset(5), showZone: true));
+        Assert.Equal("Tuesday, June 16, 2026  UTC+00:00", ClockFormatting.FormatDate(Instant, TimeZoneInfo.Utc, showZone: true));
+    }
 }
