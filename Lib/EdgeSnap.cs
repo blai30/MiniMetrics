@@ -13,16 +13,8 @@ public static class EdgeSnap
 
     public static (int X, int Y) Snap(Rect widget, Rect area, IReadOnlyList<Rect> peers, int threshold)
     {
-        var xPeers = new List<(int Start, int Size)>(peers.Count);
-        var yPeers = new List<(int Start, int Size)>(peers.Count);
-        foreach (Rect peer in peers)
-        {
-            xPeers.Add((peer.X, peer.Width));
-            yPeers.Add((peer.Y, peer.Height));
-        }
-
-        int x = SnapAxis(widget.X, widget.Width, area.X, area.Width, xPeers, threshold);
-        int y = SnapAxis(widget.Y, widget.Height, area.Y, area.Height, yPeers, threshold);
+        int x = SnapAxis(widget.X, widget.Width, area.X, area.Width, peers, xAxis: true, threshold);
+        int y = SnapAxis(widget.Y, widget.Height, area.Y, area.Height, peers, xAxis: false, threshold);
         return (x, y);
     }
 
@@ -30,7 +22,7 @@ public static class EdgeSnap
     // screen edges first (so the leading screen edge wins ties) then each peer's adjacency and
     // alignment targets. Strict "<" keeps the earlier candidate when distances tie.
     private static int SnapAxis(int position, int size, int areaStart, int areaSize,
-        IReadOnlyList<(int Start, int Size)> peers, int threshold)
+        IReadOnlyList<Rect> peers, bool xAxis, int threshold)
     {
         int areaEnd = areaStart + areaSize;
         int best = position;
@@ -50,13 +42,15 @@ public static class EdgeSnap
         Consider(areaStart);
         Consider(areaEnd - size);
 
-        foreach ((int peerStart, int peerSize) in peers)
+        foreach (Rect peer in peers)
         {
+            int peerStart = xAxis ? peer.X : peer.Y;
+            int peerSize = xAxis ? peer.Width : peer.Height;
             int peerEnd = peerStart + peerSize;
-            Consider(peerEnd);            // flush after the peer
-            Consider(peerStart - size);   // flush before the peer
-            Consider(peerStart);          // leading edges aligned
-            Consider(peerEnd - size);     // trailing edges aligned
+            Consider(peerEnd);            // widget sits flush after the peer
+            Consider(peerStart - size);   // widget sits flush before the peer
+            Consider(peerStart);          // widget leading edge aligns with peer leading edge
+            Consider(peerEnd - size);     // widget trailing edge aligns with peer trailing edge
         }
 
         return best;

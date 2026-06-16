@@ -100,12 +100,13 @@ public partial class MainWindow : Window
         PixelRect area = screen.WorkingArea;
         var workArea = new EdgeSnap.Rect(area.X, area.Y, area.Width, area.Height);
 
-        (int x, int y) = EdgeSnap.Snap(widget, workArea, System.Array.Empty<EdgeSnap.Rect>(), SnapThreshold);
+        (int x, int y) = EdgeSnap.Snap(widget, workArea, NoPeers, SnapThreshold);
         return new PixelPoint(x, y);
     }
 
     // Snap pull distance in physical pixels.
     private const int SnapThreshold = 10;
+    private static readonly EdgeSnap.Rect[] NoPeers = System.Array.Empty<EdgeSnap.Rect>();
 
     private static bool TryGetCursorPos(out PixelPoint point)
     {
