@@ -143,6 +143,26 @@ public class SettingsStoreTests
     }
 
     [Fact]
+    public void Save_then_Load_round_trips_gpu_widget_fields()
+    {
+        var path = TempPath();
+        var store = new SettingsStore(path);
+        var settings = new Settings
+        {
+            GpuX = 1234,
+            GpuY = 567,
+            GpuHidden = true,
+        };
+
+        store.Save(settings);
+        var loaded = store.Load();
+
+        Assert.Equal(1234, loaded.GpuX);
+        Assert.Equal(567, loaded.GpuY);
+        Assert.True(loaded.GpuHidden);
+    }
+
+    [Fact]
     public void Load_defaults_datetime_widget_hidden_when_absent()
     {
         // A settings file written before the datetime widget existed.

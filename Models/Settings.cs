@@ -15,6 +15,9 @@ public sealed class Settings
     public int? DateTimeX { get; set; }
     public int? DateTimeY { get; set; }
     public bool DateTimeHidden { get; set; } = true;
+    public int? GpuX { get; set; }
+    public int? GpuY { get; set; }
+    public bool GpuHidden { get; set; }
     public string? TimeZoneId { get; set; }
     public Dictionary<string, bool> Visibility { get; set; } = new();
 }
