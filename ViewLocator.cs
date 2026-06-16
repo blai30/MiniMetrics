@@ -1,7 +1,7 @@
 using System;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
-using MiniMetrics.ViewModels;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace MiniMetrics;
 
@@ -26,6 +26,6 @@ public class ViewLocator : IDataTemplate
 
     public bool Match(object? data)
     {
-        return data is ViewModelBase;
+        return data is ObservableObject;
     }
 }
