@@ -66,7 +66,18 @@
             <ComboBox ItemsSource="{Binding TimeZones}"
                       SelectedItem="{Binding SelectedTimeZone}"
                       HorizontalAlignment="Stretch"
-                      MaxDropDownHeight="280">
+                      MaxDropDownHeight="280"
+                      ScrollViewer.VerticalScrollBarVisibility="Visible">
+                <ComboBox.Styles>
+                    <Style Selector="ComboBox /template/ ScrollViewer">
+                        <Setter Property="(ScrollViewer.AllowAutoHide)" Value="False" />
+                    </Style>
+                </ComboBox.Styles>
+                <ComboBox.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel />
+                    </ItemsPanelTemplate>
+                </ComboBox.ItemsPanel>
                 <ComboBox.ItemTemplate>
                     <DataTemplate x:DataType="sys:TimeZoneInfo">
                         <TextBlock Text="{Binding DisplayName}" />
