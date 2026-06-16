@@ -105,4 +105,34 @@ public class SettingsViewModelTests
 
         Assert.Equal("#18181B", viewModel.BackgroundColor);
     }
+
+    [Fact]
+    public void Seeds_selected_time_zone_from_settings_id()
+    {
+        var settings = new Settings { TimeZoneId = "UTC" };
+
+        var viewModel = new SettingsViewModel(settings);
+
+        Assert.Equal("UTC", viewModel.SelectedTimeZone.Id);
+    }
+
+    [Fact]
+    public void Defaults_selected_time_zone_to_local_when_id_absent()
+    {
+        var viewModel = new SettingsViewModel(SampleSettings());
+
+        Assert.Equal(System.TimeZoneInfo.Local.Id, viewModel.SelectedTimeZone.Id);
+    }
+
+    [Fact]
+    public void Changing_time_zone_raises_TimeZoneChanged()
+    {
+        var viewModel = new SettingsViewModel(SampleSettings());
+        int count = 0;
+        viewModel.TimeZoneChanged += () => count++;
+
+        viewModel.SelectedTimeZone = System.TimeZoneInfo.Utc;
+
+        Assert.Equal(1, count);
+    }
 }

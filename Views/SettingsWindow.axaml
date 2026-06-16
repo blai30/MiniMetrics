@@ -1,6 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:MiniMetrics.ViewModels"
+        xmlns:sys="using:System"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
@@ -57,6 +58,20 @@
                            VerticalAlignment="Center"
                            Foreground="#9AA1AC" />
             </Grid>
+        </StackPanel>
+
+        <StackPanel Spacing="8">
+            <TextBlock Text="Timezone" FontWeight="SemiBold" Foreground="#EDEFF2" />
+            <ComboBox ItemsSource="{Binding TimeZones}"
+                      SelectedItem="{Binding SelectedTimeZone}"
+                      HorizontalAlignment="Stretch"
+                      MaxDropDownHeight="280">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="sys:TimeZoneInfo">
+                        <TextBlock Text="{Binding DisplayName}" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
         </StackPanel>
 
         <StackPanel Spacing="10">
