@@ -36,6 +36,8 @@ public partial class App : Application
     private NativeMenuItem _lockItem = null!;
     private NativeMenuItem _alwaysOnTopItem = null!;
     private NativeMenuItem _snapItem = null!;
+    private NativeMenuItem? _runAtStartupItem;
+    private StartupManager? _startupManager;
     private SettingsWindow? _settingsWindow;
 
     public override void Initialize()
@@ -244,6 +246,24 @@ public partial class App : Application
         _snapItem.Click += OnToggleSnap;
         menu.Add(_snapItem);
 
+        if (OperatingSystem.IsWindows())
+        {
+            _startupManager = new StartupManager(
+                new WindowsStartupOperations(),
+                Environment.ProcessPath!);
+
+            // Keep a stale run-key path corrected, but never prompt for elevation at launch.
+            _startupManager.RefreshRunKeyPath();
+
+            _runAtStartupItem = new NativeMenuItem("Run at startup")
+            {
+                ToggleType = MenuItemToggleType.CheckBox,
+                IsChecked = _startupManager.IsEnabled(),
+            };
+            _runAtStartupItem.Click += OnToggleRunAtStartup;
+            menu.Add(_runAtStartupItem);
+        }
+
         menu.Add(new NativeMenuItemSeparator());
 
         var settingsItem = new NativeMenuItem("Settings...");
@@ -364,6 +384,15 @@ public partial class App : Application
         _viewModel.SetVisibility(key, visible);
         ApplyActiveDevices();
         Save();
+
+        // Toggling CPU temp/power flips whether autostart must be elevated; re-register if on.
+        if ((key == "cpu.temp" || key == "cpu.power")
+            && _startupManager is not null
+            && _startupManager.IsEnabled())
+        {
+            _startupManager.Sync(true, RequiresElevation());
+            _runAtStartupItem!.IsChecked = _startupManager.IsEnabled();
+        }
     }
 
     // A device is polled while any of its metrics is visible; once they are all hidden it is
@@ -424,6 +453,29 @@ public partial class App : Application
         _dateTimeWindow.SnapEnabled = _settings.SnapToEdges;
         _snapItem.IsChecked = _settings.SnapToEdges;
         Save();
+    }
+
+    private void OnToggleRunAtStartup(object? sender, EventArgs e)
+    {
+        if (_startupManager is null)
+        {
+            return;
+        }
+
+        // Compute the target from reality so the result is correct regardless of any
+        // framework-side checkbox auto-toggle.
+        bool target = !_startupManager.IsEnabled();
+        _startupManager.Sync(target, RequiresElevation());
+
+        // Reflect what is actually registered, so a declined UAC prompt reverts the checkmark.
+        _runAtStartupItem!.IsChecked = _startupManager.IsEnabled();
+    }
+
+    // CPU temperature and CPU power need the ring0 driver, which only an elevated process can load.
+    private bool RequiresElevation()
+    {
+        bool Visible(string key) => _settings.Visibility.GetValueOrDefault(key, true);
+        return Visible("cpu.temp") || Visible("cpu.power");
     }
 
     // Resolves the saved zone id to a TimeZoneInfo, falling back to local if it is missing or the
