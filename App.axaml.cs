@@ -204,11 +204,19 @@ public partial class App : Application
     {
         var menu = new NativeMenu();
 
-        _showHideItem = new NativeMenuItem(_settings.Hidden ? "Show metrics widget" : "Hide metrics widget");
+        _showHideItem = new NativeMenuItem("Show metrics widget")
+        {
+            ToggleType = MenuItemToggleType.CheckBox,
+            IsChecked = !_settings.Hidden,
+        };
         _showHideItem.Click += OnToggleShowHide;
         menu.Add(_showHideItem);
 
-        _clockShowHideItem = new NativeMenuItem(_settings.DateTimeHidden ? "Show clock widget" : "Hide clock widget");
+        _clockShowHideItem = new NativeMenuItem("Show clock widget")
+        {
+            ToggleType = MenuItemToggleType.CheckBox,
+            IsChecked = !_settings.DateTimeHidden,
+        };
         _clockShowHideItem.Click += OnToggleClockShowHide;
         menu.Add(_clockShowHideItem);
 
@@ -277,7 +285,7 @@ public partial class App : Application
             _desktop.SetAlwaysOnTop(_settings.AlwaysOnTop);
         }
 
-        _showHideItem.Header = _settings.Hidden ? "Show metrics widget" : "Hide metrics widget";
+        _showHideItem.IsChecked = !_settings.Hidden;
         Save();
     }
 
@@ -294,7 +302,7 @@ public partial class App : Application
             _dateTimeDesktop.SetAlwaysOnTop(_settings.AlwaysOnTop);
         }
 
-        _clockShowHideItem.Header = _settings.DateTimeHidden ? "Show clock widget" : "Hide clock widget";
+        _clockShowHideItem.IsChecked = !_settings.DateTimeHidden;
         Save();
     }
 

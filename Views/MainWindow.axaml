@@ -31,14 +31,14 @@
                 <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,7">
                     <TextBlock Grid.Column="0"
                                Text="{Binding Label}"
-                               FontSize="16"
+                               FontSize="18"
                                FontWeight="Bold"
                                Foreground="#C2C9D4"
                                VerticalAlignment="Center" />
                     <TextBlock Grid.Column="1"
                                Text="{Binding Detail}"
                                Opacity="{Binding PowerVisible, Converter={StaticResource BoolToOpacity}}"
-                               FontSize="14"
+                               FontSize="16"
                                FontWeight="Bold"
                                Foreground="#BCC3CE"
                                VerticalAlignment="Center" />
