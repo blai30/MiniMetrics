@@ -11,8 +11,10 @@ public class EdgeSnapTests
     private const int Height = 176;
     private const int Threshold = 20;
 
+    private static readonly EdgeSnap.Rect[] NoPeers = System.Array.Empty<EdgeSnap.Rect>();
+
     private static (int X, int Y) Snap(int x, int y) =>
-        EdgeSnap.Snap(new EdgeSnap.Rect(x, y, Width, Height), Area, Threshold);
+        EdgeSnap.Snap(new EdgeSnap.Rect(x, y, Width, Height), Area, NoPeers, Threshold);
 
     [Fact]
     public void Snaps_left_edge_when_within_threshold()
@@ -75,7 +77,44 @@ public class EdgeSnapTests
     {
         // Second monitor work area starting at x=1920.
         var area = new EdgeSnap.Rect(1920, 0, 1920, 1080);
-        var result = EdgeSnap.Snap(new EdgeSnap.Rect(1930, 500, Width, Height), area, Threshold);
+        var result = EdgeSnap.Snap(new EdgeSnap.Rect(1930, 500, Width, Height), area, NoPeers, Threshold);
         Assert.Equal((1920, 500), result);
+    }
+
+    [Fact]
+    public void Snaps_flush_below_a_peer_and_aligns_left_edges()
+    {
+        // Peer (metrics) at (100,100) sized 400x176: bottom edge at 276, left at 100.
+        var peer = new EdgeSnap.Rect(100, 100, 400, 176);
+        // Dragged widget 640x176 left-aligned, 9px below the peer's bottom.
+        var result = EdgeSnap.Snap(new EdgeSnap.Rect(100, 285, 640, 176), Area, new[] { peer }, Threshold);
+        Assert.Equal((100, 276), result);
+    }
+
+    [Fact]
+    public void Snaps_flush_above_a_peer()
+    {
+        // Peer top edge at 500; a 176-tall widget whose bottom is near 500 snaps to top = 324.
+        var peer = new EdgeSnap.Rect(100, 500, 400, 176);
+        var result = EdgeSnap.Snap(new EdgeSnap.Rect(100, 315, 640, 176), Area, new[] { peer }, Threshold);
+        Assert.Equal((100, 324), result);
+    }
+
+    [Fact]
+    public void Aligns_left_edge_to_a_peer_without_snapping_the_other_axis()
+    {
+        var peer = new EdgeSnap.Rect(300, 200, 400, 176);
+        // x is 10px from the peer's left edge; y is far from every edge and the peer.
+        var result = EdgeSnap.Snap(new EdgeSnap.Rect(290, 600, 640, 176), Area, new[] { peer }, Threshold);
+        Assert.Equal((300, 600), result);
+    }
+
+    [Fact]
+    public void Does_not_snap_to_a_peer_beyond_threshold()
+    {
+        var peer = new EdgeSnap.Rect(100, 100, 400, 176);
+        // 44px below the peer (> 20) and far from peer x-edges and screen edges.
+        var result = EdgeSnap.Snap(new EdgeSnap.Rect(600, 320, 640, 176), Area, new[] { peer }, Threshold);
+        Assert.Equal((600, 320), result);
     }
 }

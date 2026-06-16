@@ -100,7 +100,7 @@ public partial class MainWindow : Window
         PixelRect area = screen.WorkingArea;
         var workArea = new EdgeSnap.Rect(area.X, area.Y, area.Width, area.Height);
 
-        (int x, int y) = EdgeSnap.Snap(widget, workArea, SnapThreshold);
+        (int x, int y) = EdgeSnap.Snap(widget, workArea, System.Array.Empty<EdgeSnap.Rect>(), SnapThreshold);
         return new PixelPoint(x, y);
     }
 
