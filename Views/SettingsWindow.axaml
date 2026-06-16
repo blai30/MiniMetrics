@@ -8,6 +8,7 @@
         x:Class="MiniMetrics.Views.SettingsWindow"
         x:DataType="vm:SettingsViewModel"
         Title="Mini Metrics Settings"
+        Icon="avares://MiniMetrics/Assets/minimetrics.ico"
         Width="360"
         SizeToContent="Height"
         CanResize="False"

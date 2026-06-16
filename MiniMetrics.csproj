@@ -6,6 +6,7 @@
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <ApplicationIcon>Assets\minimetrics.ico</ApplicationIcon>
     <!-- The test project is nested under the repo root, so exclude it from this project's default file globbing. -->
     <DefaultItemExcludes>$(DefaultItemExcludes);MiniMetrics.Tests\**</DefaultItemExcludes>
   </PropertyGroup>
