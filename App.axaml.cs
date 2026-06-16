@@ -121,10 +121,10 @@ public partial class App : Application
             // Each widget snaps against the other only while the other is actually shown.
             _window.PeerRects = () => _dateTimeWindow.IsVisible
                 ? new[] { RectOf(_dateTimeWindow) }
-                : System.Array.Empty<EdgeSnap.Rect>();
+                : Array.Empty<EdgeSnap.Rect>();
             _dateTimeWindow.PeerRects = () => _window.IsVisible
                 ? new[] { RectOf(_window) }
-                : System.Array.Empty<EdgeSnap.Rect>();
+                : Array.Empty<EdgeSnap.Rect>();
 
             // Restore the saved position before the window appears, if one exists.
             if (_settings.X is int x && _settings.Y is int y)
@@ -149,7 +149,9 @@ public partial class App : Application
 
             _window.Opened += (_, _) =>
             {
-                EnsureOnScreen();
+                EnsureWindowOnScreen(_window,
+                    () => _settings.X = _window.Position.X,
+                    () => _settings.Y = _window.Position.Y);
                 _desktop.SetAlwaysOnTop(_settings.AlwaysOnTop);
                 _desktop.SetClickThrough(_settings.Locked);
             };
@@ -414,27 +416,6 @@ public partial class App : Application
         _dateTimeWindow.SnapEnabled = _settings.SnapToEdges;
         _snapItem.IsChecked = _settings.SnapToEdges;
         Save();
-    }
-
-    // If the restored position lands off every monitor (display unplugged or resolution changed),
-    // pull the widget back onto the primary screen so it cannot get lost.
-    private void EnsureOnScreen()
-    {
-        var screens = _window.Screens;
-        if (screens is null || screens.All.Count == 0)
-        {
-            return;
-        }
-
-        if (screens.ScreenFromPoint(_window.Position) is null)
-        {
-            var primary = screens.Primary ?? screens.All[0];
-            var area = primary.WorkingArea;
-            _window.Position = new PixelPoint(area.X + 48, area.Y + 48);
-            _settings.X = _window.Position.X;
-            _settings.Y = _window.Position.Y;
-            Save();
-        }
     }
 
     // Resolves the saved zone id to a TimeZoneInfo, falling back to local if it is missing or the
