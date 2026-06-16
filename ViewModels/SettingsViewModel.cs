@@ -21,6 +21,9 @@ public partial class SettingsViewModel : ObservableObject
     private bool _cpuTempVisible;
 
     [ObservableProperty]
+    private bool _cpuPowerVisible;
+
+    [ObservableProperty]
     private bool _ramVisible;
 
     [ObservableProperty]
@@ -35,12 +38,6 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     private bool _vramVisible;
 
-    [ObservableProperty]
-    private bool _alwaysOnTop;
-
-    [ObservableProperty]
-    private bool _snapToEdges;
-
     public SettingsViewModel(Settings settings)
     {
         // Seed each per-metric toggle, falling back to the legacy whole-card key when the granular
@@ -54,13 +51,12 @@ public partial class SettingsViewModel : ObservableObject
         _opacity = settings.Opacity;
         _cpuUsageVisible = Seed("cpu.usage", "cpu");
         _cpuTempVisible = Seed("cpu.temp", "cpu");
+        _cpuPowerVisible = Seed("cpu.power", "cpu");
         _ramVisible = Seed("ram.usage", "ram");
         _gpuUsageVisible = Seed("gpu.usage", "gpu");
         _gpuTempVisible = Seed("gpu.temp", "gpu");
         _gpuPowerVisible = Seed("gpu.power", "gpu");
         _vramVisible = Seed("vram.usage", "vram");
-        _alwaysOnTop = settings.AlwaysOnTop;
-        _snapToEdges = settings.SnapToEdges;
     }
 
     // Raised when the base color or opacity changes (live preview + persist).
@@ -68,12 +64,6 @@ public partial class SettingsViewModel : ObservableObject
 
     // Raised when a single metric toggle changes, with its key and new value.
     public event Action<string, bool>? MetricVisibilityChanged;
-
-    // Raised when the always-on-top toggle changes, with its new value.
-    public event Action<bool>? AlwaysOnTopChanged;
-
-    // Raised when the snap-to-edges toggle changes, with its new value.
-    public event Action<bool>? SnapToEdgesChanged;
 
     [RelayCommand]
     private void SelectPreset(string hex) => BackgroundColor = hex;
@@ -86,6 +76,8 @@ public partial class SettingsViewModel : ObservableObject
 
     partial void OnCpuTempVisibleChanged(bool value) => MetricVisibilityChanged?.Invoke("cpu.temp", value);
 
+    partial void OnCpuPowerVisibleChanged(bool value) => MetricVisibilityChanged?.Invoke("cpu.power", value);
+
     partial void OnRamVisibleChanged(bool value) => MetricVisibilityChanged?.Invoke("ram.usage", value);
 
     partial void OnGpuUsageVisibleChanged(bool value) => MetricVisibilityChanged?.Invoke("gpu.usage", value);
@@ -95,8 +87,4 @@ public partial class SettingsViewModel : ObservableObject
     partial void OnGpuPowerVisibleChanged(bool value) => MetricVisibilityChanged?.Invoke("gpu.power", value);
 
     partial void OnVramVisibleChanged(bool value) => MetricVisibilityChanged?.Invoke("vram.usage", value);
-
-    partial void OnAlwaysOnTopChanged(bool value) => AlwaysOnTopChanged?.Invoke(value);
-
-    partial void OnSnapToEdgesChanged(bool value) => SnapToEdgesChanged?.Invoke(value);
 }

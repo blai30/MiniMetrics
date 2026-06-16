@@ -9,7 +9,7 @@ namespace MiniMetrics.Tests;
 public class MetricVisibilityTests
 {
     private static MetricsSnapshot WithGpu() => new(
-        new CpuMetrics(34.0, null),
+        new CpuMetrics(34.0, null, null),
         new MemoryMetrics(12_026_124_800UL, 34_359_738_368UL),
         new GpuMetrics(78.0, 71.0, 6_871_947_674UL, 12_884_901_888UL, 185.0));
 

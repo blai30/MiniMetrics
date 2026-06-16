@@ -38,7 +38,7 @@ public static class RowBuilder
     {
         var rows = new List<MetricRow>();
 
-        if (snapshot.Cpu is CpuMetrics cpu)
+        if (snapshot.Cpu is { } cpu)
         {
             rows.Add(new(
                 "cpu",
@@ -46,14 +46,16 @@ public static class RowBuilder
                 MetricFormatting.FormatPercent(cpu.UsagePercent),
                 // CPU temperature is deferred (needs the kernel driver). Until then the hero slot
                 // shows a muted placeholder rather than going blank.
-                cpu.TempCelsius is double cpuTemp ? MetricFormatting.FormatTempValue(cpuTemp) : "--",
-                cpu.TempCelsius is double cpuLevel ? LevelFor(cpuLevel) : TempLevel.None,
-                "",
+                cpu.TempCelsius is { } cpuTemp ? MetricFormatting.FormatTempValue(cpuTemp) : "—",
+                cpu.TempCelsius is { } cpuLevel ? LevelFor(cpuLevel) : TempLevel.None,
+                // CPU power is deferred (needs the kernel driver). Until then the detail slot shows a
+                // muted placeholder rather than a misleading reading.
+                cpu.PowerWatts is { } cpuPower ? MetricFormatting.FormatPower(cpuPower) : "—",
                 cpu.UsagePercent,
                 RowColor.Cyan));
         }
 
-        if (snapshot.Memory is MemoryMetrics memory)
+        if (snapshot.Memory is { } memory)
         {
             rows.Add(new(
                 "ram",
@@ -66,27 +68,25 @@ public static class RowBuilder
                 RowColor.Green));
         }
 
-        if (snapshot.Gpu is GpuMetrics gpu)
-        {
-            rows.Add(new(
-                "gpu",
-                "GPU",
-                MetricFormatting.FormatPercent(gpu.UsagePercent),
-                MetricFormatting.FormatTempValue(gpu.TempCelsius),
-                LevelFor(gpu.TempCelsius),
-                MetricFormatting.FormatPower(gpu.PowerWatts),
-                gpu.UsagePercent,
-                RowColor.Amber));
-            rows.Add(new(
-                "vram",
-                "VRAM",
-                MetricFormatting.FormatGiB(gpu.VramUsedBytes),
-                "",
-                TempLevel.None,
-                $"/ {MetricFormatting.FormatGiB(gpu.VramTotalBytes, 0)} GB",
-                Percent(gpu.VramUsedBytes, gpu.VramTotalBytes),
-                RowColor.Violet));
-        }
+        if (snapshot.Gpu is not { } gpu) return rows;
+        rows.Add(new(
+            "gpu",
+            "GPU",
+            MetricFormatting.FormatPercent(gpu.UsagePercent),
+            MetricFormatting.FormatTempValue(gpu.TempCelsius),
+            LevelFor(gpu.TempCelsius),
+            MetricFormatting.FormatPower(gpu.PowerWatts),
+            gpu.UsagePercent,
+            RowColor.Amber));
+        rows.Add(new(
+            "vram",
+            "VRAM",
+            MetricFormatting.FormatGiB(gpu.VramUsedBytes),
+            "",
+            TempLevel.None,
+            $"/ {MetricFormatting.FormatGiB(gpu.VramTotalBytes, 0)} GB",
+            Percent(gpu.VramUsedBytes, gpu.VramTotalBytes),
+            RowColor.Violet));
 
         return rows;
     }

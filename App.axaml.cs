@@ -27,6 +27,8 @@ public partial class App : Application
     private TrayIcon? _trayIcon;
     private NativeMenuItem _showHideItem = null!;
     private NativeMenuItem _lockItem = null!;
+    private NativeMenuItem _alwaysOnTopItem = null!;
+    private NativeMenuItem _snapItem = null!;
     private SettingsWindow? _settingsWindow;
 
     public override void Initialize()
@@ -136,6 +138,22 @@ public partial class App : Application
         _lockItem.Click += OnToggleLock;
         menu.Add(_lockItem);
 
+        _alwaysOnTopItem = new NativeMenuItem("Always on top")
+        {
+            ToggleType = MenuItemToggleType.CheckBox,
+            IsChecked = _settings.AlwaysOnTop,
+        };
+        _alwaysOnTopItem.Click += OnToggleAlwaysOnTop;
+        menu.Add(_alwaysOnTopItem);
+
+        _snapItem = new NativeMenuItem("Snap to edges")
+        {
+            ToggleType = MenuItemToggleType.CheckBox,
+            IsChecked = _settings.SnapToEdges,
+        };
+        _snapItem.Click += OnToggleSnap;
+        menu.Add(_snapItem);
+
         menu.Add(new NativeMenuItemSeparator());
 
         var settingsItem = new NativeMenuItem("Settings...");
@@ -202,8 +220,6 @@ public partial class App : Application
         var viewModel = new SettingsViewModel(_settings);
         viewModel.AppearanceChanged += () => OnAppearanceChanged(viewModel);
         viewModel.MetricVisibilityChanged += OnMetricVisibilityChanged;
-        viewModel.AlwaysOnTopChanged += OnAlwaysOnTopChanged;
-        viewModel.SnapToEdgesChanged += OnSnapToEdgesChanged;
 
         _settingsWindow = new SettingsWindow { DataContext = viewModel };
         _settingsWindow.Closed += (_, _) => _settingsWindow = null;
@@ -235,7 +251,7 @@ public partial class App : Application
     {
         bool Visible(string key) => _settings.Visibility.GetValueOrDefault(key, true);
 
-        bool cpu = Visible("cpu.usage") || Visible("cpu.temp");
+        bool cpu = Visible("cpu.usage") || Visible("cpu.temp") || Visible("cpu.power");
         bool memory = Visible("ram.usage");
         bool gpu = Visible("gpu.usage") || Visible("gpu.temp")
                    || Visible("gpu.power") || Visible("vram.usage");
@@ -265,23 +281,25 @@ public partial class App : Application
             }
         }
 
-        Expand("cpu", "cpu.usage", "cpu.temp");
+        Expand("cpu", "cpu.usage", "cpu.temp", "cpu.power");
         Expand("ram", "ram.usage");
         Expand("gpu", "gpu.usage", "gpu.temp", "gpu.power");
         Expand("vram", "vram.usage");
     }
 
-    private void OnAlwaysOnTopChanged(bool enabled)
+    private void OnToggleAlwaysOnTop(object? sender, EventArgs e)
     {
-        _settings.AlwaysOnTop = enabled;
-        _desktop.SetAlwaysOnTop(enabled);
+        _settings.AlwaysOnTop = !_settings.AlwaysOnTop;
+        _desktop.SetAlwaysOnTop(_settings.AlwaysOnTop);
+        _alwaysOnTopItem.IsChecked = _settings.AlwaysOnTop;
         Save();
     }
 
-    private void OnSnapToEdgesChanged(bool enabled)
+    private void OnToggleSnap(object? sender, EventArgs e)
     {
-        _settings.SnapToEdges = enabled;
-        _window.SnapEnabled = enabled;
+        _settings.SnapToEdges = !_settings.SnapToEdges;
+        _window.SnapEnabled = _settings.SnapToEdges;
+        _snapItem.IsChecked = _settings.SnapToEdges;
         Save();
     }
 

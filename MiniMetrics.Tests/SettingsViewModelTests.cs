@@ -34,7 +34,6 @@ public class SettingsViewModelTests
         Assert.True(viewModel.CpuUsageVisible);
         Assert.False(viewModel.CpuTempVisible);
         Assert.False(viewModel.RamVisible);
-        Assert.True(viewModel.AlwaysOnTop);
     }
 
     [Fact]
@@ -95,38 +94,6 @@ public class SettingsViewModelTests
         viewModel.GpuPowerVisible = false;
 
         Assert.Equal(("gpu.power", false), last);
-    }
-
-    [Fact]
-    public void Toggling_always_on_top_raises_AlwaysOnTopChanged_with_value()
-    {
-        var viewModel = new SettingsViewModel(SampleSettings());
-        bool? last = null;
-        viewModel.AlwaysOnTopChanged += value => last = value;
-
-        viewModel.AlwaysOnTop = false;
-
-        Assert.Equal(false, last);
-    }
-
-    [Fact]
-    public void Seeds_snap_to_edges_from_settings()
-    {
-        var viewModel = new SettingsViewModel(SampleSettings());
-
-        Assert.True(viewModel.SnapToEdges);
-    }
-
-    [Fact]
-    public void Toggling_snap_to_edges_raises_SnapToEdgesChanged_with_value()
-    {
-        var viewModel = new SettingsViewModel(SampleSettings());
-        bool? last = null;
-        viewModel.SnapToEdgesChanged += value => last = value;
-
-        viewModel.SnapToEdges = false;
-
-        Assert.Equal(false, last);
     }
 
     [Fact]

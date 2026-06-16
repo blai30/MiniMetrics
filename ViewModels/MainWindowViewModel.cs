@@ -125,7 +125,7 @@ public partial class MainWindowViewModel : ViewModelBase
             case "cpu":
                 row.UsageVisible = Visible("cpu.usage");
                 row.TempVisible = Visible("cpu.temp");
-                row.PowerVisible = false;
+                row.PowerVisible = Visible("cpu.power");
                 break;
             case "gpu":
                 row.UsageVisible = Visible("gpu.usage");

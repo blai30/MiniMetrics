@@ -27,7 +27,7 @@ public sealed class MockSensorSource : ISensorSource
         double wave(double mid, double amplitude, int phase)
             => mid + amplitude * Math.Sin((_tick + phase) / 5.0);
 
-        CpuMetrics? cpu = _cpuActive ? new CpuMetrics(Clamp(wave(34, 20, 0)), null) : null;
+        CpuMetrics? cpu = _cpuActive ? new CpuMetrics(Clamp(wave(34, 20, 0)), null, null) : null;
         MemoryMetrics? memory = _memoryActive ? new MemoryMetrics(12_026_124_800UL, 34_359_738_368UL) : null;
 
         GpuMetrics? gpu = _gpuActive && _includeGpu

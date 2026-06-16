@@ -8,7 +8,7 @@ namespace MiniMetrics.Tests;
 public class MainWindowViewModelTests
 {
     private static MetricsSnapshot WithGpu() => new(
-        new CpuMetrics(34.0, null),
+        new CpuMetrics(34.0, null, null),
         new MemoryMetrics(12_026_124_800UL, 34_359_738_368UL),
         new GpuMetrics(78.0, 71.0, 6_871_947_674UL, 12_884_901_888UL, 185.0));
 
@@ -28,7 +28,7 @@ public class MainWindowViewModelTests
         vm.ApplySnapshot(WithGpu());
         var cpuRow = vm.Rows.Single(r => r.Key == "cpu");
 
-        var updated = WithGpu() with { Cpu = new CpuMetrics(50.0, null) };
+        var updated = WithGpu() with { Cpu = new CpuMetrics(50.0, null, null) };
         vm.ApplySnapshot(updated);
 
         Assert.Same(cpuRow, vm.Rows.Single(r => r.Key == "cpu"));

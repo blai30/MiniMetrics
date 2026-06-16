@@ -7,8 +7,9 @@ public sealed record MetricsSnapshot(
     MemoryMetrics? Memory,
     GpuMetrics? Gpu);
 
-// TempCelsius is null in v1 because CPU temperature requires the kernel driver, which is deferred.
-public sealed record CpuMetrics(double UsagePercent, double? TempCelsius);
+// TempCelsius and PowerWatts are null in v1 because CPU temperature and power require the kernel
+// driver, which is deferred.
+public sealed record CpuMetrics(double UsagePercent, double? TempCelsius, double? PowerWatts);
 
 public sealed record MemoryMetrics(ulong UsedBytes, ulong TotalBytes);
 

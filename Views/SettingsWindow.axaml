@@ -66,6 +66,7 @@
                 <TextBlock Text="CPU" FontSize="12" Foreground="#9AA1AC" />
                 <CheckBox Content="Usage" IsChecked="{Binding CpuUsageVisible}" Foreground="#EDEFF2" />
                 <CheckBox Content="Temperature" IsChecked="{Binding CpuTempVisible}" Foreground="#EDEFF2" />
+                <CheckBox Content="Power" IsChecked="{Binding CpuPowerVisible}" Foreground="#EDEFF2" />
             </StackPanel>
 
             <StackPanel Spacing="4">
@@ -84,12 +85,6 @@
                 <TextBlock Text="VRAM" FontSize="12" Foreground="#9AA1AC" />
                 <CheckBox Content="Usage" IsChecked="{Binding VramVisible}" Foreground="#EDEFF2" />
             </StackPanel>
-        </StackPanel>
-
-        <StackPanel Spacing="8">
-            <TextBlock Text="Window" FontWeight="SemiBold" Foreground="#EDEFF2" />
-            <CheckBox Content="Always on top" IsChecked="{Binding AlwaysOnTop}" Foreground="#EDEFF2" />
-            <CheckBox Content="Snap to edges" IsChecked="{Binding SnapToEdges}" Foreground="#EDEFF2" />
         </StackPanel>
 
     </StackPanel>

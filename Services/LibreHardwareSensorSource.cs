@@ -57,7 +57,8 @@ public sealed class LibreHardwareSensorSource : ISensorSource, IDisposable
         if (_cpuActive)
         {
             double cpuLoad = SensorValue(cpu, SensorType.Load, "CPU Total") ?? 0;
-            cpuMetrics = new CpuMetrics(cpuLoad, null); // CPU temperature is deferred to a later plan.
+            // CPU temperature and power are deferred to a later plan (both need the kernel driver).
+            cpuMetrics = new CpuMetrics(cpuLoad, null, null);
         }
 
         MemoryMetrics? memoryMetrics = null;

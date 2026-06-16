@@ -8,7 +8,7 @@ namespace MiniMetrics.Tests;
 public class RowBuilderTests
 {
     private static MetricsSnapshot WithGpu(double gpuTemp = 71.0) => new(
-        new CpuMetrics(34.0, null),
+        new CpuMetrics(34.0, null, null),
         new MemoryMetrics(12_026_124_800UL, 34_359_738_368UL),
         new GpuMetrics(78.0, gpuTemp, 6_871_947_674UL, 12_884_901_888UL, 185.0));
 
@@ -29,7 +29,7 @@ public class RowBuilderTests
         Assert.Equal("34", cpu.Value);
         Assert.Equal("--", cpu.Temp); // CPU temp deferred: muted placeholder
         Assert.Equal(TempLevel.None, cpu.TempLevel);
-        Assert.Equal("", cpu.Detail);
+        Assert.Equal("--", cpu.Detail); // CPU power deferred: muted placeholder
         Assert.Equal(RowColor.Cyan, cpu.Color);
 
         Assert.Equal("11.2", ram.Value);
