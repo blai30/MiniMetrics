@@ -18,7 +18,7 @@ public partial class App : Application
 {
     private MetricsPoller? _poller;
     private ISensorSource? _source;
-    private SettingsStore _settingsStore = null!;
+    private SettingsController _settingsController = null!;
     private Settings _settings = null!;
     private MetricWidgetViewModel _cpuViewModel = null!;
     private MetricWidgetViewModel _gpuViewModel = null!;
@@ -30,7 +30,6 @@ public partial class App : Application
     private DateTimeWindow _dateTimeWindow = null!;
     private DesktopWindow _dateTimeDesktop = null!;
     private DispatcherTimer? _clockTimer;
-    private DispatcherTimer? _saveTimer;
     private DispatcherTimer? _trimTimer;
 
     private TrayIcon? _trayIcon;
@@ -55,9 +54,12 @@ public partial class App : Application
         {
             desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
-            _settingsStore = new SettingsStore(SettingsStore.DefaultPath);
-            _settings = _settingsStore.Load();
-            MigrateVisibility();
+            var settingsStore = new SettingsStore(SettingsStore.DefaultPath);
+            _settingsController = new SettingsController(
+                settingsStore.Load(),
+                settingsStore,
+                new DispatcherSaveScheduler(TimeSpan.FromMilliseconds(600)));
+            _settings = _settingsController.Current;
 
             _cpuViewModel = new MetricWidgetViewModel("cpu", "ram");
             _cpuViewModel.LoadVisibility(_settings.Visibility);
@@ -144,43 +146,19 @@ public partial class App : Application
             _gpuWindow.PeerRects = () => VisiblePeerRects(_cpuWindow, _dateTimeWindow);
             _dateTimeWindow.PeerRects = () => VisiblePeerRects(_cpuWindow, _gpuWindow);
 
-            // Throttle position saves so a drag results in one write, not hundreds.
-            _saveTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(600) };
-            _saveTimer.Tick += (_, _) =>
-            {
-                _saveTimer!.Stop();
-                Save();
-            };
-
+            // The controller debounces position saves so a drag results in one write, not hundreds.
             _cpuWindow.PositionChanged += (_, _) =>
-            {
-                _settings.X = _cpuWindow.Position.X;
-                _settings.Y = _cpuWindow.Position.Y;
-                _saveTimer!.Stop();
-                _saveTimer.Start();
-            };
+                _settingsController.SetCpuPosition(_cpuWindow.Position.X, _cpuWindow.Position.Y);
 
             _gpuWindow.PositionChanged += (_, _) =>
-            {
-                _settings.GpuX = _gpuWindow.Position.X;
-                _settings.GpuY = _gpuWindow.Position.Y;
-                _saveTimer!.Stop();
-                _saveTimer.Start();
-            };
+                _settingsController.SetGpuPosition(_gpuWindow.Position.X, _gpuWindow.Position.Y);
 
             _dateTimeWindow.PositionChanged += (_, _) =>
-            {
-                _settings.DateTimeX = _dateTimeWindow.Position.X;
-                _settings.DateTimeY = _dateTimeWindow.Position.Y;
-                _saveTimer!.Stop();
-                _saveTimer.Start();
-            };
+                _settingsController.SetDateTimePosition(_dateTimeWindow.Position.X, _dateTimeWindow.Position.Y);
 
             _cpuWindow.Opened += (_, _) =>
             {
-                EnsureWindowOnScreen(_cpuWindow,
-                    () => _settings.X = _cpuWindow.Position.X,
-                    () => _settings.Y = _cpuWindow.Position.Y);
+                EnsureWindowOnScreen(_cpuWindow, _settingsController.SetCpuPosition);
                 _cpuDesktop.SetAlwaysOnTop(_settings.AlwaysOnTop);
                 _cpuDesktop.SetClickThrough(_settings.Locked);
             };
@@ -193,18 +171,14 @@ public partial class App : Application
                     PlaceGpuWindowDefault();
                 }
 
-                EnsureWindowOnScreen(_gpuWindow,
-                    () => _settings.GpuX = _gpuWindow.Position.X,
-                    () => _settings.GpuY = _gpuWindow.Position.Y);
+                EnsureWindowOnScreen(_gpuWindow, _settingsController.SetGpuPosition);
                 _gpuDesktop.SetAlwaysOnTop(_settings.AlwaysOnTop);
                 _gpuDesktop.SetClickThrough(_settings.Locked);
             };
 
             _dateTimeWindow.Opened += (_, _) =>
             {
-                EnsureWindowOnScreen(_dateTimeWindow,
-                    () => _settings.DateTimeX = _dateTimeWindow.Position.X,
-                    () => _settings.DateTimeY = _dateTimeWindow.Position.Y);
+                EnsureWindowOnScreen(_dateTimeWindow, _settingsController.SetDateTimePosition);
                 _dateTimeDesktop.SetAlwaysOnTop(_settings.AlwaysOnTop);
                 _dateTimeDesktop.SetClickThrough(_settings.Locked);
             };
@@ -247,7 +221,7 @@ public partial class App : Application
 
             desktop.ShutdownRequested += (_, _) =>
             {
-                Save();
+                _settingsController.Flush();
                 _poller?.Dispose();
                 (_source as IDisposable)?.Dispose();
             };
@@ -356,8 +330,8 @@ public partial class App : Application
 
     private void OnToggleCpuShowHide(object? sender, EventArgs e)
     {
-        _settings.Hidden = !_settings.Hidden;
-        if (_settings.Hidden)
+        bool hidden = _settingsController.ToggleCpuHidden();
+        if (hidden)
         {
             _cpuWindow.Hide();
         }
@@ -367,24 +341,22 @@ public partial class App : Application
             _cpuDesktop.SetAlwaysOnTop(_settings.AlwaysOnTop);
         }
 
-        _cpuShowHideItem.IsChecked = !_settings.Hidden;
+        _cpuShowHideItem.IsChecked = !hidden;
         ApplyActiveDevices();
-        Save();
     }
 
     private void OnToggleGpuShowHide(object? sender, EventArgs e)
     {
-        _settings.GpuHidden = !_settings.GpuHidden;
+        bool hidden = _settingsController.ToggleGpuHidden();
         UpdateGpuWindowVisibility();
-        _gpuShowHideItem.IsChecked = !_settings.GpuHidden;
+        _gpuShowHideItem.IsChecked = !hidden;
         ApplyActiveDevices();
-        Save();
     }
 
     private void OnToggleClockShowHide(object? sender, EventArgs e)
     {
-        _settings.DateTimeHidden = !_settings.DateTimeHidden;
-        if (_settings.DateTimeHidden)
+        bool hidden = _settingsController.ToggleDateTimeHidden();
+        if (hidden)
         {
             _dateTimeWindow.Hide();
         }
@@ -394,21 +366,19 @@ public partial class App : Application
             _dateTimeDesktop.SetAlwaysOnTop(_settings.AlwaysOnTop);
         }
 
-        _clockShowHideItem.IsChecked = !_settings.DateTimeHidden;
-        Save();
+        _clockShowHideItem.IsChecked = !hidden;
     }
 
     private void OnToggleLock(object? sender, EventArgs e)
     {
-        _settings.Locked = !_settings.Locked;
-        _cpuWindow.IsLocked = _settings.Locked;
-        _cpuDesktop.SetClickThrough(_settings.Locked);
-        _gpuWindow.IsLocked = _settings.Locked;
-        _gpuDesktop.SetClickThrough(_settings.Locked);
-        _dateTimeWindow.IsLocked = _settings.Locked;
-        _dateTimeDesktop.SetClickThrough(_settings.Locked);
-        _lockItem.IsChecked = _settings.Locked;
-        Save();
+        bool locked = _settingsController.ToggleLocked();
+        _cpuWindow.IsLocked = locked;
+        _cpuDesktop.SetClickThrough(locked);
+        _gpuWindow.IsLocked = locked;
+        _gpuDesktop.SetClickThrough(locked);
+        _dateTimeWindow.IsLocked = locked;
+        _dateTimeDesktop.SetClickThrough(locked);
+        _lockItem.IsChecked = locked;
     }
 
     private void OnOpenSettings(object? sender, EventArgs e)
@@ -432,34 +402,24 @@ public partial class App : Application
 
     private void OnAppearanceChanged(SettingsViewModel viewModel)
     {
-        _settings.BackgroundColor = viewModel.BackgroundColor;
-        _settings.Opacity = viewModel.Opacity;
+        _settingsController.SetAppearance(viewModel.BackgroundColor, viewModel.Opacity);
         _cpuViewModel.ApplyAppearance(_settings.BackgroundColor, _settings.Opacity);
         _gpuViewModel.ApplyAppearance(_settings.BackgroundColor, _settings.Opacity);
         _dateTimeViewModel.ApplyAppearance(_settings.BackgroundColor, _settings.Opacity);
-
-        // Reuse the existing debounce so dragging the opacity slider writes once.
-        _saveTimer!.Stop();
-        _saveTimer.Start();
     }
 
     private void OnTimeZoneChanged(SettingsViewModel viewModel)
     {
-        _settings.TimeZoneId = viewModel.SelectedTimeZone.Id;
+        _settingsController.SetTimeZone(viewModel.SelectedTimeZone.Id);
         _dateTimeViewModel.SetTimeZone(viewModel.SelectedTimeZone);
-
-        // Reuse the existing debounce so the write coalesces.
-        _saveTimer!.Stop();
-        _saveTimer.Start();
     }
 
     private void OnMetricVisibilityChanged(string key, bool visible)
     {
-        _settings.Visibility[key] = visible;
+        _settingsController.SetMetricVisibility(key, visible);
         _cpuViewModel.SetVisibility(key, visible);
         _gpuViewModel.SetVisibility(key, visible);
         ApplyActiveDevices();
-        Save();
 
         // Toggling CPU temp/power flips whether autostart must be elevated; re-register if on.
         if ((key == "cpu.temp" || key == "cpu.power")
@@ -504,9 +464,8 @@ public partial class App : Application
     {
         EdgeSnap.Rect cpu = RectOf(_cpuWindow);
         _gpuWindow.Position = new PixelPoint(cpu.X + cpu.Width, cpu.Y);
-        _settings.GpuX = _gpuWindow.Position.X;
-        _settings.GpuY = _gpuWindow.Position.Y;
-        Save();
+        _settingsController.SetGpuPosition(_gpuWindow.Position.X, _gpuWindow.Position.Y);
+        _settingsController.Flush();
     }
 
     // The physical-pixel rectangles of any peers that are currently shown, for edge snapping.
@@ -530,52 +489,22 @@ public partial class App : Application
         return Array.Empty<EdgeSnap.Rect>();
     }
 
-    // Expands the legacy whole-card visibility keys (cpu/ram/gpu/vram) into the per-metric keys so
-    // settings saved before this feature keep their hidden cards hidden.
-    private void MigrateVisibility()
-    {
-        Dictionary<string, bool> visibility = _settings.Visibility;
-
-        void Expand(string legacy, params string[] keys)
-        {
-            if (visibility.TryGetValue(legacy, out bool value))
-            {
-                foreach (string key in keys)
-                {
-                    if (!visibility.ContainsKey(key))
-                    {
-                        visibility[key] = value;
-                    }
-                }
-
-                visibility.Remove(legacy);
-            }
-        }
-
-        Expand("cpu", "cpu.usage", "cpu.temp", "cpu.power");
-        Expand("ram", "ram.usage");
-        Expand("gpu", "gpu.usage", "gpu.temp", "gpu.power");
-        Expand("vram", "vram.usage");
-    }
-
     private void OnToggleAlwaysOnTop(object? sender, EventArgs e)
     {
-        _settings.AlwaysOnTop = !_settings.AlwaysOnTop;
-        _cpuDesktop.SetAlwaysOnTop(_settings.AlwaysOnTop);
-        _gpuDesktop.SetAlwaysOnTop(_settings.AlwaysOnTop);
-        _dateTimeDesktop.SetAlwaysOnTop(_settings.AlwaysOnTop);
-        _alwaysOnTopItem.IsChecked = _settings.AlwaysOnTop;
-        Save();
+        bool onTop = _settingsController.ToggleAlwaysOnTop();
+        _cpuDesktop.SetAlwaysOnTop(onTop);
+        _gpuDesktop.SetAlwaysOnTop(onTop);
+        _dateTimeDesktop.SetAlwaysOnTop(onTop);
+        _alwaysOnTopItem.IsChecked = onTop;
     }
 
     private void OnToggleSnap(object? sender, EventArgs e)
     {
-        _settings.SnapToEdges = !_settings.SnapToEdges;
-        _cpuWindow.SnapEnabled = _settings.SnapToEdges;
-        _gpuWindow.SnapEnabled = _settings.SnapToEdges;
-        _dateTimeWindow.SnapEnabled = _settings.SnapToEdges;
-        _snapItem.IsChecked = _settings.SnapToEdges;
-        Save();
+        bool snap = _settingsController.ToggleSnapToEdges();
+        _cpuWindow.SnapEnabled = snap;
+        _gpuWindow.SnapEnabled = snap;
+        _dateTimeWindow.SnapEnabled = snap;
+        _snapItem.IsChecked = snap;
     }
 
     private void OnToggleRunAtStartup(object? sender, EventArgs e)
@@ -637,7 +566,7 @@ public partial class App : Application
 
     // Generalized form of EnsureOnScreen for any widget window: if its restored position lands off
     // every monitor, pull it back onto the primary screen and persist the corrected coordinates.
-    private void EnsureWindowOnScreen(Window window, Action saveX, Action saveY)
+    private void EnsureWindowOnScreen(Window window, Action<int, int> persistPosition)
     {
         var screens = window.Screens;
         if (screens is null || screens.All.Count == 0)
@@ -650,11 +579,8 @@ public partial class App : Application
             var primary = screens.Primary ?? screens.All[0];
             var area = primary.WorkingArea;
             window.Position = new PixelPoint(area.X + 48, area.Y + 48);
-            saveX();
-            saveY();
-            Save();
+            persistPosition(window.Position.X, window.Position.Y);
+            _settingsController.Flush();
         }
     }
-
-    private void Save() => _settingsStore.Save(_settings);
 }
