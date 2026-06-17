@@ -71,6 +71,40 @@ public class RowBuilderTests
     }
 
     [Fact]
+    public void Build_formats_cpu_temperature_and_power_when_present()
+    {
+        var snapshot = new MetricsSnapshot(
+            new CpuMetrics(34.0, 56.0, 65.0),
+            new MemoryMetrics(12_026_124_800UL, 34_359_738_368UL),
+            null);
+
+        var cpu = RowBuilder.Build(snapshot).Single(r => r.Key == "cpu");
+
+        Assert.Equal("56", cpu.Temp);
+        Assert.Equal("65 W", cpu.Detail);
+    }
+
+    [Theory]
+    [InlineData(50.0, TempLevel.Cool)]
+    [InlineData(64.0, TempLevel.Cool)]
+    [InlineData(65.0, TempLevel.Warm)]
+    [InlineData(79.0, TempLevel.Warm)]
+    [InlineData(80.0, TempLevel.Hot)]
+    [InlineData(89.0, TempLevel.Hot)]
+    [InlineData(90.0, TempLevel.Critical)]
+    public void Build_color_codes_cpu_temperature_by_cpu_threshold(double temp, TempLevel expected)
+    {
+        var snapshot = new MetricsSnapshot(
+            new CpuMetrics(34.0, temp, 65.0),
+            new MemoryMetrics(12_026_124_800UL, 34_359_738_368UL),
+            null);
+
+        var cpu = RowBuilder.Build(snapshot).Single(r => r.Key == "cpu");
+
+        Assert.Equal(expected, cpu.TempLevel);
+    }
+
+    [Fact]
     public void Build_without_gpu_omits_gpu_and_vram_rows()
     {
         var snapshot = WithGpu() with { Gpu = null };

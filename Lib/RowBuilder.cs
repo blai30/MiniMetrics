@@ -48,7 +48,7 @@ public static class RowBuilder
                 // CPU temperature is deferred (needs the kernel driver). Until then the hero slot
                 // shows a muted placeholder rather than going blank.
                 cpu.TempCelsius is { } cpuTemp ? MetricFormatting.FormatTempValue(cpuTemp) : "—",
-                cpu.TempCelsius is { } cpuLevel ? LevelFor(cpuLevel) : TempLevel.None,
+                cpu.TempCelsius is { } cpuLevel ? CpuLevelFor(cpuLevel) : TempLevel.None,
                 // CPU power is deferred (needs the kernel driver). Until then the detail slot shows a
                 // muted placeholder rather than a misleading reading.
                 cpu.PowerWatts is { } cpuPower ? MetricFormatting.FormatPower(cpuPower) : "—",
@@ -101,5 +101,13 @@ public static class RowBuilder
         => celsius >= 80 ? TempLevel.Critical
             : celsius >= 70 ? TempLevel.Hot
             : celsius >= 60 ? TempLevel.Warm
+            : TempLevel.Cool;
+
+    // CPUs idle and load hotter than GPUs, so they use their own, higher bands. Keeping this separate
+    // from LevelFor leaves the GPU thresholds untouched.
+    private static TempLevel CpuLevelFor(double celsius)
+        => celsius >= 90 ? TempLevel.Critical
+            : celsius >= 80 ? TempLevel.Hot
+            : celsius >= 65 ? TempLevel.Warm
             : TempLevel.Cool;
 }
