@@ -43,6 +43,43 @@ If you enable **Run at startup** together with CPU temperature or power, MiniMet
 
 This is why the experience feels seamless in normal use: you grant rights once, when you first turn the metric on, and after that the scheduled task starts MiniMetrics elevated at every logon without ever prompting again. The only time you would see the prompt come back is if you launch MiniMetrics by double-clicking the program directly instead of letting it start with Windows. If you run it from startup, as most people do, that one initial grant is the last prompt you see.
 
+## Removing MiniMetrics and clearing the startup entry
+
+MiniMetrics is a portable app: there is no installer, so you remove it by deleting the program. The catch is that "Run at startup" records where the program lives, and deleting the program does not erase that record. The result is a leftover startup entry that points at a file that no longer exists.
+
+This leftover is harmless. When Windows tries to start a program that is gone, it simply does nothing, with no error and no slowdown. The only thing you may notice is a stale MiniMetrics row in Task Manager's **Startup apps** tab. Still, it is tidy to clear it.
+
+**The clean way: turn it off first.** Before you delete MiniMetrics, open its tray menu and untick **Run at startup**. That removes the startup entry properly, and nothing is left behind. This is the recommended path.
+
+If you already deleted the program and want to clear the leftover, the steps depend on which startup mechanism was in use. If you never enabled CPU temperature or power, MiniMetrics used an ordinary startup entry, so follow the first option below. If you did enable one of them, it also created a scheduled task, so follow both.
+
+### Clearing the ordinary startup entry
+
+You have three ways to do this, from easiest to most hands-on. Any one of them is enough.
+
+- **Task Manager (no typing).** Press Ctrl+Shift+Esc, open the **Startup apps** tab, right-click the **MiniMetrics** row, and choose **Disable**. This stops it from running but leaves the row in place. To delete the entry outright, use one of the next two options.
+- **Registry Editor (point and click).** If you would rather not run a command, you can remove the entry by hand. Press Windows+R, type `regedit`, and press Enter (answer **Yes** to the prompt that asks to allow changes). In the address bar at the top, paste `HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run` and press Enter. In the list on the right, find the value named **MiniMetrics**, right-click it, choose **Delete**, and confirm. Only delete the value named MiniMetrics; leave everything else alone.
+- **PowerShell (one command).** If you are comfortable with a terminal, open PowerShell and run:
+
+  ```powershell
+  Remove-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run' -Name 'MiniMetrics'
+  ```
+
+  This needs no administrator rights.
+
+### Clearing the scheduled task (only if you used CPU temperature or power)
+
+This entry does not show up in Task Manager's Startup tab, so it is worth checking separately if you ever enabled CPU temperature or power.
+
+- **Task Scheduler (point and click).** Press Windows+R, type `taskschd.msc`, and press Enter. In the left pane, expand **Task Scheduler Library** and open the **MiniMetrics** folder. Right-click the **Autostart** task, choose **Delete**, and confirm.
+- **Command (one line).** In a terminal, run:
+
+  ```powershell
+  schtasks /Delete /TN "MiniMetrics\Autostart" /F
+  ```
+
+  Deleting a scheduled task requires administrator rights, so accept the prompt if one appears.
+
 ## How this compares to HWiNFO and PowerToys
 
 MiniMetrics deliberately follows the same approach as well-established Windows tools:
