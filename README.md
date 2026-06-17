@@ -55,7 +55,7 @@ The builds are unsigned, so Windows SmartScreen may warn on first launch. Choose
 
 - Windows 10 or 11, 64-bit (x64)
 - The framework-dependent builds require the [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0). The self-contained builds need nothing extra.
-- For full hardware sensor access (for example CPU temperature), run the app as administrator.
+- For full hardware sensor access (for example CPU temperature and power), the app needs administrator rights. It asks for them only when you enable those metrics, and can start silently elevated at logon. See [Administrator rights and startup](docs/elevation-and-startup.md) for details.
 
 ## Building from source
 
