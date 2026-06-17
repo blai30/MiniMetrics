@@ -1,6 +1,9 @@
 name: Release
 
 on:
+  push:
+    tags:
+      - "v*.*.*"
   workflow_dispatch:
     inputs:
       version:
@@ -22,16 +25,20 @@ defaults:
 jobs:
   release:
     runs-on: windows-latest
-    env:
-      VERSION: ${{ inputs.version }}
     steps:
-      - name: Validate version input
+      - name: Resolve version
         run: |
-          if ($env:VERSION -notmatch '^[0-9]+\.[0-9]+\.[0-9]+$') {
-            Write-Error "Invalid version '$env:VERSION'. Expected MAJOR.MINOR.PATCH with no leading v."
+          if ($env:GITHUB_EVENT_NAME -eq 'workflow_dispatch') {
+            $version = '${{ inputs.version }}'
+          } else {
+            $version = '${{ github.ref_name }}' -replace '^v', ''
+          }
+          if ($version -notmatch '^[0-9]+\.[0-9]+\.[0-9]+$') {
+            Write-Error "Invalid version '$version'. Expected MAJOR.MINOR.PATCH (tag like v1.2.0)."
             exit 1
           }
-          Write-Host "Releasing version $env:VERSION"
+          "VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Append
+          Write-Host "Releasing version $version"
 
       - name: Checkout
         uses: actions/checkout@v6
