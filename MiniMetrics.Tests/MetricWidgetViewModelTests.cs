@@ -71,10 +71,10 @@ public class MetricWidgetViewModelTests
     }
 
     [Fact]
-    public void LoadVisibility_hides_one_compute_element_without_its_siblings()
+    public void BindVisibility_hides_one_compute_element_without_its_siblings()
     {
         var vm = Cpu();
-        vm.LoadVisibility(new Dictionary<string, bool> { ["cpu.usage"] = false });
+        vm.BindVisibility(new Dictionary<string, bool> { ["cpu.usage"] = false });
         vm.ApplySnapshot(WithGpu());
 
         Assert.False(vm.Compute!.UsageVisible);
@@ -82,21 +82,26 @@ public class MetricWidgetViewModelTests
     }
 
     [Fact]
-    public void SetVisibility_hides_whole_memory_card()
+    public void RefreshVisibility_hides_whole_memory_card()
     {
+        var visibility = new Dictionary<string, bool>();
         var vm = Gpu();
+        vm.BindVisibility(visibility);
         vm.ApplySnapshot(WithGpu());
-        vm.SetVisibility("vram.usage", false);
+
+        visibility["vram.usage"] = false;
+        vm.RefreshVisibility("vram.usage");
 
         Assert.False(vm.Memory!.IsVisible);
     }
 
     [Fact]
-    public void SetVisibility_for_a_foreign_key_is_a_no_op()
+    public void RefreshVisibility_for_a_foreign_key_is_a_no_op()
     {
         var vm = Cpu();
+        vm.BindVisibility(new Dictionary<string, bool>());
         vm.ApplySnapshot(WithGpu());
-        vm.SetVisibility("gpu.power", false);
+        vm.RefreshVisibility("gpu.power");
 
         Assert.Equal(new[] { "cpu", "ram" }, vm.Rows.Select(r => r.Key).ToArray());
     }
@@ -104,12 +109,34 @@ public class MetricWidgetViewModelTests
     [Fact]
     public void Hidden_metric_stays_hidden_across_snapshots()
     {
+        var visibility = new Dictionary<string, bool>();
         var vm = Cpu();
+        vm.BindVisibility(visibility);
         vm.ApplySnapshot(WithGpu());
-        vm.SetVisibility("cpu.temp", false);
+
+        visibility["cpu.temp"] = false;
+        vm.RefreshVisibility("cpu.temp");
         vm.ApplySnapshot(WithGpu());
 
         Assert.False(vm.Compute!.TempVisible);
+    }
+
+    [Fact]
+    public void Reflects_external_changes_to_the_bound_visibility_map()
+    {
+        // Single source: the widget reads the shared map rather than copying it, so mutating the map
+        // and refreshing updates the row. This is what keeps render visibility from drifting away
+        // from the same map that drives device polling.
+        var visibility = new Dictionary<string, bool>();
+        var vm = Cpu();
+        vm.BindVisibility(visibility);
+        vm.ApplySnapshot(WithGpu());
+        Assert.True(vm.Compute!.UsageVisible);
+
+        visibility["cpu.usage"] = false;
+        vm.RefreshVisibility("cpu.usage");
+
+        Assert.False(vm.Compute!.UsageVisible);
     }
 
     [Fact]

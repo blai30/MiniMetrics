@@ -70,4 +70,18 @@ public class DeviceActivationTests
         var result = DeviceActivation.Compute(visibility, cpuWidgetShown: true, gpuWidgetShown: true);
         Assert.True(result.Gpu);
     }
+
+    [Fact]
+    public void Gpu_widget_shown_but_all_gpu_and_vram_metrics_hidden_stops_gpu_device()
+    {
+        var visibility = new Dictionary<string, bool>
+        {
+            ["gpu.usage"] = false,
+            ["gpu.temp"] = false,
+            ["gpu.power"] = false,
+            ["vram.usage"] = false,
+        };
+        var result = DeviceActivation.Compute(visibility, cpuWidgetShown: true, gpuWidgetShown: true);
+        Assert.False(result.Gpu);
+    }
 }

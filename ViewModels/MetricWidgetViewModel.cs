@@ -15,7 +15,10 @@ public partial class MetricWidgetViewModel : ObservableObject
 {
     private readonly string _computeKey;
     private readonly string _memoryKey;
-    private readonly Dictionary<string, bool> _visibility = new();
+
+    // A read-only view onto the single visibility map (Settings.Visibility); the widget never owns a
+    // copy, so what it renders cannot drift from what drives device polling.
+    private IReadOnlyDictionary<string, bool> _visibility = new Dictionary<string, bool>();
 
     public MetricWidgetViewModel(string computeKey, string memoryKey)
     {
@@ -93,13 +96,11 @@ public partial class MetricWidgetViewModel : ObservableObject
         }
     }
 
-    // Loads the initial visibility map from persisted settings. Applies to any rows already present.
-    public void LoadVisibility(IDictionary<string, bool> map)
+    // Binds the widget to the live visibility map. The widget reads from it directly rather than
+    // copying, so a later change to the map is reflected on the next RefreshVisibility or snapshot.
+    public void BindVisibility(IReadOnlyDictionary<string, bool> visibility)
     {
-        foreach (var pair in map)
-        {
-            _visibility[pair.Key] = pair.Value;
-        }
+        _visibility = visibility;
 
         foreach (var row in Rows)
         {
@@ -107,11 +108,10 @@ public partial class MetricWidgetViewModel : ObservableObject
         }
     }
 
-    // Toggles a single metric's visibility and updates the affected row, if this widget owns it.
-    public void SetVisibility(string key, bool visible)
+    // Re-applies the bound visibility to the row owning this key, if this widget owns it. Called after
+    // the shared map has changed.
+    public void RefreshVisibility(string key)
     {
-        _visibility[key] = visible;
-
         string owner = key.Split('.')[0];
         var row = Rows.FirstOrDefault(r => r.Key == owner);
         if (row is not null)

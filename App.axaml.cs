@@ -61,11 +61,11 @@ public partial class App : Application
             _settings = _settingsController.Current;
 
             _cpuViewModel = new MetricWidgetViewModel("cpu", "ram");
-            _cpuViewModel.LoadVisibility(_settings.Visibility);
+            _cpuViewModel.BindVisibility(_settings.Visibility);
             _cpuViewModel.ApplyAppearance(_settings.BackgroundColor, _settings.Opacity);
 
             _gpuViewModel = new MetricWidgetViewModel("gpu", "vram");
-            _gpuViewModel.LoadVisibility(_settings.Visibility);
+            _gpuViewModel.BindVisibility(_settings.Visibility);
             _gpuViewModel.ApplyAppearance(_settings.BackgroundColor, _settings.Opacity);
 
             _dateTimeViewModel = new DateTimeWidgetViewModel();
@@ -350,9 +350,11 @@ public partial class App : Application
 
     private void OnMetricVisibilityChanged(string key, bool visible)
     {
+        // The controller writes the shared Settings.Visibility map; the widgets read from it, and
+        // ApplyActiveDevices reads it to release any device whose metrics are now all hidden.
         _settingsController.SetMetricVisibility(key, visible);
-        _cpuViewModel.SetVisibility(key, visible);
-        _gpuViewModel.SetVisibility(key, visible);
+        _cpuViewModel.RefreshVisibility(key);
+        _gpuViewModel.RefreshVisibility(key);
         ApplyActiveDevices();
 
         // Toggling an elevation-requiring metric flips whether autostart must be elevated; re-register if on.
