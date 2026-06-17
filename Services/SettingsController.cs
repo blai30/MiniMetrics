@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using MiniMetrics.Lib;
 using MiniMetrics.Models;
@@ -60,6 +61,31 @@ public sealed class SettingsController
     public void SetCpuPosition(int x, int y) { _settings.X = x; _settings.Y = y; ScheduleSave(); }
     public void SetGpuPosition(int x, int y) { _settings.GpuX = x; _settings.GpuY = y; ScheduleSave(); }
     public void SetDateTimePosition(int x, int y) { _settings.DateTimeX = x; _settings.DateTimeY = y; ScheduleSave(); }
+
+    // Records whether the launch-time update check runs and how often, persisting on the debounce so a
+    // burst of settings toggles writes once.
+    public void SetUpdatePreferences(bool enabled, UpdateCheckFrequency frequency)
+    {
+        _settings.UpdateCheckEnabled = enabled;
+        _settings.UpdateFrequency = frequency;
+        ScheduleSave();
+    }
+
+    // Stamps the time of the last successful update check; persisted immediately so the cadence gate
+    // survives a crash before the next debounce.
+    public void SetLastUpdateCheck(DateTimeOffset utc)
+    {
+        _settings.LastUpdateCheckUtc = utc;
+        Persist();
+    }
+
+    // Records the version the user chose to skip; persisted immediately so the suppression survives a
+    // restart.
+    public void SetSkippedUpdateVersion(string version)
+    {
+        _settings.SkippedUpdateVersion = version;
+        Persist();
+    }
 
     // Persists any pending debounced change immediately. Used after an on-screen correction and at
     // shutdown so nothing is lost between the last edit and the next timer tick.

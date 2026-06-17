@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using MiniMetrics.Models;
 using MiniMetrics.Services;
@@ -151,5 +152,47 @@ public class SettingsControllerTests
 
         Assert.IsTrue(controller.Current.Visibility["cpu.temp"]);
         Assert.IsFalse(controller.Current.Visibility["cpu.power"]);
+    }
+
+    [TestMethod]
+    public void SetUpdatePreferences_updates_state_now_but_defers_the_write()
+    {
+        var (controller, store, scheduler) = NewController();
+
+        controller.SetUpdatePreferences(false, UpdateCheckFrequency.Monthly);
+
+        Assert.IsFalse(controller.Current.UpdateCheckEnabled);
+        Assert.AreEqual(UpdateCheckFrequency.Monthly, controller.Current.UpdateFrequency);
+        Assert.AreEqual(1, scheduler.ScheduleCount);
+        Assert.IsTrue(store.Load().UpdateCheckEnabled); // default until flush
+
+        controller.Flush();
+
+        Assert.IsFalse(store.Load().UpdateCheckEnabled);
+        Assert.AreEqual(UpdateCheckFrequency.Monthly, store.Load().UpdateFrequency);
+    }
+
+    [TestMethod]
+    public void SetLastUpdateCheck_persists_immediately()
+    {
+        var (controller, store, scheduler) = NewController();
+        var when = new DateTimeOffset(2026, 6, 17, 8, 0, 0, TimeSpan.Zero);
+
+        controller.SetLastUpdateCheck(when);
+
+        Assert.AreEqual(when, controller.Current.LastUpdateCheckUtc);
+        Assert.AreEqual(when, store.Load().LastUpdateCheckUtc);
+        Assert.AreEqual(0, scheduler.ScheduleCount);
+    }
+
+    [TestMethod]
+    public void SetSkippedUpdateVersion_persists_immediately()
+    {
+        var (controller, store, _) = NewController();
+
+        controller.SetSkippedUpdateVersion("1.4.0");
+
+        Assert.AreEqual("1.4.0", controller.Current.SkippedUpdateVersion);
+        Assert.AreEqual("1.4.0", store.Load().SkippedUpdateVersion);
     }
 }
