@@ -22,7 +22,7 @@ By default, CPU temperature and CPU power are turned off, so a fresh install nev
 
 The same applies at launch: if CPU temperature or power is already enabled when MiniMetrics starts, it will either restart elevated (PawnIO installed) or open the install prompt (PawnIO missing).
 
-Turning a metric back **off** never prompts for anything. Everything other than these two readings always works without administrator rights, so you can use MiniMetrics entirely unelevated by leaving them off.
+Turning a metric back **off** does not prompt, with one exception: if a leftover elevated startup task is no longer needed, MiniMetrics shows a single UAC prompt to remove it. Everything other than these two readings always works without administrator rights, so you can use MiniMetrics entirely unelevated by leaving them off.
 
 ## Why this approach is correct, not just convenient
 
@@ -44,6 +44,8 @@ If you enable **Run at startup** together with CPU temperature or power, MiniMet
 This is why the experience feels seamless in normal use: you grant rights once, when you first turn the metric on, and after that the scheduled task starts MiniMetrics elevated at every logon without ever prompting again. The only time you would see the prompt come back is if you launch MiniMetrics by double-clicking the program directly instead of letting it start with Windows. If you run it from startup, as most people do, that one initial grant is the last prompt you see.
 
 ## Removing MiniMetrics and clearing the startup entry
+
+If you used the installer, the cleanest removal is the tray menu's **Uninstall MiniMetrics**. It removes the elevated startup task first (you will see one UAC prompt; declining cancels the uninstall), then clears the startup entry and removes the app. Uninstalling from Windows Settings or Add/Remove Programs also works and clears the startup Run key, but it cannot show a prompt, so a leftover elevated scheduled task (only present if you had CPU temperature or power on) may remain; clear it with the Task Scheduler steps below.
 
 MiniMetrics is a portable app: there is no installer, so you remove it by deleting the program. The catch is that "Run at startup" records where the program lives, and deleting the program does not erase that record. The result is a leftover startup entry that points at a file that no longer exists.
 
