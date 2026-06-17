@@ -600,6 +600,7 @@ public partial class App : Application
     // Runs the ordered in-app uninstall: remove the elevated scheduled task first (a declined UAC prompt
     // aborts the whole thing), then the run key, then hand off to Velopack's uninstaller. Installed builds
     // only; the menu item is not shown otherwise.
+    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
     private void OnUninstall(object? sender, EventArgs e)
     {
         var coordinator = new UninstallCoordinator(
