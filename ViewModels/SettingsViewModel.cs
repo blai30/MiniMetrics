@@ -26,6 +26,9 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     private UpdateCheckFrequency _updateFrequency;
 
+    [ObservableProperty]
+    private bool _useLocalTime;
+
     public IReadOnlyList<UpdateCheckFrequency> UpdateFrequencies { get; } = new[]
     {
         UpdateCheckFrequency.EveryLaunch,
@@ -52,6 +55,7 @@ public partial class SettingsViewModel : ObservableObject
         _opacity = settings.Opacity;
         _updateCheckEnabled = settings.UpdateCheckEnabled;
         _updateFrequency = settings.UpdateFrequency;
+        _useLocalTime = settings.TimeZoneId is null;
 
         var groups = new List<MetricGroupViewModel>();
         foreach (string card in MetricRegistry.Cards)
@@ -98,6 +102,8 @@ public partial class SettingsViewModel : ObservableObject
     partial void OnOpacityChanged(int value) => AppearanceChanged?.Invoke();
 
     partial void OnSelectedTimeZoneChanged(TimeZoneInfo value) => TimeZoneChanged?.Invoke();
+
+    partial void OnUseLocalTimeChanged(bool value) => TimeZoneChanged?.Invoke();
 
     partial void OnUpdateCheckEnabledChanged(bool value) => UpdatePreferencesChanged?.Invoke();
 
