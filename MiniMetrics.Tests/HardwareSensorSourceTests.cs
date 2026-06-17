@@ -22,6 +22,49 @@ public class HardwareSensorSourceTests
     }
 
     [Fact]
+    public void Read_maps_cpu_temperature_and_power()
+    {
+        var tree = new FakeHardwareTree();
+        tree.Set(HardwareKind.Cpu, SensorKind.Load, "CPU Total", 34);
+        tree.Set(HardwareKind.Cpu, SensorKind.Temperature, "CPU Package", 56);
+        tree.Set(HardwareKind.Cpu, SensorKind.Power, "CPU Package", 65);
+        var source = new HardwareSensorSource(tree);
+
+        var snapshot = source.Read();
+
+        Assert.Equal(56, snapshot.Cpu!.TempCelsius);
+        Assert.Equal(65, snapshot.Cpu.PowerWatts);
+    }
+
+    [Fact]
+    public void Cpu_temp_and_power_fall_back_to_amd_sensor_names()
+    {
+        var tree = new FakeHardwareTree();
+        tree.Set(HardwareKind.Cpu, SensorKind.Load, "CPU Total", 34);
+        tree.Set(HardwareKind.Cpu, SensorKind.Temperature, "Core (Tctl/Tdie)", 61);
+        tree.Set(HardwareKind.Cpu, SensorKind.Power, "Package", 88);
+        var source = new HardwareSensorSource(tree);
+
+        var snapshot = source.Read();
+
+        Assert.Equal(61, snapshot.Cpu!.TempCelsius);
+        Assert.Equal(88, snapshot.Cpu.PowerWatts);
+    }
+
+    [Fact]
+    public void Cpu_temp_and_power_are_null_when_their_sensors_are_absent()
+    {
+        var tree = new FakeHardwareTree();
+        tree.Set(HardwareKind.Cpu, SensorKind.Load, "CPU Total", 34);
+        var source = new HardwareSensorSource(tree);
+
+        var snapshot = source.Read();
+
+        Assert.Null(snapshot.Cpu!.TempCelsius);
+        Assert.Null(snapshot.Cpu.PowerWatts);
+    }
+
+    [Fact]
     public void Read_converts_memory_gib_to_bytes()
     {
         var tree = new FakeHardwareTree();

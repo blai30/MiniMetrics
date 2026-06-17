@@ -35,8 +35,14 @@ public sealed class HardwareSensorSource : ISensorSource, IDisposable
         if (_cpuActive)
         {
             double load = _tree.Read(HardwareKind.Cpu, SensorKind.Load, "CPU Total") ?? 0;
-            // CPU temperature and power are deferred to a later plan (both need the kernel driver).
-            cpu = new CpuMetrics(load, null, null);
+            // CPU package temperature and power need the ring0 driver, which only loads when elevated;
+            // unelevated they are absent and these reads return null, which the widget renders as a
+            // placeholder. Intel exposes "CPU Package"; AMD surfaces "Core (Tctl/Tdie)" / "Package".
+            double? temp = _tree.Read(HardwareKind.Cpu, SensorKind.Temperature, "CPU Package")
+                           ?? _tree.Read(HardwareKind.Cpu, SensorKind.Temperature, "Core (Tctl/Tdie)");
+            double? power = _tree.Read(HardwareKind.Cpu, SensorKind.Power, "CPU Package")
+                            ?? _tree.Read(HardwareKind.Cpu, SensorKind.Power, "Package");
+            cpu = new CpuMetrics(load, temp, power);
         }
 
         MemoryMetrics? memory = null;
