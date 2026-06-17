@@ -89,29 +89,22 @@
         <StackPanel Spacing="10">
             <TextBlock Text="Metrics" FontWeight="SemiBold" Foreground="#EDEFF2" />
 
-            <StackPanel Spacing="4">
-                <TextBlock Text="CPU" FontSize="12" Foreground="#9AA1AC" />
-                <CheckBox Content="Usage" IsChecked="{Binding CpuUsageVisible}" Foreground="#EDEFF2" />
-                <CheckBox Content="Temperature" IsChecked="{Binding CpuTempVisible}" Foreground="#EDEFF2" />
-                <CheckBox Content="Power" IsChecked="{Binding CpuPowerVisible}" Foreground="#EDEFF2" />
-            </StackPanel>
-
-            <StackPanel Spacing="4">
-                <TextBlock Text="RAM" FontSize="12" Foreground="#9AA1AC" />
-                <CheckBox Content="Usage" IsChecked="{Binding RamVisible}" Foreground="#EDEFF2" />
-            </StackPanel>
-
-            <StackPanel Spacing="4">
-                <TextBlock Text="GPU" FontSize="12" Foreground="#9AA1AC" />
-                <CheckBox Content="Usage" IsChecked="{Binding GpuUsageVisible}" Foreground="#EDEFF2" />
-                <CheckBox Content="Temperature" IsChecked="{Binding GpuTempVisible}" Foreground="#EDEFF2" />
-                <CheckBox Content="Power" IsChecked="{Binding GpuPowerVisible}" Foreground="#EDEFF2" />
-            </StackPanel>
-
-            <StackPanel Spacing="4">
-                <TextBlock Text="VRAM" FontSize="12" Foreground="#9AA1AC" />
-                <CheckBox Content="Usage" IsChecked="{Binding VramVisible}" Foreground="#EDEFF2" />
-            </StackPanel>
+            <ItemsControl ItemsSource="{Binding MetricGroups}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:MetricGroupViewModel">
+                        <StackPanel Spacing="4" Margin="0,0,0,6">
+                            <TextBlock Text="{Binding Header}" FontSize="12" Foreground="#9AA1AC" />
+                            <ItemsControl ItemsSource="{Binding Toggles}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:MetricToggleViewModel">
+                                        <CheckBox Content="{Binding Label}" IsChecked="{Binding IsVisible}" Foreground="#EDEFF2" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
         </StackPanel>
 
     </StackPanel>

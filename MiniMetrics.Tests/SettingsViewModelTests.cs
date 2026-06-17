@@ -1,3 +1,4 @@
+using System.Linq;
 using MiniMetrics.Models;
 using MiniMetrics.ViewModels;
 using Xunit;
@@ -31,9 +32,20 @@ public class SettingsViewModelTests
 
         Assert.Equal("#0F121D", viewModel.BackgroundColor);
         Assert.Equal(96, viewModel.Opacity);
-        Assert.True(viewModel.CpuUsageVisible);
-        Assert.False(viewModel.CpuTempVisible);
-        Assert.False(viewModel.RamVisible);
+        Assert.True(viewModel.ToggleFor("cpu.usage").IsVisible);
+        Assert.False(viewModel.ToggleFor("cpu.temp").IsVisible);
+        Assert.False(viewModel.ToggleFor("ram.usage").IsVisible);
+    }
+
+    [Fact]
+    public void Groups_metrics_by_card_with_uppercase_headers()
+    {
+        var viewModel = new SettingsViewModel(SampleSettings());
+
+        Assert.Equal(new[] { "CPU", "RAM", "GPU", "VRAM" },
+            viewModel.MetricGroups.Select(group => group.Header));
+        Assert.Equal(new[] { "Usage", "Temperature", "Power" },
+            viewModel.MetricGroups[0].Toggles.Select(toggle => toggle.Label));
     }
 
     [Fact]
@@ -43,9 +55,9 @@ public class SettingsViewModelTests
 
         var viewModel = new SettingsViewModel(settings);
 
-        Assert.False(viewModel.GpuUsageVisible);
-        Assert.False(viewModel.GpuTempVisible);
-        Assert.False(viewModel.GpuPowerVisible);
+        Assert.False(viewModel.ToggleFor("gpu.usage").IsVisible);
+        Assert.False(viewModel.ToggleFor("gpu.temp").IsVisible);
+        Assert.False(viewModel.ToggleFor("gpu.power").IsVisible);
     }
 
     [Fact]
@@ -79,7 +91,7 @@ public class SettingsViewModelTests
         (string Key, bool Value)? last = null;
         viewModel.MetricVisibilityChanged += (key, value) => last = (key, value);
 
-        viewModel.RamVisible = true;
+        viewModel.ToggleFor("ram.usage").IsVisible = true;
 
         Assert.Equal(("ram.usage", true), last);
     }
@@ -91,9 +103,22 @@ public class SettingsViewModelTests
         (string Key, bool Value)? last = null;
         viewModel.MetricVisibilityChanged += (key, value) => last = (key, value);
 
-        viewModel.GpuPowerVisible = false;
+        viewModel.ToggleFor("gpu.power").IsVisible = false;
 
         Assert.Equal(("gpu.power", false), last);
+    }
+
+    [Fact]
+    public void Seeding_a_toggle_does_not_raise_MetricVisibilityChanged()
+    {
+        int count = 0;
+        var settings = SampleSettings();
+
+        var viewModel = new SettingsViewModel(settings);
+        viewModel.MetricVisibilityChanged += (_, _) => count++;
+
+        // Construction already happened above with no subscriber; re-seeding nothing fires now.
+        Assert.Equal(0, count);
     }
 
     [Fact]

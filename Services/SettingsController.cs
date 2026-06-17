@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using MiniMetrics.Lib;
 using MiniMetrics.Models;
 
 namespace MiniMetrics.Services;
@@ -68,30 +69,28 @@ public sealed class SettingsController
     private void ScheduleSave() => _scheduler.Schedule(Persist);
 
     // Expands the legacy whole-card visibility keys (cpu/ram/gpu/vram) into the per-metric keys so
-    // settings saved before per-metric visibility existed keep their hidden cards hidden.
+    // settings saved before per-metric visibility existed keep their hidden cards hidden. The card
+    // keys and their metrics come from the registry.
     private void MigrateVisibility()
     {
         Dictionary<string, bool> visibility = _settings.Visibility;
 
-        void Expand(string legacy, params string[] keys)
+        foreach (string card in MetricRegistry.Cards)
         {
-            if (visibility.TryGetValue(legacy, out bool value))
+            if (!visibility.TryGetValue(card, out bool value))
             {
-                foreach (string key in keys)
-                {
-                    if (!visibility.ContainsKey(key))
-                    {
-                        visibility[key] = value;
-                    }
-                }
-
-                visibility.Remove(legacy);
+                continue;
             }
-        }
 
-        Expand("cpu", "cpu.usage", "cpu.temp", "cpu.power");
-        Expand("ram", "ram.usage");
-        Expand("gpu", "gpu.usage", "gpu.temp", "gpu.power");
-        Expand("vram", "vram.usage");
+            foreach (MetricEntry entry in MetricRegistry.ForCard(card))
+            {
+                if (!visibility.ContainsKey(entry.Key))
+                {
+                    visibility[entry.Key] = value;
+                }
+            }
+
+            visibility.Remove(card);
+        }
     }
 }

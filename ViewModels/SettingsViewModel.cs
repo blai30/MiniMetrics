@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using MiniMetrics.Lib;
 using MiniMetrics.Models;
 
 namespace MiniMetrics.ViewModels;
@@ -14,34 +15,15 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     private int _opacity;
 
-    [ObservableProperty]
-    private bool _cpuUsageVisible;
-
-    [ObservableProperty]
-    private bool _cpuTempVisible;
-
-    [ObservableProperty]
-    private bool _cpuPowerVisible;
-
-    [ObservableProperty]
-    private bool _ramVisible;
-
-    [ObservableProperty]
-    private bool _gpuUsageVisible;
-
-    [ObservableProperty]
-    private bool _gpuTempVisible;
-
-    [ObservableProperty]
-    private bool _gpuPowerVisible;
-
-    [ObservableProperty]
-    private bool _vramVisible;
-
     public IReadOnlyList<TimeZoneInfo> TimeZones { get; } = TimeZoneInfo.GetSystemTimeZones();
 
     [ObservableProperty]
     private TimeZoneInfo _selectedTimeZone;
+
+    // The metric visibility checkboxes, grouped by card, built from the registry.
+    public IReadOnlyList<MetricGroupViewModel> MetricGroups { get; }
+
+    private readonly Dictionary<string, MetricToggleViewModel> _togglesByKey = new();
 
     public SettingsViewModel(Settings settings)
     {
@@ -54,14 +36,26 @@ public partial class SettingsViewModel : ObservableObject
 
         _backgroundColor = settings.BackgroundColor;
         _opacity = settings.Opacity;
-        _cpuUsageVisible = Seed("cpu.usage", "cpu");
-        _cpuTempVisible = Seed("cpu.temp", "cpu");
-        _cpuPowerVisible = Seed("cpu.power", "cpu");
-        _ramVisible = Seed("ram.usage", "ram");
-        _gpuUsageVisible = Seed("gpu.usage", "gpu");
-        _gpuTempVisible = Seed("gpu.temp", "gpu");
-        _gpuPowerVisible = Seed("gpu.power", "gpu");
-        _vramVisible = Seed("vram.usage", "vram");
+
+        var groups = new List<MetricGroupViewModel>();
+        foreach (string card in MetricRegistry.Cards)
+        {
+            var toggles = new List<MetricToggleViewModel>();
+            foreach (MetricEntry entry in MetricRegistry.ForCard(card))
+            {
+                var toggle = new MetricToggleViewModel(
+                    entry.Key,
+                    entry.Label,
+                    Seed(entry.Key, card),
+                    (key, value) => MetricVisibilityChanged?.Invoke(key, value));
+                toggles.Add(toggle);
+                _togglesByKey[entry.Key] = toggle;
+            }
+
+            groups.Add(new MetricGroupViewModel(card.ToUpperInvariant(), toggles));
+        }
+
+        MetricGroups = groups;
         _selectedTimeZone = ResolveZone(settings.TimeZoneId, TimeZones);
     }
 
@@ -74,28 +68,15 @@ public partial class SettingsViewModel : ObservableObject
     // Raised when the chosen time zone changes (persist + live clock update).
     public event Action? TimeZoneChanged;
 
+    // The toggle for a metric key.
+    public MetricToggleViewModel ToggleFor(string key) => _togglesByKey[key];
+
     [RelayCommand]
     private void SelectPreset(string hex) => BackgroundColor = hex;
 
     partial void OnBackgroundColorChanged(string value) => AppearanceChanged?.Invoke();
 
     partial void OnOpacityChanged(int value) => AppearanceChanged?.Invoke();
-
-    partial void OnCpuUsageVisibleChanged(bool value) => MetricVisibilityChanged?.Invoke("cpu.usage", value);
-
-    partial void OnCpuTempVisibleChanged(bool value) => MetricVisibilityChanged?.Invoke("cpu.temp", value);
-
-    partial void OnCpuPowerVisibleChanged(bool value) => MetricVisibilityChanged?.Invoke("cpu.power", value);
-
-    partial void OnRamVisibleChanged(bool value) => MetricVisibilityChanged?.Invoke("ram.usage", value);
-
-    partial void OnGpuUsageVisibleChanged(bool value) => MetricVisibilityChanged?.Invoke("gpu.usage", value);
-
-    partial void OnGpuTempVisibleChanged(bool value) => MetricVisibilityChanged?.Invoke("gpu.temp", value);
-
-    partial void OnGpuPowerVisibleChanged(bool value) => MetricVisibilityChanged?.Invoke("gpu.power", value);
-
-    partial void OnVramVisibleChanged(bool value) => MetricVisibilityChanged?.Invoke("vram.usage", value);
 
     partial void OnSelectedTimeZoneChanged(TimeZoneInfo value) => TimeZoneChanged?.Invoke();
 

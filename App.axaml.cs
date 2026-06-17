@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -354,8 +355,9 @@ public partial class App : Application
         _gpuViewModel.SetVisibility(key, visible);
         ApplyActiveDevices();
 
-        // Toggling CPU temp/power flips whether autostart must be elevated; re-register if on.
-        if ((key == "cpu.temp" || key == "cpu.power")
+        // Toggling an elevation-requiring metric flips whether autostart must be elevated; re-register if on.
+        bool affectsElevation = MetricRegistry.All.Any(entry => entry.Key == key && entry.RequiresElevation);
+        if (affectsElevation
             && _startupManager is not null
             && _startupManager.IsEnabled())
         {
@@ -429,11 +431,13 @@ public partial class App : Application
         _runAtStartupItem!.IsChecked = _startupManager.IsEnabled();
     }
 
-    // CPU temperature and CPU power need the ring0 driver, which only an elevated process can load.
+    // Some metrics need the ring0 driver, which only an elevated process can load; elevation is
+    // required while any such metric is visible.
     private bool RequiresElevation()
     {
-        bool Visible(string key) => _settings.Visibility.GetValueOrDefault(key, true);
-        return Visible("cpu.temp") || Visible("cpu.power");
+        return MetricRegistry.All
+            .Where(entry => entry.RequiresElevation)
+            .Any(entry => _settings.Visibility.GetValueOrDefault(entry.Key, true));
     }
 
     // Resolves the saved zone id to a TimeZoneInfo, falling back to local if it is missing or the
