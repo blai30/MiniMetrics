@@ -418,8 +418,11 @@ public partial class App : Application
 
     private void OnTimeZoneChanged(SettingsViewModel viewModel)
     {
-        _settingsController.SetTimeZone(viewModel.SelectedTimeZone.Id);
-        _dateTimeViewModel.SetTimeZone(viewModel.SelectedTimeZone);
+        // Local time persists as a null id; ResolveTimeZone(null) maps back to the machine zone,
+        // keeping this consistent with the startup path.
+        string? id = viewModel.UseLocalTime ? null : viewModel.SelectedTimeZone.Id;
+        _settingsController.SetTimeZone(id);
+        _dateTimeViewModel.SetTimeZone(ResolveTimeZone(id));
     }
 
     // Re-entrancy guard: RevertMetricToggle flips a toggle back, which re-raises this event; the guard
