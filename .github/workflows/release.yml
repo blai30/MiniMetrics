@@ -88,6 +88,35 @@ jobs:
           -p:Version=$env:VERSION
           -o publish/fd-folder
 
+      - name: Install Velopack CLI
+        run: dotnet tool install -g vpk
+
+      - name: Pack Velopack self-contained channel
+        run: >
+          vpk pack
+          --packId MiniMetrics
+          --packVersion $env:VERSION
+          --packDir publish/sc-folder
+          --mainExe MiniMetrics.exe
+          --packTitle MiniMetrics
+          --packAuthors "Brian Lai"
+          --icon Assets/minimetrics.ico
+          --channel win-x64-sc
+          --outputDir velopack/sc
+
+      - name: Pack Velopack framework-dependent channel
+        run: >
+          vpk pack
+          --packId MiniMetrics
+          --packVersion $env:VERSION
+          --packDir publish/fd-folder
+          --mainExe MiniMetrics.exe
+          --packTitle MiniMetrics
+          --packAuthors "Brian Lai"
+          --icon Assets/minimetrics.ico
+          --channel win-x64-fd
+          --outputDir velopack/fd
+
       - name: Package artifacts
         run: |
           Copy-Item publish/sc-singlefile/MiniMetrics.exe "MiniMetrics-v$env:VERSION-win-x64-selfcontained.exe"
@@ -99,14 +128,16 @@ jobs:
       - name: Create draft release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: >
-          gh release create "v$env:VERSION"
-          --draft
-          --generate-notes
-          --target $env:GITHUB_SHA
-          --title "v$env:VERSION"
-          "MiniMetrics-v$env:VERSION-win-x64-selfcontained.exe"
-          "MiniMetrics-v$env:VERSION-win-x64-selfcontained.zip"
-          "MiniMetrics-v$env:VERSION-win-x64-framework-dependent.exe"
-          "MiniMetrics-v$env:VERSION-win-x64-framework-dependent.zip"
-          "MiniMetrics-v$env:VERSION-win-x64-debug-symbols.zip"
+        run: |
+          $velopackAssets = Get-ChildItem -Path velopack/sc, velopack/fd -File | ForEach-Object { $_.FullName }
+          gh release create "v$env:VERSION" `
+            --draft `
+            --generate-notes `
+            --target $env:GITHUB_SHA `
+            --title "v$env:VERSION" `
+            "MiniMetrics-v$env:VERSION-win-x64-selfcontained.exe" `
+            "MiniMetrics-v$env:VERSION-win-x64-selfcontained.zip" `
+            "MiniMetrics-v$env:VERSION-win-x64-framework-dependent.exe" `
+            "MiniMetrics-v$env:VERSION-win-x64-framework-dependent.zip" `
+            "MiniMetrics-v$env:VERSION-win-x64-debug-symbols.zip" `
+            @velopackAssets
