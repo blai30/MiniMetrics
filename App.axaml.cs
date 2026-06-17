@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -45,6 +48,11 @@ public partial class App : Application
     private StartupManager? _startupManager;
     private SettingsWindow? _settingsWindow;
     private PawnIoPromptWindow? _pawnIoPromptWindow;
+    private UpdateService _updateService = null!;
+    private Version _currentVersion = null!;
+    private UpdatePromptWindow? _updatePromptWindow;
+    private NativeMenu _trayMenu = null!;
+    private NativeMenuItem? _updateAvailableItem;
 
     public override void Initialize()
     {
@@ -63,6 +71,13 @@ public partial class App : Application
                 settingsStore,
                 new DispatcherSaveScheduler(TimeSpan.FromMilliseconds(600)));
             _settings = _settingsController.Current;
+
+            _currentVersion = Assembly.GetEntryAssembly()?.GetName().Version ?? new Version(0, 0, 0);
+            _updateService = new UpdateService(
+                new GitHubReleaseSource(),
+                _currentVersion,
+                _settingsController,
+                () => DateTimeOffset.UtcNow);
 
             _cpuViewModel = new MetricWidgetViewModel("cpu", "ram");
             _cpuViewModel.BindVisibility(_settings.Visibility);
@@ -182,6 +197,20 @@ public partial class App : Application
             {
                 ShowPawnIoPrompt();
             }
+
+            // Run the launch-time update check a few seconds after startup so it never competes with
+            // warmup, and only when enabled and the cadence is due.
+            if (_settings.UpdateCheckEnabled
+                && UpdatePolicy.IsDue(_settings.LastUpdateCheckUtc, _settings.UpdateFrequency, DateTimeOffset.UtcNow))
+            {
+                var updateTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
+                updateTimer.Tick += (_, _) =>
+                {
+                    updateTimer.Stop();
+                    RunUpdateCheck(manual: false);
+                };
+                updateTimer.Start();
+            }
         }
 
         base.OnFrameworkInitializationCompleted();
@@ -189,7 +218,8 @@ public partial class App : Application
 
     private void BuildTray()
     {
-        var menu = new NativeMenu();
+        _trayMenu = new NativeMenu();
+        NativeMenu menu = _trayMenu;
 
         _cpuShowHideItem = new NativeMenuItem("Show CPU widget")
         {
@@ -272,6 +302,10 @@ public partial class App : Application
         var settingsItem = new NativeMenuItem("Settings...");
         settingsItem.Click += OnOpenSettings;
         menu.Add(settingsItem);
+
+        var checkUpdatesItem = new NativeMenuItem("Check for updates...");
+        checkUpdatesItem.Click += (_, _) => RunUpdateCheck(manual: true);
+        menu.Add(checkUpdatesItem);
 
         menu.Add(new NativeMenuItemSeparator());
 
@@ -358,6 +392,8 @@ public partial class App : Application
         viewModel.AppearanceChanged += () => OnAppearanceChanged(viewModel);
         viewModel.MetricVisibilityChanged += OnMetricVisibilityChanged;
         viewModel.TimeZoneChanged += () => OnTimeZoneChanged(viewModel);
+        viewModel.UpdatePreferencesChanged += () =>
+            _settingsController.SetUpdatePreferences(viewModel.UpdateCheckEnabled, viewModel.UpdateFrequency);
 
         _settingsWindow = new SettingsWindow { DataContext = viewModel };
         _settingsWindow.Closed += (_, _) => _settingsWindow = null;
@@ -553,6 +589,102 @@ public partial class App : Application
         _pawnIoPromptWindow = new PawnIoPromptWindow();
         _pawnIoPromptWindow.Closed += (_, _) => _pawnIoPromptWindow = null;
         _pawnIoPromptWindow.Show();
+    }
+
+    // Runs an update check and surfaces the result on the UI thread. Auto-checks show only when an
+    // update is available; manual checks also report up-to-date and failure so a click never feels dead.
+    private async void RunUpdateCheck(bool manual)
+    {
+        UpdateCheckResult result = await _updateService.CheckAsync(manual);
+
+        switch (result.Outcome)
+        {
+            case UpdateOutcome.UpdateAvailable:
+                ShowUpdateAvailable(result.Version!, result.ReleaseUrl!);
+                break;
+            case UpdateOutcome.UpToDate when manual:
+                ShowUpdateInfo(UpdatePromptViewModel.ForUpToDate(CurrentVersionString));
+                break;
+            case UpdateOutcome.Failed when manual:
+                ShowUpdateInfo(UpdatePromptViewModel.ForFailed());
+                break;
+        }
+    }
+
+    private string CurrentVersionString =>
+        new Version(_currentVersion.Major, _currentVersion.Minor, _currentVersion.Build < 0 ? 0 : _currentVersion.Build).ToString();
+
+    // Shows the actionable update prompt and adds the persistent tray item. Reuses a single window so a
+    // launch check followed by a manual check focuses the existing prompt rather than stacking a second.
+    private void ShowUpdateAvailable(string version, string url)
+    {
+        AddUpdateTrayItem(version, url);
+
+        if (_updatePromptWindow is not null)
+        {
+            _updatePromptWindow.Activate();
+            return;
+        }
+
+        _updatePromptWindow = new UpdatePromptWindow(
+            UpdatePromptViewModel.ForAvailable(version, CurrentVersionString, url));
+        _updatePromptWindow.SkipRequested += (_, _) =>
+        {
+            _settingsController.SetSkippedUpdateVersion(version);
+            RemoveUpdateTrayItem();
+        };
+        _updatePromptWindow.Closed += (_, _) => _updatePromptWindow = null;
+        _updatePromptWindow.Show();
+    }
+
+    private void ShowUpdateInfo(UpdatePromptViewModel viewModel)
+    {
+        if (_updatePromptWindow is not null)
+        {
+            _updatePromptWindow.Activate();
+            return;
+        }
+
+        _updatePromptWindow = new UpdatePromptWindow(viewModel);
+        _updatePromptWindow.Closed += (_, _) => _updatePromptWindow = null;
+        _updatePromptWindow.Show();
+    }
+
+    // Adds (or refreshes) the "Update available" tray item just above the "Check for updates" item.
+    private void AddUpdateTrayItem(string version, string url)
+    {
+        if (_updateAvailableItem is not null)
+        {
+            _updateAvailableItem.Header = $"Update available (v{version})";
+            return;
+        }
+
+        _updateAvailableItem = new NativeMenuItem($"Update available (v{version})");
+        _updateAvailableItem.Click += (_, _) =>
+            Process.Start(new ProcessStartInfo { FileName = url, UseShellExecute = true });
+        _trayMenu.Items.Insert(0, _updateAvailableItem);
+        _trayMenu.Items.Insert(1, new NativeMenuItemSeparator());
+    }
+
+    private void RemoveUpdateTrayItem()
+    {
+        if (_updateAvailableItem is null)
+        {
+            return;
+        }
+
+        int index = _trayMenu.Items.IndexOf(_updateAvailableItem);
+        if (index >= 0)
+        {
+            _trayMenu.Items.RemoveAt(index);
+            // Remove the separator inserted directly after the item.
+            if (index < _trayMenu.Items.Count && _trayMenu.Items[index] is NativeMenuItemSeparator)
+            {
+                _trayMenu.Items.RemoveAt(index);
+            }
+        }
+
+        _updateAvailableItem = null;
     }
 
     // Resolves the saved zone id to a TimeZoneInfo, falling back to local if it is missing or the
