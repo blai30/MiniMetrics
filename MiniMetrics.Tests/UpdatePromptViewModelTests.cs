@@ -36,4 +36,26 @@ public class UpdatePromptViewModelTests
         Assert.IsFalse(viewModel.IsActionable);
         Assert.IsTrue(viewModel.IsInformational);
     }
+
+    [TestMethod]
+    public void ForInstallReady_is_actionable_and_installable_without_a_url()
+    {
+        var viewModel = UpdatePromptViewModel.ForInstallReady("1.3.0", "1.2.0");
+
+        Assert.IsTrue(viewModel.IsActionable);
+        Assert.IsTrue(viewModel.CanInstall);
+        Assert.IsNull(viewModel.Url);
+        Assert.AreEqual("1.3.0", viewModel.Version);
+        StringAssert.Contains(viewModel.Body, "1.3.0");
+        StringAssert.Contains(viewModel.Body, "1.2.0");
+    }
+
+    [TestMethod]
+    public void ForAvailable_is_actionable_but_not_installable()
+    {
+        var viewModel = UpdatePromptViewModel.ForAvailable("1.3.0", "1.2.0", "https://example/r");
+
+        Assert.IsTrue(viewModel.IsActionable);
+        Assert.IsFalse(viewModel.CanInstall);
+    }
 }
