@@ -22,13 +22,11 @@ public partial class App : Application
     private Settings _settings = null!;
     private MetricWidgetViewModel _cpuViewModel = null!;
     private MetricWidgetViewModel _gpuViewModel = null!;
-    private MetricWidgetWindow _cpuWindow = null!;
-    private MetricWidgetWindow _gpuWindow = null!;
-    private DesktopWindow _cpuDesktop = null!;
-    private DesktopWindow _gpuDesktop = null!;
     private DateTimeWidgetViewModel _dateTimeViewModel = null!;
-    private DateTimeWindow _dateTimeWindow = null!;
-    private DesktopWindow _dateTimeDesktop = null!;
+    private WidgetHost _cpuHost = null!;
+    private WidgetHost _gpuHost = null!;
+    private WidgetHost _dateTimeHost = null!;
+    private WidgetHost[] _hosts = Array.Empty<WidgetHost>();
     private DispatcherTimer? _clockTimer;
     private DispatcherTimer? _trimTimer;
 
@@ -92,96 +90,34 @@ public partial class App : Application
                     UpdateGpuWindowVisibility();
                 });
 
-            _cpuWindow = new MetricWidgetWindow
+            _cpuHost = CreateHost(
+                new MetricWidgetWindow { DataContext = _cpuViewModel },
+                () => _settings.X is int x && _settings.Y is int y ? (x, y) : null,
+                _settingsController.SetCpuPosition);
+
+            _gpuHost = CreateHost(
+                new MetricWidgetWindow { DataContext = _gpuViewModel },
+                () => _settings.GpuX is int x && _settings.GpuY is int y ? (x, y) : null,
+                _settingsController.SetGpuPosition);
+
+            _dateTimeHost = CreateHost(
+                new DateTimeWindow { DataContext = _dateTimeViewModel },
+                () => _settings.DateTimeX is int x && _settings.DateTimeY is int y ? (x, y) : null,
+                _settingsController.SetDateTimePosition);
+
+            _hosts = new[] { _cpuHost, _gpuHost, _dateTimeHost };
+
+            // On first appearance with no saved position, the GPU widget sits flush-right of the CPU widget.
+            _gpuHost.OnFirstPlacement = () =>
             {
-                DataContext = _cpuViewModel,
-                WindowStartupLocation = WindowStartupLocation.Manual,
-                IsLocked = _settings.Locked,
-                SnapEnabled = _settings.SnapToEdges,
+                EdgeSnap.Rect cpu = _cpuHost.Rect;
+                _gpuHost.MoveTo(cpu.X + cpu.Width, cpu.Y);
             };
-            _cpuDesktop = new DesktopWindow(_cpuWindow);
-            _cpuDesktop.Attach();
-            _cpuDesktop.SetAlwaysOnTop(_settings.AlwaysOnTop);
-
-            _gpuWindow = new MetricWidgetWindow
-            {
-                DataContext = _gpuViewModel,
-                WindowStartupLocation = WindowStartupLocation.Manual,
-                IsLocked = _settings.Locked,
-                SnapEnabled = _settings.SnapToEdges,
-            };
-            _gpuDesktop = new DesktopWindow(_gpuWindow);
-            _gpuDesktop.Attach();
-            _gpuDesktop.SetAlwaysOnTop(_settings.AlwaysOnTop);
-
-            _dateTimeWindow = new DateTimeWindow
-            {
-                DataContext = _dateTimeViewModel,
-                WindowStartupLocation = WindowStartupLocation.Manual,
-                IsLocked = _settings.Locked,
-                SnapEnabled = _settings.SnapToEdges,
-            };
-            _dateTimeDesktop = new DesktopWindow(_dateTimeWindow);
-            _dateTimeDesktop.Attach();
-            _dateTimeDesktop.SetAlwaysOnTop(_settings.AlwaysOnTop);
-
-            // Restore saved positions before each window appears, if one exists.
-            if (_settings.X is int x && _settings.Y is int y)
-            {
-                _cpuWindow.Position = new PixelPoint(x, y);
-            }
-
-            if (_settings.GpuX is int gx && _settings.GpuY is int gy)
-            {
-                _gpuWindow.Position = new PixelPoint(gx, gy);
-            }
-
-            if (_settings.DateTimeX is int dtx && _settings.DateTimeY is int dty)
-            {
-                _dateTimeWindow.Position = new PixelPoint(dtx, dty);
-            }
 
             // Each widget snaps against the others only while they are actually shown.
-            _cpuWindow.PeerRects = () => VisiblePeerRects(_gpuWindow, _dateTimeWindow);
-            _gpuWindow.PeerRects = () => VisiblePeerRects(_cpuWindow, _dateTimeWindow);
-            _dateTimeWindow.PeerRects = () => VisiblePeerRects(_cpuWindow, _gpuWindow);
-
-            // The controller debounces position saves so a drag results in one write, not hundreds.
-            _cpuWindow.PositionChanged += (_, _) =>
-                _settingsController.SetCpuPosition(_cpuWindow.Position.X, _cpuWindow.Position.Y);
-
-            _gpuWindow.PositionChanged += (_, _) =>
-                _settingsController.SetGpuPosition(_gpuWindow.Position.X, _gpuWindow.Position.Y);
-
-            _dateTimeWindow.PositionChanged += (_, _) =>
-                _settingsController.SetDateTimePosition(_dateTimeWindow.Position.X, _dateTimeWindow.Position.Y);
-
-            _cpuWindow.Opened += (_, _) =>
-            {
-                EnsureWindowOnScreen(_cpuWindow, _settingsController.SetCpuPosition);
-                _cpuDesktop.SetAlwaysOnTop(_settings.AlwaysOnTop);
-                _cpuDesktop.SetClickThrough(_settings.Locked);
-            };
-
-            _gpuWindow.Opened += (_, _) =>
-            {
-                // On first appearance with no saved position, sit flush-right of the CPU widget.
-                if (_settings.GpuX is null || _settings.GpuY is null)
-                {
-                    PlaceGpuWindowDefault();
-                }
-
-                EnsureWindowOnScreen(_gpuWindow, _settingsController.SetGpuPosition);
-                _gpuDesktop.SetAlwaysOnTop(_settings.AlwaysOnTop);
-                _gpuDesktop.SetClickThrough(_settings.Locked);
-            };
-
-            _dateTimeWindow.Opened += (_, _) =>
-            {
-                EnsureWindowOnScreen(_dateTimeWindow, _settingsController.SetDateTimePosition);
-                _dateTimeDesktop.SetAlwaysOnTop(_settings.AlwaysOnTop);
-                _dateTimeDesktop.SetClickThrough(_settings.Locked);
-            };
+            _cpuHost.SnapAgainst(_gpuHost, _dateTimeHost);
+            _gpuHost.SnapAgainst(_cpuHost, _dateTimeHost);
+            _dateTimeHost.SnapAgainst(_cpuHost, _gpuHost);
 
             // The CLR, JIT and Avalonia commit far more than the idle widgets keep touching, so the
             // resident set balloons at startup. Trim it back to the working pages once warmup has
@@ -195,10 +131,10 @@ public partial class App : Application
             };
             _trimTimer.Start();
 
-            desktop.MainWindow = _cpuWindow;
+            desktop.MainWindow = _cpuHost.Window;
             if (!_settings.Hidden)
             {
-                _cpuWindow.Show();
+                _cpuHost.Show();
             }
 
             // The GPU window is shown reactively by UpdateGpuWindowVisibility once the first
@@ -206,7 +142,7 @@ public partial class App : Application
 
             if (!_settings.DateTimeHidden)
             {
-                _dateTimeWindow.Show();
+                _dateTimeHost.Show();
             }
 
             _poller.Start();
@@ -333,12 +269,11 @@ public partial class App : Application
         bool hidden = _settingsController.ToggleCpuHidden();
         if (hidden)
         {
-            _cpuWindow.Hide();
+            _cpuHost.Hide();
         }
         else
         {
-            _cpuWindow.Show();
-            _cpuDesktop.SetAlwaysOnTop(_settings.AlwaysOnTop);
+            _cpuHost.Show();
         }
 
         _cpuShowHideItem.IsChecked = !hidden;
@@ -358,12 +293,11 @@ public partial class App : Application
         bool hidden = _settingsController.ToggleDateTimeHidden();
         if (hidden)
         {
-            _dateTimeWindow.Hide();
+            _dateTimeHost.Hide();
         }
         else
         {
-            _dateTimeWindow.Show();
-            _dateTimeDesktop.SetAlwaysOnTop(_settings.AlwaysOnTop);
+            _dateTimeHost.Show();
         }
 
         _clockShowHideItem.IsChecked = !hidden;
@@ -372,12 +306,11 @@ public partial class App : Application
     private void OnToggleLock(object? sender, EventArgs e)
     {
         bool locked = _settingsController.ToggleLocked();
-        _cpuWindow.IsLocked = locked;
-        _cpuDesktop.SetClickThrough(locked);
-        _gpuWindow.IsLocked = locked;
-        _gpuDesktop.SetClickThrough(locked);
-        _dateTimeWindow.IsLocked = locked;
-        _dateTimeDesktop.SetClickThrough(locked);
+        foreach (WidgetHost host in _hosts)
+        {
+            host.SetLocked(locked);
+        }
+
         _lockItem.IsChecked = locked;
     }
 
@@ -448,62 +381,35 @@ public partial class App : Application
     private void UpdateGpuWindowVisibility()
     {
         bool shouldShow = !_settings.GpuHidden && _gpuViewModel.HasContent;
-        if (shouldShow && !_gpuWindow.IsVisible)
+        if (shouldShow && !_gpuHost.IsVisible)
         {
-            _gpuWindow.Show();
-            _gpuDesktop.SetAlwaysOnTop(_settings.AlwaysOnTop);
+            _gpuHost.Show();
         }
-        else if (!shouldShow && _gpuWindow.IsVisible)
+        else if (!shouldShow && _gpuHost.IsVisible)
         {
-            _gpuWindow.Hide();
+            _gpuHost.Hide();
         }
-    }
-
-    // Places the GPU widget flush-right of the CPU widget and persists the position.
-    private void PlaceGpuWindowDefault()
-    {
-        EdgeSnap.Rect cpu = RectOf(_cpuWindow);
-        _gpuWindow.Position = new PixelPoint(cpu.X + cpu.Width, cpu.Y);
-        _settingsController.SetGpuPosition(_gpuWindow.Position.X, _gpuWindow.Position.Y);
-        _settingsController.Flush();
-    }
-
-    // The physical-pixel rectangles of any peers that are currently shown, for edge snapping.
-    private static EdgeSnap.Rect[] VisiblePeerRects(Window first, Window second)
-    {
-        if (first.IsVisible && second.IsVisible)
-        {
-            return new[] { RectOf(first), RectOf(second) };
-        }
-
-        if (first.IsVisible)
-        {
-            return new[] { RectOf(first) };
-        }
-
-        if (second.IsVisible)
-        {
-            return new[] { RectOf(second) };
-        }
-
-        return Array.Empty<EdgeSnap.Rect>();
     }
 
     private void OnToggleAlwaysOnTop(object? sender, EventArgs e)
     {
         bool onTop = _settingsController.ToggleAlwaysOnTop();
-        _cpuDesktop.SetAlwaysOnTop(onTop);
-        _gpuDesktop.SetAlwaysOnTop(onTop);
-        _dateTimeDesktop.SetAlwaysOnTop(onTop);
+        foreach (WidgetHost host in _hosts)
+        {
+            host.SetAlwaysOnTop(onTop);
+        }
+
         _alwaysOnTopItem.IsChecked = onTop;
     }
 
     private void OnToggleSnap(object? sender, EventArgs e)
     {
         bool snap = _settingsController.ToggleSnapToEdges();
-        _cpuWindow.SnapEnabled = snap;
-        _gpuWindow.SnapEnabled = snap;
-        _dateTimeWindow.SnapEnabled = snap;
+        foreach (WidgetHost host in _hosts)
+        {
+            host.SetSnapEnabled(snap);
+        }
+
         _snapItem.IsChecked = snap;
     }
 
@@ -553,34 +459,18 @@ public partial class App : Application
         }
     }
 
-    // Physical-pixel rectangle of a window for peer snapping.
-    private static EdgeSnap.Rect RectOf(Window window)
+    // Wraps a widget window in a host that owns its desktop integration, position persistence, and
+    // on-screen recovery, initialized with the current chrome flags.
+    private WidgetHost CreateHost(
+        OverlayWindow window,
+        Func<(int X, int Y)?> readSavedPosition,
+        Action<int, int> persistPosition)
     {
-        double scale = window.RenderScaling;
-        return new EdgeSnap.Rect(
-            window.Position.X,
-            window.Position.Y,
-            (int)Math.Round(window.Width * scale),
-            (int)Math.Round(window.Height * scale));
-    }
-
-    // Generalized form of EnsureOnScreen for any widget window: if its restored position lands off
-    // every monitor, pull it back onto the primary screen and persist the corrected coordinates.
-    private void EnsureWindowOnScreen(Window window, Action<int, int> persistPosition)
-    {
-        var screens = window.Screens;
-        if (screens is null || screens.All.Count == 0)
-        {
-            return;
-        }
-
-        if (screens.ScreenFromPoint(window.Position) is null)
-        {
-            var primary = screens.Primary ?? screens.All[0];
-            var area = primary.WorkingArea;
-            window.Position = new PixelPoint(area.X + 48, area.Y + 48);
-            persistPosition(window.Position.X, window.Position.Y);
-            _settingsController.Flush();
-        }
+        window.WindowStartupLocation = WindowStartupLocation.Manual;
+        var host = new WidgetHost(
+            window,
+            new PositionSlot(readSavedPosition, persistPosition, _settingsController.Flush));
+        host.Initialize(_settings.Locked, _settings.SnapToEdges, _settings.AlwaysOnTop);
+        return host;
     }
 }
