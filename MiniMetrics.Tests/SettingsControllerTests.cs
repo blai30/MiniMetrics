@@ -1,10 +1,11 @@
 using System.IO;
 using MiniMetrics.Models;
 using MiniMetrics.Services;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace MiniMetrics.Tests;
 
+[TestClass]
 public class SettingsControllerTests
 {
     private static string TempPath() =>
@@ -18,41 +19,41 @@ public class SettingsControllerTests
         return (controller, store, scheduler);
     }
 
-    [Fact]
+    [TestMethod]
     public void Toggle_flips_value_and_persists_immediately()
     {
         var (controller, store, scheduler) = NewController();
 
         bool locked = controller.ToggleLocked();
 
-        Assert.True(locked);
-        Assert.True(controller.Current.Locked);
-        Assert.True(store.Load().Locked);
-        Assert.Equal(0, scheduler.ScheduleCount);
+        Assert.IsTrue(locked);
+        Assert.IsTrue(controller.Current.Locked);
+        Assert.IsTrue(store.Load().Locked);
+        Assert.AreEqual(0, scheduler.ScheduleCount);
     }
 
-    [Fact]
+    [TestMethod]
     public void Toggle_returns_new_value_on_each_call()
     {
         var (controller, _, _) = NewController();
 
-        Assert.True(controller.ToggleCpuHidden());
-        Assert.False(controller.ToggleCpuHidden());
+        Assert.IsTrue(controller.ToggleCpuHidden());
+        Assert.IsFalse(controller.ToggleCpuHidden());
     }
 
-    [Fact]
+    [TestMethod]
     public void SetMetricVisibility_persists_immediately()
     {
         var (controller, store, scheduler) = NewController();
 
         controller.SetMetricVisibility("cpu.temp", false);
 
-        Assert.False(controller.Current.Visibility["cpu.temp"]);
-        Assert.False(store.Load().Visibility["cpu.temp"]);
-        Assert.Equal(0, scheduler.ScheduleCount);
+        Assert.IsFalse(controller.Current.Visibility["cpu.temp"]);
+        Assert.IsFalse(store.Load().Visibility["cpu.temp"]);
+        Assert.AreEqual(0, scheduler.ScheduleCount);
     }
 
-    [Fact]
+    [TestMethod]
     public void SetAppearance_updates_state_now_but_defers_the_write()
     {
         var (controller, store, scheduler) = NewController();
@@ -60,18 +61,18 @@ public class SettingsControllerTests
         controller.SetAppearance("#112233", 50);
 
         // In-memory state is current immediately; the disk write waits for the debounce.
-        Assert.Equal("#112233", controller.Current.BackgroundColor);
-        Assert.Equal(50, controller.Current.Opacity);
-        Assert.Equal(1, scheduler.ScheduleCount);
-        Assert.Equal("#0F121D", store.Load().BackgroundColor);
+        Assert.AreEqual("#112233", controller.Current.BackgroundColor);
+        Assert.AreEqual(50, controller.Current.Opacity);
+        Assert.AreEqual(1, scheduler.ScheduleCount);
+        Assert.AreEqual("#0F121D", store.Load().BackgroundColor);
 
         controller.Flush();
 
-        Assert.Equal("#112233", store.Load().BackgroundColor);
-        Assert.Equal(50, store.Load().Opacity);
+        Assert.AreEqual("#112233", store.Load().BackgroundColor);
+        Assert.AreEqual(50, store.Load().Opacity);
     }
 
-    [Fact]
+    [TestMethod]
     public void A_burst_of_debounced_edits_coalesces_into_one_write()
     {
         var (controller, store, scheduler) = NewController();
@@ -81,32 +82,32 @@ public class SettingsControllerTests
         controller.SetCpuPosition(30, 30);
 
         // Scheduled three times, but nothing is written until the single flush runs.
-        Assert.Equal(3, scheduler.ScheduleCount);
-        Assert.Null(store.Load().X);
+        Assert.AreEqual(3, scheduler.ScheduleCount);
+        Assert.IsNull(store.Load().X);
 
         controller.Flush();
 
-        Assert.Equal(1, scheduler.FlushCount);
-        Assert.Equal(30, store.Load().X);
-        Assert.Equal(30, store.Load().Y);
+        Assert.AreEqual(1, scheduler.FlushCount);
+        Assert.AreEqual(30, store.Load().X);
+        Assert.AreEqual(30, store.Load().Y);
     }
 
-    [Fact]
+    [TestMethod]
     public void SetTimeZone_defers_the_write()
     {
         var (controller, store, _) = NewController();
 
         controller.SetTimeZone("UTC");
 
-        Assert.Equal("UTC", controller.Current.TimeZoneId);
-        Assert.Null(store.Load().TimeZoneId);
+        Assert.AreEqual("UTC", controller.Current.TimeZoneId);
+        Assert.IsNull(store.Load().TimeZoneId);
 
         controller.Flush();
 
-        Assert.Equal("UTC", store.Load().TimeZoneId);
+        Assert.AreEqual("UTC", store.Load().TimeZoneId);
     }
 
-    [Fact]
+    [TestMethod]
     public void Flush_with_nothing_pending_does_not_write()
     {
         var (controller, store, _) = NewController();
@@ -114,10 +115,10 @@ public class SettingsControllerTests
         controller.Flush();
 
         // No save was ever scheduled, so the file never appears and Load falls back to defaults.
-        Assert.Null(store.Load().X);
+        Assert.IsNull(store.Load().X);
     }
 
-    [Fact]
+    [TestMethod]
     public void Constructor_migrates_legacy_whole_card_visibility_keys()
     {
         var settings = new Settings { Visibility = { ["cpu"] = false, ["gpu"] = true } };
@@ -125,30 +126,30 @@ public class SettingsControllerTests
         var (controller, _, _) = NewController(settings);
 
         Settings current = controller.Current;
-        Assert.False(current.Visibility.ContainsKey("cpu"));
-        Assert.False(current.Visibility["cpu.usage"]);
-        Assert.False(current.Visibility["cpu.temp"]);
-        Assert.False(current.Visibility["cpu.power"]);
-        Assert.True(current.Visibility["gpu.usage"]);
+        Assert.IsFalse(current.Visibility.ContainsKey("cpu"));
+        Assert.IsFalse(current.Visibility["cpu.usage"]);
+        Assert.IsFalse(current.Visibility["cpu.temp"]);
+        Assert.IsFalse(current.Visibility["cpu.power"]);
+        Assert.IsTrue(current.Visibility["gpu.usage"]);
     }
 
-    [Fact]
+    [TestMethod]
     public void Constructor_seeds_cpu_temp_and_power_off_by_default()
     {
         var (controller, _, _) = NewController();
 
-        Assert.False(controller.Current.Visibility["cpu.temp"]);
-        Assert.False(controller.Current.Visibility["cpu.power"]);
+        Assert.IsFalse(controller.Current.Visibility["cpu.temp"]);
+        Assert.IsFalse(controller.Current.Visibility["cpu.power"]);
     }
 
-    [Fact]
+    [TestMethod]
     public void Constructor_keeps_an_explicit_elevation_visibility_value()
     {
         var settings = new Settings { Visibility = { ["cpu.temp"] = true } };
 
         var (controller, _, _) = NewController(settings);
 
-        Assert.True(controller.Current.Visibility["cpu.temp"]);
-        Assert.False(controller.Current.Visibility["cpu.power"]);
+        Assert.IsTrue(controller.Current.Visibility["cpu.temp"]);
+        Assert.IsFalse(controller.Current.Visibility["cpu.power"]);
     }
 }

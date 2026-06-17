@@ -1,41 +1,42 @@
 using System.Collections.Generic;
 using MiniMetrics.Lib;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace MiniMetrics.Tests;
 
+[TestClass]
 public class DeviceActivationTests
 {
     private static Dictionary<string, bool> AllVisible() => new();
 
-    [Fact]
+    [TestMethod]
     public void All_visible_and_both_widgets_shown_polls_everything()
     {
         var result = DeviceActivation.Compute(AllVisible(), cpuWidgetShown: true, gpuWidgetShown: true);
-        Assert.True(result.Cpu);
-        Assert.True(result.Memory);
-        Assert.True(result.Gpu);
+        Assert.IsTrue(result.Cpu);
+        Assert.IsTrue(result.Memory);
+        Assert.IsTrue(result.Gpu);
     }
 
-    [Fact]
+    [TestMethod]
     public void Hiding_cpu_widget_stops_cpu_and_ram_only()
     {
         var result = DeviceActivation.Compute(AllVisible(), cpuWidgetShown: false, gpuWidgetShown: true);
-        Assert.False(result.Cpu);
-        Assert.False(result.Memory);
-        Assert.True(result.Gpu);
+        Assert.IsFalse(result.Cpu);
+        Assert.IsFalse(result.Memory);
+        Assert.IsTrue(result.Gpu);
     }
 
-    [Fact]
+    [TestMethod]
     public void Hiding_gpu_widget_stops_gpu_only()
     {
         var result = DeviceActivation.Compute(AllVisible(), cpuWidgetShown: true, gpuWidgetShown: false);
-        Assert.True(result.Cpu);
-        Assert.True(result.Memory);
-        Assert.False(result.Gpu);
+        Assert.IsTrue(result.Cpu);
+        Assert.IsTrue(result.Memory);
+        Assert.IsFalse(result.Gpu);
     }
 
-    [Fact]
+    [TestMethod]
     public void Cpu_widget_shown_but_all_cpu_metrics_hidden_stops_cpu_device()
     {
         var visibility = new Dictionary<string, bool>
@@ -45,20 +46,20 @@ public class DeviceActivationTests
             ["cpu.power"] = false,
         };
         var result = DeviceActivation.Compute(visibility, cpuWidgetShown: true, gpuWidgetShown: true);
-        Assert.False(result.Cpu);
-        Assert.True(result.Memory);
+        Assert.IsFalse(result.Cpu);
+        Assert.IsTrue(result.Memory);
     }
 
-    [Fact]
+    [TestMethod]
     public void Cpu_widget_shown_with_ram_hidden_stops_memory_device()
     {
         var visibility = new Dictionary<string, bool> { ["ram.usage"] = false };
         var result = DeviceActivation.Compute(visibility, cpuWidgetShown: true, gpuWidgetShown: true);
-        Assert.False(result.Memory);
-        Assert.True(result.Cpu);
+        Assert.IsFalse(result.Memory);
+        Assert.IsTrue(result.Cpu);
     }
 
-    [Fact]
+    [TestMethod]
     public void Gpu_device_stays_active_for_vram_alone()
     {
         var visibility = new Dictionary<string, bool>
@@ -68,10 +69,10 @@ public class DeviceActivationTests
             ["gpu.power"] = false,
         };
         var result = DeviceActivation.Compute(visibility, cpuWidgetShown: true, gpuWidgetShown: true);
-        Assert.True(result.Gpu);
+        Assert.IsTrue(result.Gpu);
     }
 
-    [Fact]
+    [TestMethod]
     public void Gpu_widget_shown_but_all_gpu_and_vram_metrics_hidden_stops_gpu_device()
     {
         var visibility = new Dictionary<string, bool>
@@ -82,6 +83,6 @@ public class DeviceActivationTests
             ["vram.usage"] = false,
         };
         var result = DeviceActivation.Compute(visibility, cpuWidgetShown: true, gpuWidgetShown: true);
-        Assert.False(result.Gpu);
+        Assert.IsFalse(result.Gpu);
     }
 }

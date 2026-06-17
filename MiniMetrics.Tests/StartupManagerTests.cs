@@ -1,8 +1,9 @@
 using MiniMetrics.Services;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace MiniMetrics.Tests;
 
+[TestClass]
 public class StartupManagerTests
 {
     private const string Exe = @"C:\Apps\MiniMetrics\MiniMetrics.exe";
@@ -14,29 +15,29 @@ public class StartupManagerTests
         return (new StartupManager(ops, Exe), ops);
     }
 
-    [Fact]
+    [TestMethod]
     public void Enable_without_elevation_writes_run_key_only()
     {
         var (manager, ops) = Build();
         bool ok = manager.Sync(enabled: true, requiresElevation: false);
 
-        Assert.True(ok);
-        Assert.Equal(Value, ops.RunKeyPath);
-        Assert.False(ops.TaskPresent);
+        Assert.IsTrue(ok);
+        Assert.AreEqual(Value, ops.RunKeyPath);
+        Assert.IsFalse(ops.TaskPresent);
     }
 
-    [Fact]
+    [TestMethod]
     public void Enable_with_elevation_creates_task_only()
     {
         var (manager, ops) = Build();
         bool ok = manager.Sync(enabled: true, requiresElevation: true);
 
-        Assert.True(ok);
-        Assert.True(ops.TaskPresent);
-        Assert.Null(ops.RunKeyPath);
+        Assert.IsTrue(ok);
+        Assert.IsTrue(ops.TaskPresent);
+        Assert.IsNull(ops.RunKeyPath);
     }
 
-    [Fact]
+    [TestMethod]
     public void Disable_removes_run_key()
     {
         var (manager, ops) = Build();
@@ -44,10 +45,10 @@ public class StartupManagerTests
 
         manager.Sync(enabled: false, requiresElevation: false);
 
-        Assert.Null(ops.RunKeyPath);
+        Assert.IsNull(ops.RunKeyPath);
     }
 
-    [Fact]
+    [TestMethod]
     public void Disable_removes_task()
     {
         var (manager, ops) = Build();
@@ -55,10 +56,10 @@ public class StartupManagerTests
 
         manager.Sync(enabled: false, requiresElevation: true);
 
-        Assert.False(ops.TaskPresent);
+        Assert.IsFalse(ops.TaskPresent);
     }
 
-    [Fact]
+    [TestMethod]
     public void Enabling_elevation_migrates_run_key_to_task()
     {
         var (manager, ops) = Build();
@@ -66,12 +67,12 @@ public class StartupManagerTests
 
         bool ok = manager.Sync(enabled: true, requiresElevation: true);
 
-        Assert.True(ok);
-        Assert.True(ops.TaskPresent);
-        Assert.Null(ops.RunKeyPath);
+        Assert.IsTrue(ok);
+        Assert.IsTrue(ops.TaskPresent);
+        Assert.IsNull(ops.RunKeyPath);
     }
 
-    [Fact]
+    [TestMethod]
     public void Disabling_elevation_migrates_task_to_run_key()
     {
         var (manager, ops) = Build();
@@ -79,12 +80,12 @@ public class StartupManagerTests
 
         bool ok = manager.Sync(enabled: true, requiresElevation: false);
 
-        Assert.True(ok);
-        Assert.False(ops.TaskPresent);
-        Assert.Equal(Value, ops.RunKeyPath);
+        Assert.IsTrue(ok);
+        Assert.IsFalse(ops.TaskPresent);
+        Assert.AreEqual(Value, ops.RunKeyPath);
     }
 
-    [Fact]
+    [TestMethod]
     public void Cancelled_task_creation_leaves_run_key_untouched()
     {
         var (manager, ops) = Build();
@@ -93,13 +94,13 @@ public class StartupManagerTests
 
         bool ok = manager.Sync(enabled: true, requiresElevation: true);
 
-        Assert.False(ok);
-        Assert.Equal(Value, ops.RunKeyPath);
-        Assert.False(ops.TaskPresent);
-        Assert.Equal(0, ops.RemoveRunKeyCalls);
+        Assert.IsFalse(ok);
+        Assert.AreEqual(Value, ops.RunKeyPath);
+        Assert.IsFalse(ops.TaskPresent);
+        Assert.AreEqual(0, ops.RemoveRunKeyCalls);
     }
 
-    [Fact]
+    [TestMethod]
     public void Cancelled_task_removal_leaves_task_and_writes_no_run_key()
     {
         var (manager, ops) = Build();
@@ -108,13 +109,13 @@ public class StartupManagerTests
 
         bool ok = manager.Sync(enabled: true, requiresElevation: false);
 
-        Assert.False(ok);
-        Assert.True(ops.TaskPresent);
-        Assert.Null(ops.RunKeyPath);
-        Assert.Equal(0, ops.WriteRunKeyCalls);
+        Assert.IsFalse(ok);
+        Assert.IsTrue(ops.TaskPresent);
+        Assert.IsNull(ops.RunKeyPath);
+        Assert.AreEqual(0, ops.WriteRunKeyCalls);
     }
 
-    [Fact]
+    [TestMethod]
     public void Re_syncing_with_elevation_does_not_recreate_the_task()
     {
         // Enabling a second CPU temp/power metric re-syncs while the task already exists. The
@@ -124,12 +125,12 @@ public class StartupManagerTests
 
         bool ok = manager.Sync(enabled: true, requiresElevation: true);
 
-        Assert.True(ok);
-        Assert.Equal(0, ops.CreateTaskCalls);
-        Assert.True(ops.TaskPresent);
+        Assert.IsTrue(ok);
+        Assert.AreEqual(0, ops.CreateTaskCalls);
+        Assert.IsTrue(ops.TaskPresent);
     }
 
-    [Fact]
+    [TestMethod]
     public void Re_enabling_same_run_key_writes_nothing()
     {
         var (manager, ops) = Build();
@@ -137,10 +138,10 @@ public class StartupManagerTests
 
         manager.Sync(enabled: true, requiresElevation: false);
 
-        Assert.Equal(0, ops.WriteRunKeyCalls);
+        Assert.AreEqual(0, ops.WriteRunKeyCalls);
     }
 
-    [Fact]
+    [TestMethod]
     public void RefreshRunKeyPath_rewrites_a_stale_path()
     {
         var (manager, ops) = Build();
@@ -148,34 +149,34 @@ public class StartupManagerTests
 
         manager.RefreshRunKeyPath();
 
-        Assert.Equal(Value, ops.RunKeyPath);
+        Assert.AreEqual(Value, ops.RunKeyPath);
     }
 
-    [Fact]
+    [TestMethod]
     public void RefreshRunKeyPath_does_nothing_when_absent()
     {
         var (manager, ops) = Build();
 
         manager.RefreshRunKeyPath();
 
-        Assert.Null(ops.RunKeyPath);
-        Assert.Equal(0, ops.WriteRunKeyCalls);
+        Assert.IsNull(ops.RunKeyPath);
+        Assert.AreEqual(0, ops.WriteRunKeyCalls);
     }
 
-    [Fact]
+    [TestMethod]
     public void IsEnabled_true_when_task_present()
     {
         var (manager, ops) = Build();
         ops.TaskPresent = true;
 
-        Assert.True(manager.IsEnabled());
+        Assert.IsTrue(manager.IsEnabled());
     }
 
-    [Fact]
+    [TestMethod]
     public void IsEnabled_false_when_neither_present()
     {
         var (manager, _) = Build();
 
-        Assert.False(manager.IsEnabled());
+        Assert.IsFalse(manager.IsEnabled());
     }
 }

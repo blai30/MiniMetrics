@@ -1,16 +1,17 @@
 using System.IO;
 using MiniMetrics.Models;
 using MiniMetrics.Services;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace MiniMetrics.Tests;
 
+[TestClass]
 public class SettingsStoreTests
 {
     private static string TempPath() =>
         Path.Combine(Path.GetTempPath(), "dm-tests", Path.GetRandomFileName(), "settings.json");
 
-    [Fact]
+    [TestMethod]
     public void Save_then_Load_round_trips_all_fields()
     {
         var path = TempPath();
@@ -28,16 +29,16 @@ public class SettingsStoreTests
         store.Save(settings);
         var loaded = store.Load();
 
-        Assert.Equal(120, loaded.X);
-        Assert.Equal(340, loaded.Y);
-        Assert.True(loaded.Locked);
-        Assert.False(loaded.Hidden);
-        Assert.True(loaded.AlwaysOnTop);
-        Assert.False(loaded.Visibility["gpu"]);
-        Assert.True(loaded.Visibility["cpu"]);
+        Assert.AreEqual(120, loaded.X);
+        Assert.AreEqual(340, loaded.Y);
+        Assert.IsTrue(loaded.Locked);
+        Assert.IsFalse(loaded.Hidden);
+        Assert.IsTrue(loaded.AlwaysOnTop);
+        Assert.IsFalse(loaded.Visibility["gpu"]);
+        Assert.IsTrue(loaded.Visibility["cpu"]);
     }
 
-    [Fact]
+    [TestMethod]
     public void Save_then_Load_round_trips_appearance_fields()
     {
         var path = TempPath();
@@ -51,11 +52,11 @@ public class SettingsStoreTests
         store.Save(settings);
         var loaded = store.Load();
 
-        Assert.Equal("#1A1F2B", loaded.BackgroundColor);
-        Assert.Equal(73, loaded.Opacity);
+        Assert.AreEqual("#1A1F2B", loaded.BackgroundColor);
+        Assert.AreEqual(73, loaded.Opacity);
     }
 
-    [Fact]
+    [TestMethod]
     public void Save_then_Load_round_trips_snap_to_edges()
     {
         var path = TempPath();
@@ -65,10 +66,10 @@ public class SettingsStoreTests
         store.Save(settings);
         var loaded = store.Load();
 
-        Assert.False(loaded.SnapToEdges);
+        Assert.IsFalse(loaded.SnapToEdges);
     }
 
-    [Fact]
+    [TestMethod]
     public void Load_defaults_snap_to_edges_on_when_absent()
     {
         // A settings file written before the snap feature existed.
@@ -78,10 +79,10 @@ public class SettingsStoreTests
 
         var loaded = new SettingsStore(path).Load();
 
-        Assert.True(loaded.SnapToEdges);
+        Assert.IsTrue(loaded.SnapToEdges);
     }
 
-    [Fact]
+    [TestMethod]
     public void Load_uses_appearance_defaults_when_absent()
     {
         // A settings file written before the appearance feature existed.
@@ -91,23 +92,23 @@ public class SettingsStoreTests
 
         var loaded = new SettingsStore(path).Load();
 
-        Assert.Equal("#0F121D", loaded.BackgroundColor);
-        Assert.Equal(96, loaded.Opacity);
+        Assert.AreEqual("#0F121D", loaded.BackgroundColor);
+        Assert.AreEqual(96, loaded.Opacity);
     }
 
-    [Fact]
+    [TestMethod]
     public void Load_returns_defaults_when_file_missing()
     {
         var store = new SettingsStore(TempPath());
         var loaded = store.Load();
 
-        Assert.Null(loaded.X);
-        Assert.False(loaded.Locked);
-        Assert.False(loaded.Hidden);
-        Assert.Empty(loaded.Visibility);
+        Assert.IsNull(loaded.X);
+        Assert.IsFalse(loaded.Locked);
+        Assert.IsFalse(loaded.Hidden);
+        Assert.IsEmpty(loaded.Visibility);
     }
 
-    [Fact]
+    [TestMethod]
     public void Load_returns_defaults_when_file_corrupt()
     {
         var path = TempPath();
@@ -116,11 +117,11 @@ public class SettingsStoreTests
 
         var loaded = new SettingsStore(path).Load();
 
-        Assert.Null(loaded.X);
-        Assert.False(loaded.Locked);
+        Assert.IsNull(loaded.X);
+        Assert.IsFalse(loaded.Locked);
     }
 
-    [Fact]
+    [TestMethod]
     public void Save_then_Load_round_trips_datetime_fields()
     {
         var path = TempPath();
@@ -136,13 +137,13 @@ public class SettingsStoreTests
         store.Save(settings);
         var loaded = store.Load();
 
-        Assert.Equal(200, loaded.DateTimeX);
-        Assert.Equal(760, loaded.DateTimeY);
-        Assert.False(loaded.DateTimeHidden);
-        Assert.Equal("UTC", loaded.TimeZoneId);
+        Assert.AreEqual(200, loaded.DateTimeX);
+        Assert.AreEqual(760, loaded.DateTimeY);
+        Assert.IsFalse(loaded.DateTimeHidden);
+        Assert.AreEqual("UTC", loaded.TimeZoneId);
     }
 
-    [Fact]
+    [TestMethod]
     public void Save_then_Load_round_trips_gpu_widget_fields()
     {
         var path = TempPath();
@@ -157,12 +158,12 @@ public class SettingsStoreTests
         store.Save(settings);
         var loaded = store.Load();
 
-        Assert.Equal(1234, loaded.GpuX);
-        Assert.Equal(567, loaded.GpuY);
-        Assert.True(loaded.GpuHidden);
+        Assert.AreEqual(1234, loaded.GpuX);
+        Assert.AreEqual(567, loaded.GpuY);
+        Assert.IsTrue(loaded.GpuHidden);
     }
 
-    [Fact]
+    [TestMethod]
     public void Load_defaults_datetime_widget_hidden_when_absent()
     {
         // A settings file written before the datetime widget existed.
@@ -172,8 +173,8 @@ public class SettingsStoreTests
 
         var loaded = new SettingsStore(path).Load();
 
-        Assert.True(loaded.DateTimeHidden);
-        Assert.Null(loaded.DateTimeX);
-        Assert.Null(loaded.TimeZoneId);
+        Assert.IsTrue(loaded.DateTimeHidden);
+        Assert.IsNull(loaded.DateTimeX);
+        Assert.IsNull(loaded.TimeZoneId);
     }
 }

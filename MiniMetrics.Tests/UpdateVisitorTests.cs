@@ -2,13 +2,14 @@ using System;
 using System.Collections.Generic;
 using LibreHardwareMonitor.Hardware;
 using MiniMetrics.Services;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace MiniMetrics.Tests;
 
+[TestClass]
 public class UpdateVisitorTests
 {
-    [Fact]
+    [TestMethod]
     public void Updates_every_device_and_its_subdevices()
     {
         var sub = new FakeHardware();
@@ -16,11 +17,11 @@ public class UpdateVisitorTests
 
         root.Accept(new UpdateVisitor());
 
-        Assert.Equal(1, root.UpdateCount);
-        Assert.Equal(1, sub.UpdateCount);
+        Assert.AreEqual(1, root.UpdateCount);
+        Assert.AreEqual(1, sub.UpdateCount);
     }
 
-    [Fact]
+    [TestMethod]
     public void Disables_sensor_value_history_to_stop_it_accumulating()
     {
         // LibreHardwareMonitor records a value into ISensor.Values on every Update, retaining a
@@ -37,8 +38,8 @@ public class UpdateVisitorTests
 
         root.Accept(new UpdateVisitor());
 
-        Assert.Equal(TimeSpan.Zero, rootSensor.ValuesTimeWindow);
-        Assert.Equal(TimeSpan.Zero, subSensor.ValuesTimeWindow);
+        Assert.AreEqual(TimeSpan.Zero, rootSensor.ValuesTimeWindow);
+        Assert.AreEqual(TimeSpan.Zero, subSensor.ValuesTimeWindow);
     }
 
     private sealed class FakeHardware : IHardware

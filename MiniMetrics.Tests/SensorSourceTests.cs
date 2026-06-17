@@ -1,11 +1,12 @@
 using MiniMetrics.Services;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace MiniMetrics.Tests;
 
+[TestClass]
 public class SensorSourceTests
 {
-    [Fact]
+    [TestMethod]
     public void Released_device_returns_a_null_section()
     {
         var source = new MockSensorSource();
@@ -13,12 +14,12 @@ public class SensorSourceTests
 
         var snapshot = source.Read();
 
-        Assert.Null(snapshot.Cpu);
-        Assert.NotNull(snapshot.Memory);
-        Assert.NotNull(snapshot.Gpu);
+        Assert.IsNull(snapshot.Cpu);
+        Assert.IsNotNull(snapshot.Memory);
+        Assert.IsNotNull(snapshot.Gpu);
     }
 
-    [Fact]
+    [TestMethod]
     public void Re_enabling_a_device_restores_its_section()
     {
         var source = new MockSensorSource();
@@ -27,8 +28,8 @@ public class SensorSourceTests
 
         var snapshot = source.Read();
 
-        Assert.NotNull(snapshot.Cpu);
-        Assert.NotNull(snapshot.Memory);
-        Assert.NotNull(snapshot.Gpu);
+        Assert.IsNotNull(snapshot.Cpu);
+        Assert.IsNotNull(snapshot.Memory);
+        Assert.IsNotNull(snapshot.Gpu);
     }
 }
