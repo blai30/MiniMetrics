@@ -152,11 +152,12 @@ public class SettingsViewModelTests
     [Fact]
     public void Changing_time_zone_raises_TimeZoneChanged()
     {
-        var viewModel = new SettingsViewModel(SampleSettings());
+        var viewModel = new SettingsViewModel(new Settings { TimeZoneId = "UTC" });
         int count = 0;
         viewModel.TimeZoneChanged += () => count++;
 
-        viewModel.SelectedTimeZone = System.TimeZoneInfo.Utc;
+        var target = System.TimeZoneInfo.GetSystemTimeZones().First(tz => tz.Id != viewModel.SelectedTimeZone.Id);
+        viewModel.SelectedTimeZone = target;
 
         Assert.Equal(1, count);
     }
