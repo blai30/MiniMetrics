@@ -73,7 +73,7 @@ public partial class App : Application
             _dateTimeViewModel.SetTimeZone(ResolveTimeZone(_settings.TimeZoneId));
 
             _source = OperatingSystem.IsWindows()
-                ? new LibreHardwareSensorSource()
+                ? new HardwareSensorSource(new LibreHardwareTree())
                 : new MockSensorSource();
 
             // Release any device whose widget is hidden or whose every metric is hidden before the
