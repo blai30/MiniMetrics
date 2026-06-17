@@ -51,6 +51,8 @@
                     IsVisible="{Binding IsInformational}">
             <Button Content="Close"
                     Click="OnClose"
+                    IsDefault="True"
+                    IsCancel="True"
                     Padding="14,7"
                     Background="#2A6FF3"
                     Foreground="#FFFFFF" />
