@@ -7,19 +7,22 @@ MiniMetrics runs as a normal application most of the time. It only asks for admi
 Different sensors are read in different ways:
 
 - **CPU usage, RAM, GPU usage, GPU temperature, GPU power, and VRAM** come from normal Windows and graphics-vendor interfaces. They need no special permissions.
-- **CPU temperature and CPU power** are only available by reading the processor's internal model-specific registers (MSRs). Windows only allows that through a small kernel-level driver, and Windows only lets a program load that driver when it is running with administrator rights.
+- **CPU temperature and CPU power** are only available by reading the processor's internal registers (model-specific registers and the vendor power interfaces). Windows only allows that through a small kernel-level driver, and only lets a program use that driver when it is running with administrator rights.
 
 This is not a MiniMetrics quirk. It is how the underlying [LibreHardwareMonitor](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor) library, and every other CPU-sensor tool, has to work.
 
 ## What you will see
 
-- **By default, CPU temperature and CPU power are turned off.** A fresh install never asks for administrator rights.
-- **When you turn either one on,** Windows shows one User Account Control (UAC) prompt asking to restart MiniMetrics with administrator rights.
-  - **Accept** and MiniMetrics restarts elevated and starts showing the readings.
-  - **Decline** and the option simply stays off. MiniMetrics keeps running normally, and CPU temperature/power show a muted dash (`—`) instead of a value.
-- **If you have not granted rights,** those two readings show the `—` placeholder. Everything else keeps working.
+By default, CPU temperature and CPU power are turned off, so a fresh install never prompts for anything. What happens when you turn one on depends on whether the PawnIO driver (described below) is already installed:
 
-You can leave CPU temperature and power off and use MiniMetrics entirely without administrator rights.
+- **PawnIO is installed.** Windows shows one User Account Control (UAC) prompt asking to restart MiniMetrics with administrator rights.
+  - **Accept** and MiniMetrics restarts elevated and starts showing the readings.
+  - **Decline** and the option turns back off. MiniMetrics keeps running normally.
+- **PawnIO is not installed.** MiniMetrics cannot read these sensors without it, and administrator rights alone would not change that, so it does not show a UAC prompt. Instead it opens a short "Driver required" window with a link to install PawnIO. The metric stays enabled and shows a muted dash (`—`); once PawnIO is installed it starts working, and you will see the UAC prompt above the next time it needs to elevate.
+
+The same applies at launch: if CPU temperature or power is already enabled when MiniMetrics starts, it will either restart elevated (PawnIO installed) or open the install prompt (PawnIO missing).
+
+Turning a metric back **off** never prompts for anything. Everything other than these two readings always works without administrator rights, so you can use MiniMetrics entirely unelevated by leaving them off.
 
 ## Why this approach is correct, not just convenient
 
@@ -71,7 +74,7 @@ To read CPU package temperature and power, MiniMetrics relies on LibreHardwareMo
 
 Two things are worth knowing:
 
-- **MiniMetrics does not install a kernel driver.** It bundles only PawnIO's sandboxed modules and uses them only if the PawnIO driver is already installed on your system (for example, by LibreHardwareMonitor's own installer or PawnIO's setup). If PawnIO is not present, CPU temperature and power simply stay blank. Nothing is forced onto your machine.
+- **MiniMetrics does not install a kernel driver.** It bundles only PawnIO's sandboxed modules and uses them only if the PawnIO driver is already installed on your system (for example, by LibreHardwareMonitor's own installer or PawnIO's setup). If PawnIO is not present, MiniMetrics points you to PawnIO's installer when you enable CPU temperature or power; until you install it, those two readings stay blank. Nothing is placed on your machine without your action.
 - Because the driver is installed and signed independently, an anti-malware or anti-cheat tool sees a known, signed driver (PawnIO), not an unknown driver shipped by this app.
 
 ## Secure Boot and Memory Integrity

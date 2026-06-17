@@ -35,14 +35,16 @@ public sealed class HardwareSensorSource : ISensorSource, IDisposable
         if (_cpuActive)
         {
             double load = _tree.Read(HardwareKind.Cpu, SensorKind.Load, "CPU Total") ?? 0;
-            // CPU package temperature and power need the ring0 driver, which loads only when elevated,
-            // so unelevated these reads return null; they are also null if the sensor name differs from
-            // the ones below. The widget renders null as a placeholder. Intel exposes "CPU Package";
-            // AMD surfaces "Core (Tctl/Tdie)" / "Package".
-            double? temp = _tree.Read(HardwareKind.Cpu, SensorKind.Temperature, "CPU Package")
-                           ?? _tree.Read(HardwareKind.Cpu, SensorKind.Temperature, "Core (Tctl/Tdie)");
-            double? power = _tree.Read(HardwareKind.Cpu, SensorKind.Power, "CPU Package")
-                            ?? _tree.Read(HardwareKind.Cpu, SensorKind.Power, "Package");
+            // CPU package temperature and power are read through the PawnIO kernel driver. When that
+            // driver cannot supply a value (it is not installed, or the process is not elevated to open
+            // its device) the sensors still exist but report 0. A running CPU is never at 0 C or 0 W, so
+            // Available maps a non-positive (or absent) reading to null and the widget shows a
+            // placeholder. Intel exposes "CPU Package"; AMD surfaces "Core (Tctl/Tdie)" for temperature
+            // and "Package" for power.
+            double? temp = Available(_tree.Read(HardwareKind.Cpu, SensorKind.Temperature, "CPU Package"))
+                           ?? Available(_tree.Read(HardwareKind.Cpu, SensorKind.Temperature, "Core (Tctl/Tdie)"));
+            double? power = Available(_tree.Read(HardwareKind.Cpu, SensorKind.Power, "CPU Package"))
+                            ?? Available(_tree.Read(HardwareKind.Cpu, SensorKind.Power, "Package"));
             cpu = new CpuMetrics(load, temp, power);
         }
 
@@ -76,6 +78,10 @@ public sealed class HardwareSensorSource : ISensorSource, IDisposable
 
         return new MetricsSnapshot(cpu, memory, gpu);
     }
+
+    // A CPU package temperature or power reading is only real when positive; 0 or null means the
+    // PawnIO driver could not provide it, which the caller treats as unavailable.
+    private static double? Available(double? reading) => reading is > 0 ? reading : null;
 
     private static ulong GibToBytes(double gib) => (ulong)(gib * 1024d * 1024d * 1024d);
 

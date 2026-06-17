@@ -45,12 +45,12 @@ public static class RowBuilder
                 "cpu",
                 "CPU",
                 MetricFormatting.FormatPercent(cpu.UsagePercent),
-                // CPU temperature is deferred (needs the kernel driver). Until then the hero slot
-                // shows a muted placeholder rather than going blank.
+                // CPU temperature is null when the PawnIO driver cannot read it; the hero slot shows a
+                // muted placeholder rather than going blank.
                 cpu.TempCelsius is { } cpuTemp ? MetricFormatting.FormatTempValue(cpuTemp) : "—",
                 cpu.TempCelsius is { } cpuLevel ? CpuLevelFor(cpuLevel) : TempLevel.None,
-                // CPU power is deferred (needs the kernel driver). Until then the detail slot shows a
-                // muted placeholder rather than a misleading reading.
+                // CPU power is null when the PawnIO driver cannot read it; the detail slot shows a muted
+                // placeholder rather than a misleading reading.
                 cpu.PowerWatts is { } cpuPower ? MetricFormatting.FormatPower(cpuPower) : "—",
                 cpu.UsagePercent,
                 RowColor.Cyan));

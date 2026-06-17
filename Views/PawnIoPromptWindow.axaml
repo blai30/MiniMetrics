@@ -1,0 +1,43 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        x:Class="MiniMetrics.Views.PawnIoPromptWindow"
+        Title="Driver required"
+        Icon="avares://MiniMetrics/Assets/minimetrics.ico"
+        Width="400"
+        SizeToContent="Height"
+        CanResize="False"
+        WindowStartupLocation="CenterScreen"
+        Background="#0B0D14"
+        FontFamily="avares://Avalonia.Fonts.Inter/Assets#Inter">
+
+    <StackPanel Margin="22" Spacing="14">
+
+        <TextBlock Text="CPU temperature and power need a driver"
+                   FontSize="15"
+                   FontWeight="SemiBold"
+                   Foreground="#EDEFF2"
+                   TextWrapping="Wrap" />
+
+        <TextBlock Foreground="#9AA1AC"
+                   TextWrapping="Wrap"
+                   LineHeight="20"
+                   Text="MiniMetrics reads CPU temperature and power through the PawnIO kernel driver, which is not installed on this machine. Until it is, those two metrics stay blank. Installing PawnIO is a one-time step; afterwards the app asks for elevation only when it needs to read the sensors." />
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,4,0,0">
+            <Button Content="Not now"
+                    Click="OnClose"
+                    Padding="14,7"
+                    Background="#1A1F2B"
+                    Foreground="#EDEFF2" />
+            <Button Content="Install PawnIO"
+                    Click="OnInstall"
+                    Padding="14,7"
+                    Background="#2A6FF3"
+                    Foreground="#FFFFFF" />
+        </StackPanel>
+
+    </StackPanel>
+</Window>

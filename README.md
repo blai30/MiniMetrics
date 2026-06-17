@@ -12,7 +12,7 @@ A mini widget display for performance metrics that sits on your desktop. MiniMet
 
 - Windows 10 or 11, 64-bit (x64)
 - The framework-dependent builds require the [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0). The self-contained builds need nothing extra.
-- For full hardware sensor access (for example CPU temperature and power), the app needs administrator rights. It asks for them only when you enable those metrics, and can start silently elevated at logon. See [Administrator rights and startup](docs/elevation-and-startup.md) for details.
+- For full hardware sensor access (for example CPU temperature and power), the app needs administrator rights and the [PawnIO](https://pawnio.eu/) driver. It asks for elevation only when you enable those metrics, points you to the driver if it is missing, and can start silently elevated at logon. See [Administrator rights and startup](docs/elevation-and-startup.md) for details.
 
 ## Features
 

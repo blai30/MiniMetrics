@@ -66,6 +66,24 @@ public class HardwareSensorSourceTests
     }
 
     [TestMethod]
+    public void Cpu_temp_and_power_are_null_when_their_sensors_read_zero()
+    {
+        // The PawnIO driver reports 0 for these sensors when it cannot supply a value (not installed,
+        // or the process is not elevated to open its device). A running CPU is never at 0 C or 0 W, so
+        // the widget should show a placeholder rather than a misleading reading.
+        var tree = new FakeHardwareTree();
+        tree.Set(HardwareKind.Cpu, SensorKind.Load, "CPU Total", 20);
+        tree.Set(HardwareKind.Cpu, SensorKind.Temperature, "Core (Tctl/Tdie)", 0);
+        tree.Set(HardwareKind.Cpu, SensorKind.Power, "Package", 0);
+        var source = new HardwareSensorSource(tree);
+
+        var snapshot = source.Read();
+
+        Assert.IsNull(snapshot.Cpu!.TempCelsius);
+        Assert.IsNull(snapshot.Cpu.PowerWatts);
+    }
+
+    [TestMethod]
     public void Read_converts_memory_gib_to_bytes()
     {
         var tree = new FakeHardwareTree();

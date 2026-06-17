@@ -14,9 +14,10 @@ sealed class Program
     [STAThread]
     public static void Main(string[] args)
     {
-        // CPU temperature and power need the ring0 driver, which only loads in an elevated process. If
-        // one of those metrics is enabled and we are not elevated, relaunch elevated and let this
-        // instance exit before any window appears. A declined prompt falls through and runs normally.
+        // CPU temperature and power are read through the PawnIO kernel driver, whose device only an
+        // elevated process can open. If one of those metrics is enabled, the driver is installed, and we
+        // are not elevated, relaunch elevated and let this instance exit before any window appears. A
+        // declined prompt falls through and runs normally.
         if (OperatingSystem.IsWindows() && RelaunchedElevated())
         {
             return;
@@ -30,7 +31,8 @@ sealed class Program
     {
         var settings = new SettingsStore(SettingsStore.DefaultPath).Load();
         var elevation = new WindowsElevation();
-        if (!ElevationGate.ShouldRelaunch(settings.Visibility, elevation.IsElevated()))
+        var driver = new WindowsDriverProbe();
+        if (!ElevationGate.ShouldRelaunch(settings.Visibility, elevation.IsElevated(), driver.IsInstalled()))
         {
             return false;
         }

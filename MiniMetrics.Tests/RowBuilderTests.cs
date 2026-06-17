@@ -28,9 +28,9 @@ public class RowBuilderTests
         var ram = rows.Single(r => r.Key == "ram");
 
         Assert.AreEqual("34", cpu.Value);
-        Assert.AreEqual("—", cpu.Temp); // CPU temp deferred: muted placeholder
+        Assert.AreEqual("—", cpu.Temp); // CPU temp unavailable (null): muted placeholder
         Assert.AreEqual(TempLevel.None, cpu.TempLevel);
-        Assert.AreEqual("—", cpu.Detail); // CPU power deferred: muted placeholder
+        Assert.AreEqual("—", cpu.Detail); // CPU power unavailable (null): muted placeholder
         Assert.AreEqual(RowColor.Cyan, cpu.Color);
 
         Assert.AreEqual("11.2", ram.Value);

@@ -7,8 +7,8 @@ public sealed record MetricsSnapshot(
     MemoryMetrics? Memory,
     GpuMetrics? Gpu);
 
-// TempCelsius and PowerWatts are null in v1 because CPU temperature and power require the kernel
-// driver, which is deferred.
+// TempCelsius and PowerWatts are null when the PawnIO kernel driver cannot supply a reading: it is not
+// installed, or the process is not elevated to open its device.
 public sealed record CpuMetrics(double UsagePercent, double? TempCelsius, double? PowerWatts);
 
 public sealed record MemoryMetrics(ulong UsedBytes, ulong TotalBytes);
