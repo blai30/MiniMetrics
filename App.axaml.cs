@@ -52,6 +52,7 @@ public partial class App : Application
     private StartupManager? _startupManager;
     private SettingsWindow? _settingsWindow;
     private PawnIoPromptWindow? _pawnIoPromptWindow;
+    private ConfirmUninstallWindow? _confirmUninstallWindow;
     private IUpdateFlow _updateFlow = null!;
     private bool _isInstalled;
     private string? _rootStubPath;
@@ -597,21 +598,33 @@ public partial class App : Application
         _runAtStartupItem!.IsChecked = _startupManager.IsEnabled();
     }
 
-    // Runs the ordered in-app uninstall: remove the elevated scheduled task first (a declined UAC prompt
-    // aborts the whole thing), then the run key, then hand off to Velopack's uninstaller. Installed builds
-    // only; the menu item is not shown otherwise.
+    // Opens the uninstall confirmation. Installed builds only; the menu item is not shown otherwise.
+    // Reuses a single window so repeated clicks focus the existing prompt rather than stacking duplicates.
     [System.Runtime.Versioning.SupportedOSPlatform("windows")]
     private void OnUninstall(object? sender, EventArgs e)
+    {
+        if (_confirmUninstallWindow is not null)
+        {
+            _confirmUninstallWindow.Activate();
+            return;
+        }
+
+        _confirmUninstallWindow = new ConfirmUninstallWindow();
+        _confirmUninstallWindow.Confirmed += (_, _) => RunUninstall();
+        _confirmUninstallWindow.Closed += (_, _) => _confirmUninstallWindow = null;
+        _confirmUninstallWindow.Show();
+    }
+
+    // Runs the ordered in-app uninstall: remove the elevated scheduled task first (a declined UAC prompt
+    // aborts the whole thing and leaves everything in place), then the run key, then hand off to Velopack's
+    // uninstaller. Both outcomes are terminal for the app, so the result is not acted on further here.
+    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
+    private void RunUninstall()
     {
         var coordinator = new UninstallCoordinator(
             new WindowsStartupOperations(),
             LaunchVelopackUninstaller);
-
-        if (coordinator.Run() == UninstallOutcome.Aborted)
-        {
-            // The user declined removing the elevated startup task. Leave everything in place.
-            return;
-        }
+        coordinator.Run();
     }
 
     private static void LaunchVelopackUninstaller()
@@ -689,7 +702,17 @@ public partial class App : Application
             _settingsController.SetSkippedUpdateVersion(version);
             RemoveUpdateTrayItem();
         };
-        _updatePromptWindow.InstallRequested += async (_, _) => await _updateFlow.ApplyAndRestartAsync();
+        _updatePromptWindow.InstallRequested += async (_, _) =>
+        {
+            try
+            {
+                await _updateFlow.ApplyAndRestartAsync();
+            }
+            catch (Exception)
+            {
+                ShowUpdateInfo(UpdatePromptViewModel.ForFailed());
+            }
+        };
         _updatePromptWindow.Closed += (_, _) => _updatePromptWindow = null;
         _updatePromptWindow.Show();
     }
@@ -718,7 +741,17 @@ public partial class App : Application
         _updateAvailableItem = new NativeMenuItem($"Update available (v{version})");
         if (_updateFlow.CanApplyInApp)
         {
-            _updateAvailableItem.Click += async (_, _) => await _updateFlow.ApplyAndRestartAsync();
+            _updateAvailableItem.Click += async (_, _) =>
+            {
+                try
+                {
+                    await _updateFlow.ApplyAndRestartAsync();
+                }
+                catch (Exception)
+                {
+                    ShowUpdateInfo(UpdatePromptViewModel.ForFailed());
+                }
+            };
         }
         else
         {
