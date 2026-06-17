@@ -1,0 +1,105 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version (MAJOR.MINOR.PATCH, no leading v), e.g. 1.2.0"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: pwsh
+
+jobs:
+  release:
+    runs-on: windows-latest
+    env:
+      VERSION: ${{ inputs.version }}
+    steps:
+      - name: Validate version input
+        run: |
+          if ($env:VERSION -notmatch '^[0-9]+\.[0-9]+\.[0-9]+$') {
+            Write-Error "Invalid version '$env:VERSION'. Expected MAJOR.MINOR.PATCH with no leading v."
+            exit 1
+          }
+          Write-Host "Releasing version $env:VERSION"
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Test gate
+        run: dotnet test --configuration Release --no-restore
+
+      - name: Publish self-contained single-file
+        run: >
+          dotnet publish MiniMetrics.csproj -c Release -r win-x64
+          --self-contained true
+          -p:PublishSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:Version=$env:VERSION
+          -o publish/sc-singlefile
+
+      - name: Publish self-contained folder
+        run: >
+          dotnet publish MiniMetrics.csproj -c Release -r win-x64
+          --self-contained true
+          -p:PublishSingleFile=false
+          -p:Version=$env:VERSION
+          -o publish/sc-folder
+
+      - name: Publish framework-dependent single-file
+        run: >
+          dotnet publish MiniMetrics.csproj -c Release -r win-x64
+          --self-contained false
+          -p:PublishSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:Version=$env:VERSION
+          -o publish/fd-singlefile
+
+      - name: Publish framework-dependent folder
+        run: >
+          dotnet publish MiniMetrics.csproj -c Release -r win-x64
+          --self-contained false
+          -p:PublishSingleFile=false
+          -p:Version=$env:VERSION
+          -o publish/fd-folder
+
+      - name: Package artifacts
+        run: |
+          Copy-Item publish/sc-singlefile/MiniMetrics.exe "MiniMetrics-v$env:VERSION-win-x64-selfcontained.exe"
+          Copy-Item publish/fd-singlefile/MiniMetrics.exe "MiniMetrics-v$env:VERSION-win-x64-framework-dependent.exe"
+          Compress-Archive -Path (Get-ChildItem publish/sc-folder -Exclude *.pdb) -DestinationPath "MiniMetrics-v$env:VERSION-win-x64-selfcontained.zip" -Force
+          Compress-Archive -Path (Get-ChildItem publish/fd-folder -Exclude *.pdb) -DestinationPath "MiniMetrics-v$env:VERSION-win-x64-framework-dependent.zip" -Force
+          Compress-Archive -Path (Get-ChildItem publish/sc-folder -Filter *.pdb)  -DestinationPath "MiniMetrics-v$env:VERSION-win-x64-debug-symbols.zip" -Force
+
+      - name: Create draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >
+          gh release create "v$env:VERSION"
+          --draft
+          --generate-notes
+          --target $env:GITHUB_SHA
+          --title "v$env:VERSION"
+          "MiniMetrics-v$env:VERSION-win-x64-selfcontained.exe"
+          "MiniMetrics-v$env:VERSION-win-x64-selfcontained.zip"
+          "MiniMetrics-v$env:VERSION-win-x64-framework-dependent.exe"
+          "MiniMetrics-v$env:VERSION-win-x64-framework-dependent.zip"
+          "MiniMetrics-v$env:VERSION-win-x64-debug-symbols.zip"
