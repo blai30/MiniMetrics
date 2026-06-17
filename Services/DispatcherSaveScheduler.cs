@@ -26,7 +26,7 @@ public sealed class DispatcherSaveScheduler : ISaveScheduler
     public void Flush()
     {
         _timer.Stop();
-        Action? pending = _pending;
+        var pending = _pending;
         _pending = null;
         pending?.Invoke();
     }

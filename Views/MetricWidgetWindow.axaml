@@ -17,6 +17,7 @@
         CanResize="False"
         Width="210"
         Height="176"
+        TextOptions.TextRenderingMode="Antialias"
         FontFamily="avares://Avalonia.Fonts.Inter/Assets#Inter">
 
     <Window.Resources>
@@ -116,8 +117,7 @@
         </Style>
     </Window.Styles>
 
-    <Border BorderBrush="#1FFFFFFF"
-            BorderThickness="1"
+    <Border BorderThickness="0"
             CornerRadius="0"
             Background="{Binding CardBackground}"
             TextElement.FontFeatures="+tnum">

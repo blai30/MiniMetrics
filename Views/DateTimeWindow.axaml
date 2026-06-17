@@ -16,10 +16,10 @@
         CanResize="False"
         Width="640"
         Height="176"
+        TextOptions.TextRenderingMode="Antialias"
         FontFamily="avares://Avalonia.Fonts.Inter/Assets#Inter">
 
-    <Border BorderBrush="#1FFFFFFF"
-            BorderThickness="1"
+    <Border BorderThickness="0"
             CornerRadius="0"
             Background="{Binding CardBackground}">
         <StackPanel VerticalAlignment="Center" Margin="28,0,28,0">
