@@ -3,6 +3,7 @@ using System;
 using System.Runtime.Versioning;
 using MiniMetrics.Lib;
 using MiniMetrics.Services;
+using Velopack;
 
 namespace MiniMetrics;
 
@@ -14,6 +15,11 @@ sealed class Program
     [STAThread]
     public static void Main(string[] args)
     {
+        // Velopack must process any install/update/uninstall hook arguments and exit before this process
+        // does anything else: it is run before the elevation gate and the single-instance mutex so a hook
+        // invocation never relaunches elevated or contends for the mutex.
+        VelopackApp.Build().Run();
+
         // CPU temperature and power are read through the PawnIO kernel driver, whose device only an
         // elevated process can open. If one of those metrics is enabled, the driver is installed, and we
         // are not elevated, relaunch elevated and let this instance exit before any window appears. A
