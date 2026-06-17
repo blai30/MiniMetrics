@@ -17,8 +17,19 @@ sealed class Program
     {
         // Velopack must process any install/update/uninstall hook arguments and exit before this process
         // does anything else: it is run before the elevation gate and the single-instance mutex so a hook
-        // invocation never relaunches elevated or contends for the mutex.
-        VelopackApp.Build().Run();
+        // invocation never relaunches elevated or contends for the mutex. The Add/Remove Programs uninstall
+        // path runs OnBeforeUninstallFastCallback, which cannot show UI or be canceled, so it only clears
+        // the per-user run key; the elevated scheduled task and the abortable flow live in the in-app
+        // Uninstall command.
+        VelopackApp.Build()
+            .OnBeforeUninstallFastCallback(_ =>
+            {
+                if (OperatingSystem.IsWindows())
+                {
+                    new WindowsStartupOperations().RemoveRunKey();
+                }
+            })
+            .Run();
 
         // CPU temperature and power are read through the PawnIO kernel driver, whose device only an
         // elevated process can open. If one of those metrics is enabled, the driver is installed, and we

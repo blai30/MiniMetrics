@@ -322,6 +322,13 @@ public partial class App : Application
         checkUpdatesItem.Click += (_, _) => RunUpdateCheck(manual: true);
         menu.Add(checkUpdatesItem);
 
+        if (OperatingSystem.IsWindows() && _isInstalled)
+        {
+            var uninstallItem = new NativeMenuItem("Uninstall MiniMetrics...");
+            uninstallItem.Click += OnUninstall;
+            menu.Add(uninstallItem);
+        }
+
         menu.Add(new NativeMenuItemSeparator());
 
         var quit = new NativeMenuItem("Quit");
@@ -588,6 +595,34 @@ public partial class App : Application
 
         // Reflect what is actually registered, so a declined UAC prompt reverts the checkmark.
         _runAtStartupItem!.IsChecked = _startupManager.IsEnabled();
+    }
+
+    // Runs the ordered in-app uninstall: remove the elevated scheduled task first (a declined UAC prompt
+    // aborts the whole thing), then the run key, then hand off to Velopack's uninstaller. Installed builds
+    // only; the menu item is not shown otherwise.
+    private void OnUninstall(object? sender, EventArgs e)
+    {
+        var coordinator = new UninstallCoordinator(
+            new WindowsStartupOperations(),
+            LaunchVelopackUninstaller);
+
+        if (coordinator.Run() == UninstallOutcome.Aborted)
+        {
+            // The user declined removing the elevated startup task. Leave everything in place.
+            return;
+        }
+    }
+
+    private static void LaunchVelopackUninstaller()
+    {
+        string root = Directory.GetParent(AppContext.BaseDirectory)!.FullName;
+        string updateExe = Path.Combine(root, "Update.exe");
+        Process.Start(new ProcessStartInfo
+        {
+            FileName = updateExe,
+            Arguments = "--uninstall",
+            UseShellExecute = false,
+        });
     }
 
     // Some metrics are read through the PawnIO driver, whose device only an elevated process can open;
