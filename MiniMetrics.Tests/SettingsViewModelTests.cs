@@ -162,4 +162,29 @@ public class SettingsViewModelTests
 
         Assert.AreEqual(1, count);
     }
+
+    [TestMethod]
+    public void Seeds_update_preferences_from_settings()
+    {
+        var settings = new Settings { UpdateCheckEnabled = false, UpdateFrequency = UpdateCheckFrequency.Weekly };
+
+        var viewModel = new SettingsViewModel(settings);
+
+        Assert.IsFalse(viewModel.UpdateCheckEnabled);
+        Assert.AreEqual(UpdateCheckFrequency.Weekly, viewModel.UpdateFrequency);
+        Assert.AreEqual(4, viewModel.UpdateFrequencies.Count);
+    }
+
+    [TestMethod]
+    public void Changing_an_update_preference_raises_the_event()
+    {
+        var viewModel = new SettingsViewModel(new Settings());
+        int raised = 0;
+        viewModel.UpdatePreferencesChanged += () => raised++;
+
+        viewModel.UpdateCheckEnabled = false;
+        viewModel.UpdateFrequency = UpdateCheckFrequency.Monthly;
+
+        Assert.AreEqual(2, raised);
+    }
 }
