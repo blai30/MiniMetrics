@@ -426,11 +426,17 @@ public partial class App : Application
     private void RevertMetricToggle(string key)
     {
         _suppressVisibilityHandler = true;
-        if (_settingsWindow?.DataContext is SettingsViewModel viewModel)
+        try
         {
-            viewModel.ToggleFor(key).IsVisible = false;
+            if (_settingsWindow?.DataContext is SettingsViewModel viewModel)
+            {
+                viewModel.ToggleFor(key).IsVisible = false;
+            }
         }
-        _suppressVisibilityHandler = false;
+        finally
+        {
+            _suppressVisibilityHandler = false;
+        }
 
         _settingsController.SetMetricVisibility(key, false);
         _cpuViewModel.RefreshVisibility(key);

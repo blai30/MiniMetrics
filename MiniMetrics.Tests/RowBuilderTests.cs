@@ -92,6 +92,7 @@ public class RowBuilderTests
     [InlineData(80.0, TempLevel.Hot)]
     [InlineData(89.0, TempLevel.Hot)]
     [InlineData(90.0, TempLevel.Critical)]
+    [InlineData(95.0, TempLevel.Critical)]
     public void Build_color_codes_cpu_temperature_by_cpu_threshold(double temp, TempLevel expected)
     {
         var snapshot = new MetricsSnapshot(

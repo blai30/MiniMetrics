@@ -62,6 +62,34 @@ Instead of elevating the whole app, MiniMetrics could keep its window running as
 
 MiniMetrics intentionally does not do this. That design roughly triples the moving parts: a second program to install and uninstall, a channel for the two to talk to each other, and the service itself still needs administrator rights to install in the first place. For a lightweight desktop widget, that complexity is not worth it, and it is more than even PowerToys takes on (PowerToys elevates its whole process when a feature needs it, rather than splitting). Keeping the design simple is the deliberate tradeoff.
 
+## What kernel driver this uses
+
+To read CPU package temperature and power, MiniMetrics relies on LibreHardwareMonitor, which in this version uses **PawnIO**, a modern sandboxed kernel driver, rather than the older WinRing0 driver that many monitoring tools historically used. The difference matters:
+
+- WinRing0 exposes broad, unrestricted kernel access to any caller, which made it a popular target for abuse. Microsoft eventually added it to the Windows vulnerable-driver blocklist.
+- PawnIO is its security-focused successor. It is a signed kernel driver that only runs small, verified, sandboxed modules for specific hardware-reading tasks. It does not hand out general-purpose kernel read/write access, so it is not the same class of risk, and it is built to coexist with Secure Boot and Memory Integrity.
+
+Two things are worth knowing:
+
+- **MiniMetrics does not install a kernel driver.** It bundles only PawnIO's sandboxed modules and uses them only if the PawnIO driver is already installed on your system (for example, by LibreHardwareMonitor's own installer or PawnIO's setup). If PawnIO is not present, CPU temperature and power simply stay blank. Nothing is forced onto your machine.
+- Because the driver is installed and signed independently, an anti-malware or anti-cheat tool sees a known, signed driver (PawnIO), not an unknown driver shipped by this app.
+
+## Secure Boot and Memory Integrity
+
+Secure Boot validates your boot chain and does not block MiniMetrics from running. Memory Integrity (HVCI) and the vulnerable-driver blocklist are stricter, but PawnIO is built to be compatible with them. In the rare case that a hardened configuration blocks the driver, the effect is harmless: CPU temperature and power stay blank, and the rest of MiniMetrics keeps working.
+
+The published builds are also unsigned, so Windows SmartScreen may warn on first launch. That warning is about the executable having no established reputation yet, not about the kernel driver or any malware finding, and it is unrelated to the elevation behavior above.
+
+## Games with kernel-level anti-cheat (MapleStory, Valorant, and similar)
+
+Kernel-level anti-cheats (such as Nexon Game Security used by MapleStory, plus Vanguard, Easy Anti-Cheat, and BattlEye) watch closely for any kernel driver that reads low-level CPU registers. PawnIO is legitimate and signed, which makes it far less likely to be treated as a cheat than WinRing0 was, but behavior varies by anti-cheat, and some are aggressive about blocking any monitoring driver while a protected game is running.
+
+To stay safe:
+
+- If you play games with kernel-level anti-cheat, the simplest choice is to leave CPU temperature and power turned off. With them off, MiniMetrics never touches a kernel driver at all.
+- If you do enable them, fully quit MiniMetrics before launching such a game. This is the same precaution commonly recommended even for well-known tools like HWiNFO and MSI Afterburner.
+- No tool can guarantee how a particular anti-cheat will react. If protecting a specific game account matters to you, do not enable CPU temperature and power while that game is installed or running.
+
 ## A note on security
 
-While elevated, MiniMetrics runs with administrator rights, which is a slightly larger attack surface than a normal app. This is unavoidable for any tool that reads CPU temperature or power, because the kernel driver they rely on requires it, and HWiNFO has the exact same property. If you prefer to minimize this, leave CPU temperature and power turned off; the rest of MiniMetrics runs fully without elevation.
+With CPU temperature and power off (the default), MiniMetrics uses no kernel driver and runs as an ordinary user-mode app. Turning them on relies on the PawnIO driver and runs MiniMetrics elevated, which is a slightly larger attack surface than a normal app. This is inherent to reading CPU temperature and power, and HWiNFO and similar tools share the same property. If you prefer to minimize it, leave these two metrics off; everything else in MiniMetrics works fully without elevation or any driver.
