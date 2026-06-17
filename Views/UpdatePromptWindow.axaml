@@ -11,40 +11,24 @@
         Width="400"
         SizeToContent="Height"
         CanResize="False"
-        WindowStartupLocation="CenterScreen"
-        Background="#0B0D14"
-        FontFamily="avares://Avalonia.Fonts.Inter/Assets#Inter">
+        WindowStartupLocation="CenterScreen">
 
     <StackPanel Margin="22" Spacing="14">
 
         <TextBlock Text="{Binding Heading}"
                    FontSize="15"
                    FontWeight="SemiBold"
-                   Foreground="#EDEFF2"
                    TextWrapping="Wrap" />
 
         <TextBlock Text="{Binding Body}"
-                   Foreground="#9AA1AC"
                    TextWrapping="Wrap"
                    LineHeight="20" />
 
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,4,0,0"
                     IsVisible="{Binding IsActionable}">
-            <Button Content="Remind me later"
-                    Click="OnDismiss"
-                    Padding="14,7"
-                    Background="#1A1F2B"
-                    Foreground="#EDEFF2" />
-            <Button Content="Skip this version"
-                    Click="OnSkip"
-                    Padding="14,7"
-                    Background="#1A1F2B"
-                    Foreground="#EDEFF2" />
-            <Button Content="View release"
-                    Click="OnViewRelease"
-                    Padding="14,7"
-                    Background="#2A6FF3"
-                    Foreground="#FFFFFF" />
+            <Button Content="Remind me later" Click="OnDismiss" />
+            <Button Content="Skip this version" Click="OnSkip" />
+            <Button Content="View release" Click="OnViewRelease" Classes="accent" />
         </StackPanel>
 
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,4,0,0"
@@ -53,9 +37,7 @@
                     Click="OnClose"
                     IsDefault="True"
                     IsCancel="True"
-                    Padding="14,7"
-                    Background="#2A6FF3"
-                    Foreground="#FFFFFF" />
+                    Classes="accent" />
         </StackPanel>
 
     </StackPanel>

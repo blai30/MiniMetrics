@@ -14,78 +14,28 @@
         Width="520"
         Height="440"
         CanResize="False"
-        WindowStartupLocation="CenterScreen"
-        Background="#0B0D14"
-        FontFamily="avares://Avalonia.Fonts.Inter/Assets#Inter">
+        WindowStartupLocation="CenterScreen">
 
     <Window.Resources>
         <conv:UpdateFrequencyLabelConverter x:Key="FrequencyLabel" />
     </Window.Resources>
 
-    <Window.Styles>
-        <Style Selector="TextBlock.section-heading">
-            <Setter Property="FontSize" Value="16" />
-            <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Foreground" Value="#EDEFF2" />
-            <Setter Property="Margin" Value="0,0,0,14" />
-        </Style>
-        <Style Selector="TextBlock.field-label">
-            <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Foreground" Value="#EDEFF2" />
-        </Style>
-
-        <!-- Sidebar nav entries: restyle TabItem into a rounded selection pill. -->
-        <Style Selector="TabItem">
-            <Setter Property="FontSize" Value="14" />
-            <Setter Property="FontWeight" Value="Normal" />
-            <Setter Property="Foreground" Value="#9AA1AC" />
-            <Setter Property="Width" Value="150" />
-            <Setter Property="MinHeight" Value="0" />
-            <Setter Property="Margin" Value="0,2" />
-            <Setter Property="Template">
-                <ControlTemplate>
-                    <Border Name="PART_LayoutRoot"
-                            Background="{TemplateBinding Background}"
-                            CornerRadius="8"
-                            Padding="14,10">
-                        <ContentPresenter Content="{TemplateBinding Header}"
-                                          Foreground="{TemplateBinding Foreground}"
-                                          HorizontalAlignment="Left"
-                                          VerticalAlignment="Center" />
-                    </Border>
-                </ControlTemplate>
-            </Setter>
-        </Style>
-        <Style Selector="TabItem:pointerover /template/ Border#PART_LayoutRoot">
-            <Setter Property="Background" Value="#141823" />
-        </Style>
-        <Style Selector="TabItem:selected">
-            <Setter Property="Foreground" Value="#EDEFF2" />
-        </Style>
-        <Style Selector="TabItem:selected /template/ Border#PART_LayoutRoot">
-            <Setter Property="Background" Value="#1A1F2B" />
-        </Style>
-
-        <Style Selector="Button.swatch">
-            <Setter Property="Width" Value="34" />
-            <Setter Property="Height" Value="34" />
-            <Setter Property="Margin" Value="0,0,8,8" />
-            <Setter Property="CornerRadius" Value="8" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="BorderBrush" Value="#33FFFFFF" />
-        </Style>
-    </Window.Styles>
-
-    <TabControl TabStripPlacement="Left" Padding="0" Margin="14">
+    <TabControl TabStripPlacement="Left">
 
         <TabItem Header="Appearance">
-            <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="20,0,0,0">
-                <StackPanel Spacing="18">
-                    <TextBlock Classes="section-heading" Text="Appearance" />
-
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel Spacing="16" Margin="16">
                     <StackPanel Spacing="8">
-                        <TextBlock Classes="field-label" Text="Background color" />
+                        <TextBlock Text="Background color" />
                         <WrapPanel>
+                            <WrapPanel.Styles>
+                                <Style Selector="Button.swatch">
+                                    <Setter Property="Width" Value="34" />
+                                    <Setter Property="Height" Value="34" />
+                                    <Setter Property="Margin" Value="0,0,8,8" />
+                                    <Setter Property="CornerRadius" Value="8" />
+                                </Style>
+                            </WrapPanel.Styles>
                             <Button Classes="swatch" Background="#0F121D"
                                     Command="{Binding SelectPresetCommand}" CommandParameter="#0F121D" />
                             <Button Classes="swatch" Background="#1A1F2B"
@@ -103,15 +53,14 @@
                     </StackPanel>
 
                     <StackPanel Spacing="8">
-                        <TextBlock Classes="field-label" Text="Opacity" />
+                        <TextBlock Text="Opacity" />
                         <Grid ColumnDefinitions="*,Auto">
                             <Slider Grid.Column="0" Minimum="0" Maximum="100" Value="{Binding Opacity}" />
                             <TextBlock Grid.Column="1"
                                        Text="{Binding Opacity, StringFormat='{}{0:0}%'}"
                                        Width="44"
                                        TextAlignment="Right"
-                                       VerticalAlignment="Center"
-                                       Foreground="#9AA1AC" />
+                                       VerticalAlignment="Center" />
                         </Grid>
                     </StackPanel>
                 </StackPanel>
@@ -119,17 +68,15 @@
         </TabItem>
 
         <TabItem Header="Clock">
-            <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="20,0,0,0">
-                <StackPanel Spacing="18">
-                    <TextBlock Classes="section-heading" Text="Clock" />
-
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel Spacing="16" Margin="16">
                     <Grid ColumnDefinitions="*,Auto">
-                        <TextBlock Grid.Column="0" Classes="field-label" Text="Use local time" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="0" Text="Use local time" VerticalAlignment="Center" />
                         <ToggleSwitch Grid.Column="1" IsChecked="{Binding UseLocalTime}" OnContent="" OffContent="" />
                     </Grid>
 
                     <StackPanel Spacing="8">
-                        <TextBlock Classes="field-label" Text="Time zone" />
+                        <TextBlock Text="Time zone" />
                         <ComboBox ItemsSource="{Binding TimeZones}"
                                   SelectedItem="{Binding SelectedTimeZone}"
                                   IsEnabled="{Binding !UseLocalTime}"
@@ -158,19 +105,17 @@
         </TabItem>
 
         <TabItem Header="Metrics">
-            <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="20,0,0,0">
-                <StackPanel Spacing="10">
-                    <TextBlock Classes="section-heading" Text="Metrics" />
-
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel Spacing="10" Margin="16">
                     <ItemsControl ItemsSource="{Binding MetricGroups}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="vm:MetricGroupViewModel">
                                 <StackPanel Spacing="4" Margin="0,0,0,6">
-                                    <TextBlock Text="{Binding Header}" FontSize="12" Foreground="#9AA1AC" />
+                                    <TextBlock Text="{Binding Header}" FontSize="12" />
                                     <ItemsControl ItemsSource="{Binding Toggles}">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate x:DataType="vm:MetricToggleViewModel">
-                                                <CheckBox Content="{Binding Label}" IsChecked="{Binding IsVisible}" Foreground="#EDEFF2" />
+                                                <CheckBox Content="{Binding Label}" IsChecked="{Binding IsVisible}" />
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
                                     </ItemsControl>
@@ -183,12 +128,10 @@
         </TabItem>
 
         <TabItem Header="Updates">
-            <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="20,0,0,0">
-                <StackPanel Spacing="12">
-                    <TextBlock Classes="section-heading" Text="Updates" />
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel Spacing="12" Margin="16">
                     <CheckBox Content="Check for updates automatically"
-                              IsChecked="{Binding UpdateCheckEnabled}"
-                              Foreground="#EDEFF2" />
+                              IsChecked="{Binding UpdateCheckEnabled}" />
                     <ComboBox ItemsSource="{Binding UpdateFrequencies}"
                               SelectedItem="{Binding UpdateFrequency}"
                               IsEnabled="{Binding UpdateCheckEnabled}"
