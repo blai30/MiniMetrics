@@ -23,6 +23,15 @@ sealed class Program
             return;
         }
 
+        // Only one instance may run at a time. Acquire the guard after the elevation gate above so the
+        // non-elevated instance that relaunches itself elevated never holds the mutex: the elevated child
+        // claims it cleanly. A second launch finds the mutex taken and exits before any window appears.
+        using var instance = SingleInstance.Acquire();
+        if (!instance.IsOnlyInstance)
+        {
+            return;
+        }
+
         BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
     }
 
