@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using MiniMetrics.Models;
 using MiniMetrics.Services;
@@ -176,5 +177,39 @@ public class SettingsStoreTests
         Assert.IsTrue(loaded.DateTimeHidden);
         Assert.IsNull(loaded.DateTimeX);
         Assert.IsNull(loaded.TimeZoneId);
+    }
+
+    [TestMethod]
+    public void New_settings_default_update_fields()
+    {
+        var settings = new Settings();
+
+        Assert.IsTrue(settings.UpdateCheckEnabled);
+        Assert.AreEqual(UpdateCheckFrequency.Daily, settings.UpdateFrequency);
+        Assert.IsNull(settings.LastUpdateCheckUtc);
+        Assert.IsNull(settings.SkippedUpdateVersion);
+    }
+
+    [TestMethod]
+    public void Update_fields_round_trip_through_save_and_load()
+    {
+        string path = Path.Combine(Path.GetTempPath(), "dm-tests", Path.GetRandomFileName(), "settings.json");
+        var store = new SettingsStore(path);
+        var when = new DateTimeOffset(2026, 6, 17, 8, 0, 0, TimeSpan.Zero);
+
+        store.Save(new Settings
+        {
+            UpdateCheckEnabled = false,
+            UpdateFrequency = UpdateCheckFrequency.Weekly,
+            LastUpdateCheckUtc = when,
+            SkippedUpdateVersion = "1.3.0",
+        });
+
+        Settings loaded = store.Load();
+
+        Assert.IsFalse(loaded.UpdateCheckEnabled);
+        Assert.AreEqual(UpdateCheckFrequency.Weekly, loaded.UpdateFrequency);
+        Assert.AreEqual(when, loaded.LastUpdateCheckUtc);
+        Assert.AreEqual("1.3.0", loaded.SkippedUpdateVersion);
     }
 }

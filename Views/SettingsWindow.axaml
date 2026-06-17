@@ -1,6 +1,8 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:MiniMetrics.ViewModels"
+        xmlns:conv="using:MiniMetrics.Converters"
+        xmlns:models="using:MiniMetrics.Models"
         xmlns:sys="using:System"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -15,6 +17,10 @@
         WindowStartupLocation="CenterScreen"
         Background="#0B0D14"
         FontFamily="avares://Avalonia.Fonts.Inter/Assets#Inter">
+
+    <Window.Resources>
+        <conv:UpdateFrequencyLabelConverter x:Key="FrequencyLabel" />
+    </Window.Resources>
 
     <StackPanel Margin="20" Spacing="18">
 
@@ -105,6 +111,23 @@
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
+        </StackPanel>
+
+        <StackPanel Spacing="8">
+            <TextBlock Text="Updates" FontWeight="SemiBold" Foreground="#EDEFF2" />
+            <CheckBox Content="Check for updates automatically"
+                      IsChecked="{Binding UpdateCheckEnabled}"
+                      Foreground="#EDEFF2" />
+            <ComboBox ItemsSource="{Binding UpdateFrequencies}"
+                      SelectedItem="{Binding UpdateFrequency}"
+                      IsEnabled="{Binding UpdateCheckEnabled}"
+                      HorizontalAlignment="Stretch">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="models:UpdateCheckFrequency">
+                        <TextBlock Text="{Binding Converter={StaticResource FrequencyLabel}}" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
         </StackPanel>
 
     </StackPanel>

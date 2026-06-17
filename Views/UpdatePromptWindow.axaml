@@ -1,0 +1,60 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:MiniMetrics.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        x:Class="MiniMetrics.Views.UpdatePromptWindow"
+        x:DataType="vm:UpdatePromptViewModel"
+        Title="MiniMetrics update"
+        Icon="avares://MiniMetrics/Assets/minimetrics.ico"
+        Width="400"
+        SizeToContent="Height"
+        CanResize="False"
+        WindowStartupLocation="CenterScreen"
+        Background="#0B0D14"
+        FontFamily="avares://Avalonia.Fonts.Inter/Assets#Inter">
+
+    <StackPanel Margin="22" Spacing="14">
+
+        <TextBlock Text="{Binding Heading}"
+                   FontSize="15"
+                   FontWeight="SemiBold"
+                   Foreground="#EDEFF2"
+                   TextWrapping="Wrap" />
+
+        <TextBlock Text="{Binding Body}"
+                   Foreground="#9AA1AC"
+                   TextWrapping="Wrap"
+                   LineHeight="20" />
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,4,0,0"
+                    IsVisible="{Binding IsActionable}">
+            <Button Content="Remind me later"
+                    Click="OnDismiss"
+                    Padding="14,7"
+                    Background="#1A1F2B"
+                    Foreground="#EDEFF2" />
+            <Button Content="Skip this version"
+                    Click="OnSkip"
+                    Padding="14,7"
+                    Background="#1A1F2B"
+                    Foreground="#EDEFF2" />
+            <Button Content="View release"
+                    Click="OnViewRelease"
+                    Padding="14,7"
+                    Background="#2A6FF3"
+                    Foreground="#FFFFFF" />
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,4,0,0"
+                    IsVisible="{Binding IsInformational}">
+            <Button Content="Close"
+                    Click="OnClose"
+                    Padding="14,7"
+                    Background="#2A6FF3"
+                    Foreground="#FFFFFF" />
+        </StackPanel>
+
+    </StackPanel>
+</Window>

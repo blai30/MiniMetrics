@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace MiniMetrics.Models;
@@ -20,4 +21,8 @@ public sealed class Settings
     public bool GpuHidden { get; set; }
     public string? TimeZoneId { get; set; }
     public Dictionary<string, bool> Visibility { get; set; } = new();
+    public bool UpdateCheckEnabled { get; set; } = true;
+    public UpdateCheckFrequency UpdateFrequency { get; set; } = UpdateCheckFrequency.Daily;
+    public DateTimeOffset? LastUpdateCheckUtc { get; set; }
+    public string? SkippedUpdateVersion { get; set; }
 }

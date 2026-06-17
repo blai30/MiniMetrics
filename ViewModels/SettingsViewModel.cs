@@ -20,6 +20,20 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     private TimeZoneInfo _selectedTimeZone;
 
+    [ObservableProperty]
+    private bool _updateCheckEnabled;
+
+    [ObservableProperty]
+    private UpdateCheckFrequency _updateFrequency;
+
+    public IReadOnlyList<UpdateCheckFrequency> UpdateFrequencies { get; } = new[]
+    {
+        UpdateCheckFrequency.EveryLaunch,
+        UpdateCheckFrequency.Daily,
+        UpdateCheckFrequency.Weekly,
+        UpdateCheckFrequency.Monthly,
+    };
+
     // The metric visibility checkboxes, grouped by card, built from the registry.
     public IReadOnlyList<MetricGroupViewModel> MetricGroups { get; }
 
@@ -36,6 +50,8 @@ public partial class SettingsViewModel : ObservableObject
 
         _backgroundColor = settings.BackgroundColor;
         _opacity = settings.Opacity;
+        _updateCheckEnabled = settings.UpdateCheckEnabled;
+        _updateFrequency = settings.UpdateFrequency;
 
         var groups = new List<MetricGroupViewModel>();
         foreach (string card in MetricRegistry.Cards)
@@ -68,6 +84,9 @@ public partial class SettingsViewModel : ObservableObject
     // Raised when the chosen time zone changes (persist + live clock update).
     public event Action? TimeZoneChanged;
 
+    // Raised when the update-check enabled flag or cadence changes (persist).
+    public event Action? UpdatePreferencesChanged;
+
     // The toggle for a metric key.
     public MetricToggleViewModel ToggleFor(string key) => _togglesByKey[key];
 
@@ -79,6 +98,10 @@ public partial class SettingsViewModel : ObservableObject
     partial void OnOpacityChanged(int value) => AppearanceChanged?.Invoke();
 
     partial void OnSelectedTimeZoneChanged(TimeZoneInfo value) => TimeZoneChanged?.Invoke();
+
+    partial void OnUpdateCheckEnabledChanged(bool value) => UpdatePreferencesChanged?.Invoke();
+
+    partial void OnUpdateFrequencyChanged(UpdateCheckFrequency value) => UpdatePreferencesChanged?.Invoke();
 
     // Picks the saved zone by id, else the machine's local zone (matched from the list so the
     // dropdown highlights it), else local as a last resort.
