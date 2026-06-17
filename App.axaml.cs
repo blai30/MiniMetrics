@@ -490,12 +490,12 @@ public partial class App : Application
             return;
         }
 
-        // Migrate startup registration between the run key and the scheduled task to match the new
-        // elevation need. Only an elevated process can touch the scheduled task without a UAC prompt, so
-        // do this only when already elevated; toggling a metric (turning one off in particular) must
-        // never pop a prompt. When not elevated the migration is deferred: the next elevated launch
-        // reconciles it in BuildTray.
-        if (_elevation.IsElevated() && _startupManager is not null && _startupManager.IsEnabled())
+        // Reconcile startup registration to match the new elevation need. A scheduled task that is no
+        // longer needed is removed even while unelevated: Sync only touches the task when one exists and is
+        // no longer wanted, and RemoveTask elevates via runas, so a UAC prompt appears only in that case.
+        // Turning a metric on while unelevated returns earlier into the relaunch path and never reaches
+        // here, so this block only ever reduces or keeps the elevation requirement.
+        if (_startupManager is not null && _startupManager.IsEnabled())
         {
             _startupManager.Sync(true, RequiresElevation());
             _runAtStartupItem!.IsChecked = _startupManager.IsEnabled();
