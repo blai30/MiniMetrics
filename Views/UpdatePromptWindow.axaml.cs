@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
@@ -28,7 +29,14 @@ public partial class UpdatePromptWindow : Window
     {
         if (DataContext is UpdatePromptViewModel { Url: { } url })
         {
-            Process.Start(new ProcessStartInfo { FileName = url, UseShellExecute = true });
+            // Opening the browser is best effort; a broken shell association must not crash the prompt.
+            try
+            {
+                Process.Start(new ProcessStartInfo { FileName = url, UseShellExecute = true });
+            }
+            catch (Exception ex) when (ex is Win32Exception or InvalidOperationException)
+            {
+            }
         }
 
         Close();

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
@@ -660,10 +661,22 @@ public partial class App : Application
         }
 
         _updateAvailableItem = new NativeMenuItem($"Update available (v{version})");
-        _updateAvailableItem.Click += (_, _) =>
-            Process.Start(new ProcessStartInfo { FileName = url, UseShellExecute = true });
+        _updateAvailableItem.Click += (_, _) => OpenReleasePage(url);
         _trayMenu.Items.Insert(0, _updateAvailableItem);
         _trayMenu.Items.Insert(1, new NativeMenuItemSeparator());
+    }
+
+    // Opens a release page in the default browser. Best effort: a broken shell association must not
+    // crash the tray click.
+    private static void OpenReleasePage(string url)
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo { FileName = url, UseShellExecute = true });
+        }
+        catch (Exception ex) when (ex is Win32Exception or InvalidOperationException)
+        {
+        }
     }
 
     private void RemoveUpdateTrayItem()
