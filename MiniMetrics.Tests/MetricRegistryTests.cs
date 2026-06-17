@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using MiniMetrics.Lib;
 using Xunit;
@@ -36,5 +37,27 @@ public class MetricRegistryTests
             .Select(entry => entry.Key);
 
         Assert.Equal(new[] { "cpu.temp", "cpu.power" }, elevated);
+    }
+
+    [Fact]
+    public void RequiresElevation_defaults_absent_elevation_keys_to_off()
+    {
+        Assert.False(MetricRegistry.RequiresElevation(new Dictionary<string, bool>()));
+    }
+
+    [Fact]
+    public void RequiresElevation_is_false_when_elevation_metrics_are_explicitly_off()
+    {
+        var visibility = new Dictionary<string, bool> { ["cpu.temp"] = false, ["cpu.power"] = false };
+        Assert.False(MetricRegistry.RequiresElevation(visibility));
+    }
+
+    [Theory]
+    [InlineData("cpu.temp")]
+    [InlineData("cpu.power")]
+    public void RequiresElevation_is_true_when_an_elevation_metric_is_on(string key)
+    {
+        var visibility = new Dictionary<string, bool> { [key] = true };
+        Assert.True(MetricRegistry.RequiresElevation(visibility));
     }
 }

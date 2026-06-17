@@ -443,12 +443,7 @@ public partial class App : Application
 
     // Some metrics need the ring0 driver, which only an elevated process can load; elevation is
     // required while any such metric is visible.
-    private bool RequiresElevation()
-    {
-        return MetricRegistry.All
-            .Where(entry => entry.RequiresElevation)
-            .Any(entry => _settings.Visibility.GetValueOrDefault(entry.Key, true));
-    }
+    private bool RequiresElevation() => MetricRegistry.RequiresElevation(_settings.Visibility);
 
     // Resolves the saved zone id to a TimeZoneInfo, falling back to local if it is missing or the
     // id is unknown on this machine.

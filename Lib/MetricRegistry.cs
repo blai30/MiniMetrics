@@ -33,4 +33,11 @@ public static class MetricRegistry
     // The metrics that belong to a card, in declaration order.
     public static IEnumerable<MetricEntry> ForCard(string card) =>
         All.Where(entry => entry.Card == card);
+
+    // Elevation is required only for an elevation-flagged metric the user has explicitly turned on.
+    // Absent keys default to false, so a fresh install (empty visibility map) never requires elevation
+    // and never prompts at first launch.
+    public static bool RequiresElevation(IReadOnlyDictionary<string, bool> visibility) =>
+        All.Where(entry => entry.RequiresElevation)
+           .Any(entry => visibility.GetValueOrDefault(entry.Key, false));
 }
