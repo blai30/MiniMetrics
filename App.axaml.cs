@@ -19,6 +19,7 @@ public partial class App : Application
 {
     private MetricsPoller? _poller;
     private ISensorSource? _source;
+    private IElevation _elevation = null!;
     private SettingsController _settingsController = null!;
     private Settings _settings = null!;
     private MetricWidgetViewModel _cpuViewModel = null!;
@@ -76,6 +77,10 @@ public partial class App : Application
             _source = OperatingSystem.IsWindows()
                 ? new HardwareSensorSource(new LibreHardwareTree())
                 : new MockSensorSource();
+
+            _elevation = OperatingSystem.IsWindows()
+                ? new WindowsElevation()
+                : new NoopElevation();
 
             // Release any device whose widget is hidden or whose every metric is hidden before the
             // first poll runs.
@@ -236,6 +241,16 @@ public partial class App : Application
             };
             _runAtStartupItem.Click += OnToggleRunAtStartup;
             menu.Add(_runAtStartupItem);
+
+            // If we are already elevated (relaunched on demand, or started by the scheduled task) and
+            // startup is on, migrate the registration to match the current elevation need. Because the
+            // process is already elevated, this creates or removes the scheduled task with no prompt,
+            // which is what keeps enabling a CPU sensor to a single UAC prompt overall.
+            if (_elevation.IsElevated() && _startupManager.IsEnabled())
+            {
+                _startupManager.Sync(true, RequiresElevation());
+                _runAtStartupItem.IsChecked = _startupManager.IsEnabled();
+            }
         }
 
         menu.Add(new NativeMenuItemSeparator());
@@ -356,8 +371,17 @@ public partial class App : Application
         _dateTimeViewModel.SetTimeZone(viewModel.SelectedTimeZone);
     }
 
+    // Re-entrancy guard: RevertMetricToggle flips a toggle back, which re-raises this event; the guard
+    // stops that echo from recursing.
+    private bool _suppressVisibilityHandler;
+
     private void OnMetricVisibilityChanged(string key, bool visible)
     {
+        if (_suppressVisibilityHandler)
+        {
+            return;
+        }
+
         // The controller writes the shared Settings.Visibility map; the widgets read from it, and
         // ApplyActiveDevices reads it to release any device whose metrics are now all hidden.
         _settingsController.SetMetricVisibility(key, visible);
@@ -365,15 +389,59 @@ public partial class App : Application
         _gpuViewModel.RefreshVisibility(key);
         ApplyActiveDevices();
 
-        // Toggling an elevation-requiring metric flips whether autostart must be elevated; re-register if on.
-        bool affectsElevation = MetricRegistry.All.Any(entry => entry.Key == key && entry.RequiresElevation);
-        if (affectsElevation
-            && _startupManager is not null
-            && _startupManager.IsEnabled())
+        bool isElevationMetric = MetricRegistry.All.Any(entry => entry.Key == key && entry.RequiresElevation);
+        if (!isElevationMetric)
+        {
+            return;
+        }
+
+        // Turning an elevation metric on while not elevated: relaunch elevated so the ring0 driver can
+        // load. Settings were just persisted, so the elevated instance reads the enabled state from
+        // disk and reconciles startup registration itself (one UAC prompt total).
+        if (visible && !_elevation.IsElevated())
+        {
+            _settingsController.Flush();
+            if (_elevation.RelaunchElevated(Environment.ProcessPath!))
+            {
+                (ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.Shutdown();
+                return;
+            }
+
+            // UAC declined: put the metric back to off and keep running non-elevated.
+            RevertMetricToggle(key);
+            return;
+        }
+
+        // Already elevated, or turning the metric off: migrate startup registration between the run key
+        // and the scheduled task to match the new elevation need.
+        if (_startupManager is not null && _startupManager.IsEnabled())
         {
             _startupManager.Sync(true, RequiresElevation());
             _runAtStartupItem!.IsChecked = _startupManager.IsEnabled();
         }
+    }
+
+    // Puts an elevation metric back to off after a declined UAC prompt: the settings checkbox, the
+    // persisted value, and the widget all return to hidden.
+    private void RevertMetricToggle(string key)
+    {
+        _suppressVisibilityHandler = true;
+        try
+        {
+            if (_settingsWindow?.DataContext is SettingsViewModel viewModel)
+            {
+                viewModel.ToggleFor(key).IsVisible = false;
+            }
+        }
+        finally
+        {
+            _suppressVisibilityHandler = false;
+        }
+
+        _settingsController.SetMetricVisibility(key, false);
+        _cpuViewModel.RefreshVisibility(key);
+        _gpuViewModel.RefreshVisibility(key);
+        ApplyActiveDevices();
     }
 
     // A device is polled while its widget is shown and any of its metrics is visible; otherwise it
@@ -443,12 +511,7 @@ public partial class App : Application
 
     // Some metrics need the ring0 driver, which only an elevated process can load; elevation is
     // required while any such metric is visible.
-    private bool RequiresElevation()
-    {
-        return MetricRegistry.All
-            .Where(entry => entry.RequiresElevation)
-            .Any(entry => _settings.Visibility.GetValueOrDefault(entry.Key, true));
-    }
+    private bool RequiresElevation() => MetricRegistry.RequiresElevation(_settings.Visibility);
 
     // Resolves the saved zone id to a TimeZoneInfo, falling back to local if it is missing or the
     // id is unknown on this machine.
