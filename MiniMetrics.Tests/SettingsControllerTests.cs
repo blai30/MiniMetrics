@@ -131,4 +131,24 @@ public class SettingsControllerTests
         Assert.False(current.Visibility["cpu.power"]);
         Assert.True(current.Visibility["gpu.usage"]);
     }
+
+    [Fact]
+    public void Constructor_seeds_cpu_temp_and_power_off_by_default()
+    {
+        var (controller, _, _) = NewController();
+
+        Assert.False(controller.Current.Visibility["cpu.temp"]);
+        Assert.False(controller.Current.Visibility["cpu.power"]);
+    }
+
+    [Fact]
+    public void Constructor_keeps_an_explicit_elevation_visibility_value()
+    {
+        var settings = new Settings { Visibility = { ["cpu.temp"] = true } };
+
+        var (controller, _, _) = NewController(settings);
+
+        Assert.True(controller.Current.Visibility["cpu.temp"]);
+        Assert.False(controller.Current.Visibility["cpu.power"]);
+    }
 }

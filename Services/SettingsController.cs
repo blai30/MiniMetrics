@@ -20,6 +20,7 @@ public sealed class SettingsController
         _store = store;
         _scheduler = scheduler;
         MigrateVisibility();
+        SeedElevationDefaults();
     }
 
     // The live settings, for read-only projection by callers.
@@ -91,6 +92,19 @@ public sealed class SettingsController
             }
 
             visibility.Remove(card);
+        }
+    }
+
+    // CPU temperature and power ship off, so a fresh install never asks for administrator rights until
+    // the user opts in. Only seed when the key is absent, so a saved or migrated value always wins.
+    private void SeedElevationDefaults()
+    {
+        foreach (MetricEntry entry in MetricRegistry.All)
+        {
+            if (entry.RequiresElevation && !_settings.Visibility.ContainsKey(entry.Key))
+            {
+                _settings.Visibility[entry.Key] = false;
+            }
         }
     }
 }
