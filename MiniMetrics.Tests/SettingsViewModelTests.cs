@@ -164,6 +164,34 @@ public class SettingsViewModelTests
     }
 
     [TestMethod]
+    public void Use_local_time_defaults_true_when_id_absent()
+    {
+        var viewModel = new SettingsViewModel(SampleSettings());
+
+        Assert.IsTrue(viewModel.UseLocalTime);
+    }
+
+    [TestMethod]
+    public void Use_local_time_defaults_false_when_id_present()
+    {
+        var viewModel = new SettingsViewModel(new Settings { TimeZoneId = "UTC" });
+
+        Assert.IsFalse(viewModel.UseLocalTime);
+    }
+
+    [TestMethod]
+    public void Toggling_use_local_time_raises_TimeZoneChanged()
+    {
+        var viewModel = new SettingsViewModel(new Settings { TimeZoneId = "UTC" });
+        int count = 0;
+        viewModel.TimeZoneChanged += () => count++;
+
+        viewModel.UseLocalTime = true;
+
+        Assert.AreEqual(1, count);
+    }
+
+    [TestMethod]
     public void Seeds_update_preferences_from_settings()
     {
         var settings = new Settings { UpdateCheckEnabled = false, UpdateFrequency = UpdateCheckFrequency.Weekly };
