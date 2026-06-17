@@ -24,6 +24,7 @@ public partial class App : Application
     private MetricWidgetViewModel _cpuViewModel = null!;
     private MetricWidgetViewModel _gpuViewModel = null!;
     private DateTimeWidgetViewModel _dateTimeViewModel = null!;
+    private IWidgetAppearance[] _appearances = Array.Empty<IWidgetAppearance>();
     private WidgetHost _cpuHost = null!;
     private WidgetHost _gpuHost = null!;
     private WidgetHost _dateTimeHost = null!;
@@ -62,15 +63,15 @@ public partial class App : Application
 
             _cpuViewModel = new MetricWidgetViewModel("cpu", "ram");
             _cpuViewModel.BindVisibility(_settings.Visibility);
-            _cpuViewModel.ApplyAppearance(_settings.BackgroundColor, _settings.Opacity);
 
             _gpuViewModel = new MetricWidgetViewModel("gpu", "vram");
             _gpuViewModel.BindVisibility(_settings.Visibility);
-            _gpuViewModel.ApplyAppearance(_settings.BackgroundColor, _settings.Opacity);
 
             _dateTimeViewModel = new DateTimeWidgetViewModel();
-            _dateTimeViewModel.ApplyAppearance(_settings.BackgroundColor, _settings.Opacity);
             _dateTimeViewModel.SetTimeZone(ResolveTimeZone(_settings.TimeZoneId));
+
+            _appearances = new IWidgetAppearance[] { _cpuViewModel, _gpuViewModel, _dateTimeViewModel };
+            ApplyAppearanceToWidgets();
 
             _source = OperatingSystem.IsWindows()
                 ? new HardwareSensorSource(new LibreHardwareTree())
@@ -337,9 +338,16 @@ public partial class App : Application
     private void OnAppearanceChanged(SettingsViewModel viewModel)
     {
         _settingsController.SetAppearance(viewModel.BackgroundColor, viewModel.Opacity);
-        _cpuViewModel.ApplyAppearance(_settings.BackgroundColor, _settings.Opacity);
-        _gpuViewModel.ApplyAppearance(_settings.BackgroundColor, _settings.Opacity);
-        _dateTimeViewModel.ApplyAppearance(_settings.BackgroundColor, _settings.Opacity);
+        ApplyAppearanceToWidgets();
+    }
+
+    // Pushes the current color and opacity to every widget through the shared appearance seam.
+    private void ApplyAppearanceToWidgets()
+    {
+        foreach (IWidgetAppearance widget in _appearances)
+        {
+            widget.ApplyAppearance(_settings.BackgroundColor, _settings.Opacity);
+        }
     }
 
     private void OnTimeZoneChanged(SettingsViewModel viewModel)
