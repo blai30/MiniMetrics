@@ -47,4 +47,12 @@ public partial class MetricRowViewModel : ObservableObject
     public bool HasTemp => Temp.Length > 0;
 
     partial void OnTempChanged(string value) => OnPropertyChanged(nameof(HasTemp));
+
+    // Re-raises the accent-bearing properties so the theme-aware converters re-evaluate after the
+    // active theme variant changes. The underlying values are unchanged.
+    public void NotifyThemeChanged()
+    {
+        OnPropertyChanged(nameof(Color));
+        OnPropertyChanged(nameof(TempLevel));
+    }
 }
