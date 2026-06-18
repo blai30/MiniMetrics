@@ -31,6 +31,37 @@ public class MetricRegistryTests
     }
 
     [TestMethod]
+    public void AnyVisible_defaults_absent_keys_to_visible()
+    {
+        Assert.IsTrue(MetricRegistry.AnyVisible("cpu", new Dictionary<string, bool>()));
+    }
+
+    [TestMethod]
+    public void AnyVisible_is_false_when_every_card_metric_is_explicitly_off()
+    {
+        var visibility = new Dictionary<string, bool>
+        {
+            ["cpu.usage"] = false,
+            ["cpu.temp"] = false,
+            ["cpu.power"] = false,
+        };
+        Assert.IsFalse(MetricRegistry.AnyVisible("cpu", visibility));
+    }
+
+    [TestMethod]
+    public void AnyVisible_is_true_when_one_card_metric_is_on()
+    {
+        var visibility = new Dictionary<string, bool>
+        {
+            ["gpu.usage"] = false,
+            ["gpu.temp"] = false,
+            ["gpu.power"] = false,
+            ["vram.usage"] = true,
+        };
+        Assert.IsTrue(MetricRegistry.AnyVisible("vram", visibility));
+    }
+
+    [TestMethod]
     public void Only_cpu_temp_and_power_require_elevation()
     {
         var elevated = MetricRegistry.All
