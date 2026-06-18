@@ -15,6 +15,9 @@ public partial class UpdatePromptWindow : Window
     // Raised when the user chooses to skip the offered version.
     public event EventHandler? SkipRequested;
 
+    // Raised when the user chooses to install the offered version in place.
+    public event EventHandler? InstallRequested;
+
     public UpdatePromptWindow()
     {
         InitializeComponent();
@@ -45,6 +48,12 @@ public partial class UpdatePromptWindow : Window
     private void OnSkip(object? sender, RoutedEventArgs e)
     {
         SkipRequested?.Invoke(this, EventArgs.Empty);
+        Close();
+    }
+
+    private void OnInstall(object? sender, RoutedEventArgs e)
+    {
+        InstallRequested?.Invoke(this, EventArgs.Empty);
         Close();
     }
 

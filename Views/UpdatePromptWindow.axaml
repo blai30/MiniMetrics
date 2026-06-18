@@ -28,7 +28,10 @@
                     IsVisible="{Binding IsActionable}">
             <Button Content="Remind me later" Click="OnDismiss" />
             <Button Content="Skip this version" Click="OnSkip" />
-            <Button Content="View release" Click="OnViewRelease" Classes="accent" />
+            <Button Content="View release" Click="OnViewRelease" Classes="accent"
+                    IsVisible="{Binding !CanInstall}" />
+            <Button Content="Install and restart" Click="OnInstall" Classes="accent"
+                    IsVisible="{Binding CanInstall}" />
         </StackPanel>
 
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,4,0,0"

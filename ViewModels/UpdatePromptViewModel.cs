@@ -5,9 +5,10 @@ namespace MiniMetrics.ViewModels;
 // single Close button. Immutable; built through the static factories.
 public sealed class UpdatePromptViewModel
 {
-    private UpdatePromptViewModel(bool isActionable, string heading, string body, string? version, string? url)
+    private UpdatePromptViewModel(bool isActionable, bool canInstall, string heading, string body, string? version, string? url)
     {
         IsActionable = isActionable;
+        CanInstall = canInstall;
         Heading = heading;
         Body = body;
         Version = version;
@@ -15,6 +16,10 @@ public sealed class UpdatePromptViewModel
     }
 
     public bool IsActionable { get; }
+
+    // True for the installed (Velopack) variant, where the action installs in place and restarts rather
+    // than opening the release page. Controls which button the actionable prompt shows.
+    public bool CanInstall { get; }
 
     public bool IsInformational => !IsActionable;
 
@@ -29,13 +34,24 @@ public sealed class UpdatePromptViewModel
     public static UpdatePromptViewModel ForAvailable(string latestVersion, string currentVersion, string url) =>
         new(
             true,
+            false,
             "A new version is available",
             $"MiniMetrics {latestVersion} is available. You're on {currentVersion}. Open the release page to download it.",
             latestVersion,
             url);
 
+    public static UpdatePromptViewModel ForInstallReady(string latestVersion, string currentVersion) =>
+        new(
+            true,
+            true,
+            "A new version is available",
+            $"MiniMetrics {latestVersion} is available. You're on {currentVersion}. Install it now and MiniMetrics will restart.",
+            latestVersion,
+            null);
+
     public static UpdatePromptViewModel ForUpToDate(string currentVersion) =>
         new(
+            false,
             false,
             "You're up to date",
             $"MiniMetrics {currentVersion} is the latest version.",
@@ -44,6 +60,7 @@ public sealed class UpdatePromptViewModel
 
     public static UpdatePromptViewModel ForFailed() =>
         new(
+            false,
             false,
             "Update check failed",
             "Couldn't reach GitHub to check for updates. Please try again later.",

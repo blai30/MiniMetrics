@@ -29,17 +29,19 @@ A mini widget display for performance metrics that sits on your desktop. MiniMet
 
 ## Download
 
-Grab the newest build from the [latest release](https://github.com/blai30/MiniMetrics/releases/latest). Each release ships several Windows x64 downloads so you can pick the tradeoff you want:
+Grab the newest build from the [latest release](https://github.com/blai30/MiniMetrics/releases/latest). The installer is the easiest path and updates itself in place; the portable downloads remain for anyone who prefers a loose exe.
 
 | Download (suffix) | Pick this if |
 | --- | --- |
-| `-selfcontained.exe` | You just want to run it. One file, no .NET install needed (largest download). |
-| `-selfcontained.zip` | Same, but a smaller download. Unzip the folder and run `MiniMetrics.exe`. |
-| `-framework-dependent.exe` | You already have the .NET 10 Desktop Runtime. One lean file. |
-| `-framework-dependent.zip` | Same, smallest download. Unzip and run. |
+| `-win-x64-sc-Setup.exe` | Recommended. Installs MiniMetrics, updates itself in place, and uninstalls cleanly. Self-contained, no .NET install needed. |
+| `-win-x64-fd-Setup.exe` | Same installer, smaller, but requires the .NET 10 Desktop Runtime already installed. |
+| `-selfcontained.exe` | Portable. One file, no .NET install needed (largest download). |
+| `-selfcontained.zip` | Portable. Same, but a smaller download. Unzip the folder and run `MiniMetrics.exe`. |
+| `-framework-dependent.exe` | Portable. You already have the .NET 10 Desktop Runtime. One lean file. |
+| `-framework-dependent.zip` | Portable. Same, smallest download. Unzip and run. |
 | `-debug-symbols.zip` | Only needed for diagnosing crash reports. |
 
-The builds are unsigned, so Windows SmartScreen may warn on first launch. Choose "More info" then "Run anyway".
+The builds and the installer are unsigned, so Windows SmartScreen may warn on first launch. Choose "More info" then "Run anyway".
 
 ## Tech stack
 

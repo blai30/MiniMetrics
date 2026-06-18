@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -16,6 +17,8 @@ using MiniMetrics.Models;
 using MiniMetrics.Services;
 using MiniMetrics.ViewModels;
 using MiniMetrics.Views;
+using Velopack;
+using Velopack.Sources;
 
 namespace MiniMetrics;
 
@@ -49,7 +52,10 @@ public partial class App : Application
     private StartupManager? _startupManager;
     private SettingsWindow? _settingsWindow;
     private PawnIoPromptWindow? _pawnIoPromptWindow;
-    private UpdateService _updateService = null!;
+    private ConfirmUninstallWindow? _confirmUninstallWindow;
+    private IUpdateFlow _updateFlow = null!;
+    private bool _isInstalled;
+    private string? _rootStubPath;
     private Version _currentVersion = null!;
     private UpdatePromptWindow? _updatePromptWindow;
     private NativeMenu _trayMenu = null!;
@@ -74,11 +80,20 @@ public partial class App : Application
             _settings = _settingsController.Current;
 
             _currentVersion = Assembly.GetEntryAssembly()?.GetName().Version ?? new Version(0, 0, 0);
-            _updateService = new UpdateService(
-                new GitHubReleaseSource(),
-                _currentVersion,
-                _settingsController,
-                () => DateTimeOffset.UtcNow);
+
+            // Decide the update mode once. An installed Velopack build updates in place; a portable or dev
+            // build links to the release page. The installed build runs from "<root>\current\", so the
+            // stable root stub is one directory up.
+            var updateManager = new UpdateManager(new GithubSource("https://github.com/blai30/MiniMetrics", null, false));
+            _isInstalled = updateManager.IsInstalled;
+            _rootStubPath = _isInstalled
+                ? Path.Combine(Directory.GetParent(AppContext.BaseDirectory)!.FullName, "MiniMetrics.exe")
+                : null;
+
+            _updateFlow = _isInstalled
+                ? new VelopackUpdateFlow(updateManager, _settingsController, () => DateTimeOffset.UtcNow)
+                : new NotifyUpdateFlow(new UpdateService(
+                    new GitHubReleaseSource(), _currentVersion, _settingsController, () => DateTimeOffset.UtcNow));
 
             _cpuViewModel = new MetricWidgetViewModel("cpu", "ram");
             _cpuViewModel.BindVisibility(_settings.Visibility);
@@ -274,7 +289,7 @@ public partial class App : Application
         {
             _startupManager = new StartupManager(
                 new WindowsStartupOperations(),
-                Environment.ProcessPath!);
+                AutostartTarget.Resolve(_isInstalled, _rootStubPath, Environment.ProcessPath!));
 
             // Keep a stale run-key path corrected, but never prompt for elevation at launch.
             _startupManager.RefreshRunKeyPath();
@@ -307,6 +322,13 @@ public partial class App : Application
         var checkUpdatesItem = new NativeMenuItem("Check for updates...");
         checkUpdatesItem.Click += (_, _) => RunUpdateCheck(manual: true);
         menu.Add(checkUpdatesItem);
+
+        if (OperatingSystem.IsWindows() && _isInstalled)
+        {
+            var uninstallItem = new NativeMenuItem("Uninstall MiniMetrics...");
+            uninstallItem.Click += OnUninstall;
+            menu.Add(uninstallItem);
+        }
 
         menu.Add(new NativeMenuItemSeparator());
 
@@ -476,12 +498,12 @@ public partial class App : Application
             return;
         }
 
-        // Migrate startup registration between the run key and the scheduled task to match the new
-        // elevation need. Only an elevated process can touch the scheduled task without a UAC prompt, so
-        // do this only when already elevated; toggling a metric (turning one off in particular) must
-        // never pop a prompt. When not elevated the migration is deferred: the next elevated launch
-        // reconciles it in BuildTray.
-        if (_elevation.IsElevated() && _startupManager is not null && _startupManager.IsEnabled())
+        // Reconcile startup registration to match the new elevation need. A scheduled task that is no
+        // longer needed is removed even while unelevated: Sync only touches the task when one exists and is
+        // no longer wanted, and RemoveTask elevates via runas, so a UAC prompt appears only in that case.
+        // Turning a metric on while unelevated returns earlier into the relaunch path and never reaches
+        // here, so this block only ever reduces or keeps the elevation requirement.
+        if (_startupManager is not null && _startupManager.IsEnabled())
         {
             _startupManager.Sync(true, RequiresElevation());
             _runAtStartupItem!.IsChecked = _startupManager.IsEnabled();
@@ -576,6 +598,47 @@ public partial class App : Application
         _runAtStartupItem!.IsChecked = _startupManager.IsEnabled();
     }
 
+    // Opens the uninstall confirmation. Installed builds only; the menu item is not shown otherwise.
+    // Reuses a single window so repeated clicks focus the existing prompt rather than stacking duplicates.
+    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
+    private void OnUninstall(object? sender, EventArgs e)
+    {
+        if (_confirmUninstallWindow is not null)
+        {
+            _confirmUninstallWindow.Activate();
+            return;
+        }
+
+        _confirmUninstallWindow = new ConfirmUninstallWindow();
+        _confirmUninstallWindow.Confirmed += (_, _) => RunUninstall();
+        _confirmUninstallWindow.Closed += (_, _) => _confirmUninstallWindow = null;
+        _confirmUninstallWindow.Show();
+    }
+
+    // Runs the ordered in-app uninstall: remove the elevated scheduled task first (a declined UAC prompt
+    // aborts the whole thing and leaves everything in place), then the run key, then hand off to Velopack's
+    // uninstaller. Both outcomes are terminal for the app, so the result is not acted on further here.
+    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
+    private void RunUninstall()
+    {
+        var coordinator = new UninstallCoordinator(
+            new WindowsStartupOperations(),
+            LaunchVelopackUninstaller);
+        coordinator.Run();
+    }
+
+    private static void LaunchVelopackUninstaller()
+    {
+        string root = Directory.GetParent(AppContext.BaseDirectory)!.FullName;
+        string updateExe = Path.Combine(root, "Update.exe");
+        Process.Start(new ProcessStartInfo
+        {
+            FileName = updateExe,
+            Arguments = "--uninstall",
+            UseShellExecute = false,
+        });
+    }
+
     // Some metrics are read through the PawnIO driver, whose device only an elevated process can open;
     // elevation is required while any such metric is visible.
     private bool RequiresElevation() => MetricRegistry.RequiresElevation(_settings.Visibility);
@@ -595,11 +658,9 @@ public partial class App : Application
         _pawnIoPromptWindow.Show();
     }
 
-    // Runs an update check and surfaces the result on the UI thread. Auto-checks show only when an
-    // update is available; manual checks also report up-to-date and failure so a click never feels dead.
     private async void RunUpdateCheck(bool manual)
     {
-        UpdateCheckResult result = await _updateService.CheckAsync(manual);
+        UpdateCheckResult result = await _updateFlow.CheckAsync(manual);
 
         switch (result.Outcome)
         {
@@ -618,7 +679,8 @@ public partial class App : Application
     private string CurrentVersionString =>
         new Version(_currentVersion.Major, _currentVersion.Minor, _currentVersion.Build < 0 ? 0 : _currentVersion.Build).ToString();
 
-    // Shows the actionable update prompt and adds the persistent tray item. Reuses a single window so a
+    // Shows the actionable update prompt and adds the persistent tray item. Installed builds offer an
+    // in-place install and restart; portable builds offer the release page. Reuses a single window so a
     // launch check followed by a manual check focuses the existing prompt rather than stacking a second.
     private void ShowUpdateAvailable(string version, string url)
     {
@@ -630,12 +692,26 @@ public partial class App : Application
             return;
         }
 
-        _updatePromptWindow = new UpdatePromptWindow(
-            UpdatePromptViewModel.ForAvailable(version, CurrentVersionString, url));
+        UpdatePromptViewModel viewModel = _updateFlow.CanApplyInApp
+            ? UpdatePromptViewModel.ForInstallReady(version, CurrentVersionString)
+            : UpdatePromptViewModel.ForAvailable(version, CurrentVersionString, url);
+
+        _updatePromptWindow = new UpdatePromptWindow(viewModel);
         _updatePromptWindow.SkipRequested += (_, _) =>
         {
             _settingsController.SetSkippedUpdateVersion(version);
             RemoveUpdateTrayItem();
+        };
+        _updatePromptWindow.InstallRequested += async (_, _) =>
+        {
+            try
+            {
+                await _updateFlow.ApplyAndRestartAsync();
+            }
+            catch (Exception)
+            {
+                ShowUpdateInfo(UpdatePromptViewModel.ForFailed());
+            }
         };
         _updatePromptWindow.Closed += (_, _) => _updatePromptWindow = null;
         _updatePromptWindow.Show();
@@ -654,7 +730,6 @@ public partial class App : Application
         _updatePromptWindow.Show();
     }
 
-    // Adds (or refreshes) the "Update available" tray item just above the "Check for updates" item.
     private void AddUpdateTrayItem(string version, string url)
     {
         if (_updateAvailableItem is not null)
@@ -664,7 +739,25 @@ public partial class App : Application
         }
 
         _updateAvailableItem = new NativeMenuItem($"Update available (v{version})");
-        _updateAvailableItem.Click += (_, _) => OpenReleasePage(url);
+        if (_updateFlow.CanApplyInApp)
+        {
+            _updateAvailableItem.Click += async (_, _) =>
+            {
+                try
+                {
+                    await _updateFlow.ApplyAndRestartAsync();
+                }
+                catch (Exception)
+                {
+                    ShowUpdateInfo(UpdatePromptViewModel.ForFailed());
+                }
+            };
+        }
+        else
+        {
+            _updateAvailableItem.Click += (_, _) => OpenReleasePage(url);
+        }
+
         _trayMenu.Items.Insert(0, _updateAvailableItem);
         _trayMenu.Items.Insert(1, new NativeMenuItemSeparator());
     }
