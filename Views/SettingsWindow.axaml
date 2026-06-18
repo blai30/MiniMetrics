@@ -4,6 +4,7 @@
         xmlns:conv="using:MiniMetrics.Converters"
         xmlns:models="using:MiniMetrics.Models"
         xmlns:sys="using:System"
+        xmlns:glob="using:System.Globalization"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
@@ -99,6 +100,79 @@
                                 </DataTemplate>
                             </ComboBox.ItemTemplate>
                         </ComboBox>
+                    </StackPanel>
+
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="Locale" />
+                        <ComboBox ItemsSource="{Binding Locales}"
+                                  SelectedItem="{Binding SelectedLocale}"
+                                  HorizontalAlignment="Stretch"
+                                  MaxDropDownHeight="280"
+                                  ScrollViewer.VerticalScrollBarVisibility="Visible">
+                            <ComboBox.Styles>
+                                <Style Selector="ComboBox /template/ ScrollViewer">
+                                    <Setter Property="(ScrollViewer.AllowAutoHide)" Value="False" />
+                                </Style>
+                            </ComboBox.Styles>
+                            <ComboBox.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel />
+                                </ItemsPanelTemplate>
+                            </ComboBox.ItemsPanel>
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate x:DataType="glob:CultureInfo">
+                                    <TextBlock Text="{Binding DisplayName}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </StackPanel>
+
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="Normal display" FontSize="12" />
+
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="Time format" />
+                            <TextBox Text="{Binding ClockTimeFormat}" PlaceholderText="T" />
+                            <TextBlock Text="{Binding TimeSample}" FontSize="12" Foreground="#8A93A3" />
+                            <TextBlock Text="{Binding TimeFormatError}" FontSize="12" Foreground="#E06C75"
+                                       IsVisible="{Binding TimeFormatError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                        </StackPanel>
+
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="Date format" />
+                            <TextBox Text="{Binding ClockDateFormat}" PlaceholderText="D" />
+                            <TextBlock Text="{Binding DateSample}" FontSize="12" Foreground="#8A93A3" />
+                            <TextBlock Text="{Binding DateFormatError}" FontSize="12" Foreground="#E06C75"
+                                       IsVisible="{Binding DateFormatError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="Hover display" FontSize="12" />
+
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="Time format" />
+                            <TextBox Text="{Binding ClockTimeFormatHover}" PlaceholderText="HH:mm:ss" />
+                            <TextBlock Text="{Binding TimeHoverSample}" FontSize="12" Foreground="#8A93A3" />
+                            <TextBlock Text="{Binding TimeHoverFormatError}" FontSize="12" Foreground="#E06C75"
+                                       IsVisible="{Binding TimeHoverFormatError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                        </StackPanel>
+
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="Date format" />
+                            <TextBox Text="{Binding ClockDateFormatHover}" PlaceholderText="u" />
+                            <TextBlock Text="{Binding DateHoverSample}" FontSize="12" Foreground="#8A93A3" />
+                            <TextBlock Text="{Binding DateHoverFormatError}" FontSize="12" Foreground="#E06C75"
+                                       IsVisible="{Binding DateHoverFormatError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Tokens: HH h mm ss tt dddd ddd MMMM MMM d yyyy zzz"
+                                   FontSize="12" Foreground="#8A93A3" TextWrapping="Wrap" />
+                        <Button Content="Custom date and time format strings reference"
+                                Click="OnOpenFormatDocs"
+                                HorizontalAlignment="Left" />
                     </StackPanel>
                 </StackPanel>
             </ScrollViewer>
