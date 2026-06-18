@@ -639,8 +639,7 @@ public partial class App : Application
 
     private static void LaunchVelopackUninstaller()
     {
-        string root = Directory.GetParent(AppContext.BaseDirectory)!.FullName;
-        string updateExe = Path.Combine(root, "Update.exe");
+        string updateExe = VelopackPaths.ResolveUpdateExe(AppContext.BaseDirectory);
         Process.Start(new ProcessStartInfo
         {
             FileName = updateExe,
