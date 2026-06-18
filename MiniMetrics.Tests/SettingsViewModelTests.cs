@@ -134,6 +134,48 @@ public class SettingsViewModelTests
     }
 
     [TestMethod]
+    public void System_theme_with_dark_os_edits_the_dark_color()
+    {
+        var settings = new Settings { BackgroundColor = "#0F121D", LightBackgroundColor = "#EEF1F5" };
+
+        var viewModel = new SettingsViewModel(settings, systemIsDark: true);
+
+        Assert.AreEqual(AppTheme.System, viewModel.Theme);
+        Assert.IsTrue(viewModel.EditingVariantIsDark);
+        Assert.AreEqual("#0F121D", viewModel.BackgroundColor);
+    }
+
+    [TestMethod]
+    public void Switching_to_light_loads_the_light_color_and_swatches()
+    {
+        var settings = new Settings { BackgroundColor = "#0F121D", LightBackgroundColor = "#EEF1F5" };
+        var viewModel = new SettingsViewModel(settings, systemIsDark: true);
+        bool themeChanged = false;
+        viewModel.ThemeChanged += () => themeChanged = true;
+
+        viewModel.Theme = AppTheme.Light;
+
+        Assert.IsTrue(themeChanged);
+        Assert.IsFalse(viewModel.EditingVariantIsDark);
+        Assert.AreEqual("#EEF1F5", viewModel.BackgroundColor);
+        Assert.AreEqual("#FFFFFF", viewModel.Swatches[2]);
+    }
+
+    [TestMethod]
+    public void Editing_color_under_each_theme_keeps_both_independently()
+    {
+        var settings = new Settings { BackgroundColor = "#0F121D", LightBackgroundColor = "#EEF1F5" };
+        var viewModel = new SettingsViewModel(settings, systemIsDark: true);
+
+        viewModel.BackgroundColor = "#101010";   // edits dark
+        viewModel.Theme = AppTheme.Light;
+        viewModel.BackgroundColor = "#FAFAFA";    // edits light
+        viewModel.Theme = AppTheme.Dark;
+
+        Assert.AreEqual("#101010", viewModel.BackgroundColor);
+    }
+
+    [TestMethod]
     public void Seeds_selected_time_zone_from_settings_id()
     {
         var settings = new Settings { TimeZoneId = "UTC" };

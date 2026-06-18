@@ -17,6 +17,32 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     private int _opacity;
 
+    [ObservableProperty]
+    private AppTheme _theme;
+
+    public IReadOnlyList<AppTheme> Themes { get; } = new[] { AppTheme.System, AppTheme.Light, AppTheme.Dark };
+
+    private static readonly string[] DarkSwatches =
+        { "#0F121D", "#1A1F2B", "#18181B", "#0C1A2B", "#1E1726", "#11231C" };
+
+    private static readonly string[] LightSwatches =
+        { "#EEF1F5", "#E4E8EF", "#FFFFFF", "#EAF1F8", "#F3EEF7", "#EAF3EE" };
+
+    private bool _systemIsDark;
+    private string _darkColor = "";
+    private string _lightColor = "";
+
+    // Which variant the color editor currently writes to. Under System it follows the OS as captured
+    // when the window opened.
+    public bool EditingVariantIsDark => Theme switch
+    {
+        AppTheme.Light => false,
+        AppTheme.Dark => true,
+        _ => _systemIsDark,
+    };
+
+    public IReadOnlyList<string> Swatches => EditingVariantIsDark ? DarkSwatches : LightSwatches;
+
     public IReadOnlyList<TimeZoneInfo> TimeZones { get; } = TimeZoneInfo.GetSystemTimeZones();
 
     [ObservableProperty]
@@ -100,7 +126,7 @@ public partial class SettingsViewModel : ObservableObject
 
     private readonly Dictionary<string, MetricToggleViewModel> _togglesByKey = new();
 
-    public SettingsViewModel(Settings settings)
+    public SettingsViewModel(Settings settings, bool systemIsDark = true)
     {
         // Seed each per-metric toggle, falling back to the legacy whole-card key when the granular
         // one has not been saved yet, so an existing hidden card stays hidden after upgrading.
@@ -109,7 +135,11 @@ public partial class SettingsViewModel : ObservableObject
                 ? value
                 : settings.Visibility.GetValueOrDefault(legacy, true);
 
-        _backgroundColor = settings.BackgroundColor;
+        _systemIsDark = systemIsDark;
+        _theme = settings.Theme;
+        _darkColor = settings.BackgroundColor;
+        _lightColor = settings.LightBackgroundColor;
+        _backgroundColor = EditingVariantIsDark ? _darkColor : _lightColor;
         _opacity = settings.Opacity;
         _updateCheckEnabled = settings.UpdateCheckEnabled;
         _updateFrequency = settings.UpdateFrequency;
@@ -145,6 +175,9 @@ public partial class SettingsViewModel : ObservableObject
     // Raised when the base color or opacity changes (live preview + persist).
     public event Action? AppearanceChanged;
 
+    // Raised when the chosen theme changes (apply variant + persist).
+    public event Action? ThemeChanged;
+
     // Raised when a single metric toggle changes, with its key and new value.
     public event Action<string, bool>? MetricVisibilityChanged;
 
@@ -166,9 +199,30 @@ public partial class SettingsViewModel : ObservableObject
     [RelayCommand]
     private void SelectPreset(string hex) => BackgroundColor = hex;
 
-    partial void OnBackgroundColorChanged(string value) => AppearanceChanged?.Invoke();
+    partial void OnBackgroundColorChanged(string value)
+    {
+        if (EditingVariantIsDark)
+        {
+            _darkColor = value;
+        }
+        else
+        {
+            _lightColor = value;
+        }
+
+        AppearanceChanged?.Invoke();
+    }
 
     partial void OnOpacityChanged(int value) => AppearanceChanged?.Invoke();
+
+    partial void OnThemeChanged(AppTheme value)
+    {
+        // Apply the variant first so the host resolves the new theme, then load that theme's stored
+        // color and swatch set into the editor.
+        ThemeChanged?.Invoke();
+        BackgroundColor = EditingVariantIsDark ? _darkColor : _lightColor;
+        OnPropertyChanged(nameof(Swatches));
+    }
 
     partial void OnSelectedTimeZoneChanged(TimeZoneInfo value)
     {
