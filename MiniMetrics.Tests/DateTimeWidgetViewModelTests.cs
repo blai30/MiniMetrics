@@ -81,6 +81,20 @@ public class DateTimeWidgetViewModelTests
     }
 
     [TestMethod]
+    public void SetFormats_applies_a_custom_hover_format_pair()
+    {
+        var vm = NewVm();
+
+        vm.SetFormats(null, null, "HH:mm", null);
+        vm.Tick(Instant);
+        vm.IsHovering = true;
+
+        Assert.AreEqual("14:26", vm.TimeText);
+        // The hover date still uses its default "u" UTC stamp.
+        Assert.AreEqual("2026-06-16 14:26:42Z", vm.DateText);
+    }
+
+    [TestMethod]
     public void SetLocale_reformats_the_last_instant()
     {
         var vm = NewVm();

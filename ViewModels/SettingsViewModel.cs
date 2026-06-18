@@ -225,8 +225,10 @@ public partial class SettingsViewModel : ObservableObject
         return TimeZoneInfo.Local;
     }
 
-    // Picks the saved culture by name, else the machine's current culture (matched from the list so
-    // the dropdown highlights it), else current culture as a last resort.
+    // Picks the saved culture by name, else the machine's current culture, matched from the list so
+    // the dropdown highlights it. A neutral machine culture (for example "en" with no region) is not
+    // in the specific-culture list, so fall back to a specific culture under that parent, then to the
+    // first entry, so the dropdown always shows a selection.
     private static CultureInfo ResolveLocale(string? id, IReadOnlyList<CultureInfo> locales)
     {
         string targetName = id ?? CultureInfo.CurrentCulture.Name;
@@ -246,6 +248,14 @@ public partial class SettingsViewModel : ObservableObject
             }
         }
 
-        return CultureInfo.CurrentCulture;
+        foreach (CultureInfo culture in locales)
+        {
+            if (culture.Parent.Name == CultureInfo.CurrentCulture.Name)
+            {
+                return culture;
+            }
+        }
+
+        return locales.Count > 0 ? locales[0] : CultureInfo.CurrentCulture;
     }
 }

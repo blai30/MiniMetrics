@@ -226,11 +226,19 @@ public class SettingsViewModelTests
     }
 
     [TestMethod]
-    public void Defaults_selected_locale_to_current_culture_when_id_absent()
+    public void Defaults_selected_locale_to_an_entry_in_the_list()
     {
         var viewModel = new SettingsViewModel(SampleSettings());
 
-        Assert.AreEqual(System.Globalization.CultureInfo.CurrentCulture.Name, viewModel.SelectedLocale.Name);
+        // The dropdown must always have a selectable entry. A specific machine culture is selected
+        // directly; a neutral one falls back to a specific culture in the list.
+        Assert.IsTrue(viewModel.Locales.Contains(viewModel.SelectedLocale));
+
+        var current = System.Globalization.CultureInfo.CurrentCulture;
+        if (viewModel.Locales.Any(culture => culture.Name == current.Name))
+        {
+            Assert.AreEqual(current.Name, viewModel.SelectedLocale.Name);
+        }
     }
 
     [TestMethod]
