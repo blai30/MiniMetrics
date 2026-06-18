@@ -12,6 +12,8 @@ public sealed class TempLevelToBrushConverter : IValueConverter
     {
         string hex = value switch
         {
+            TempLevel.Frigid => "#7DD3FC",
+            TempLevel.Cold => "#2DD4BF",
             TempLevel.Cool => "#5ED6A8",
             TempLevel.Warm => "#F5B544",
             TempLevel.Hot => "#FB923C",

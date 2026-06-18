@@ -15,6 +15,8 @@ public enum RowColor
 public enum TempLevel
 {
     None,
+    Frigid,
+    Cold,
     Cool,
     Warm,
     Hot,
@@ -48,7 +50,7 @@ public static class RowBuilder
                 // CPU temperature is null when the PawnIO driver cannot read it; the hero slot shows a
                 // muted placeholder rather than going blank.
                 cpu.TempCelsius is { } cpuTemp ? MetricFormatting.FormatTempValue(cpuTemp) : "—",
-                cpu.TempCelsius is { } cpuLevel ? CpuLevelFor(cpuLevel) : TempLevel.None,
+                cpu.TempCelsius is { } cpuLevel ? LevelFor(cpuLevel) : TempLevel.None,
                 // CPU power is null when the PawnIO driver cannot read it; the detail slot shows a muted
                 // placeholder rather than a misleading reading.
                 cpu.PowerWatts is { } cpuPower ? MetricFormatting.FormatPower(cpuPower) : "—",
@@ -95,19 +97,12 @@ public static class RowBuilder
     private static double Percent(ulong used, ulong total)
         => total == 0 ? 0 : (double)used / total * 100.0;
 
-    // Thresholds tuned for GPU load temperatures; revisited when CPU temp and per-sensor
-    // customization arrive in a later plan.
+    // Shared temperature spectrum for both CPU and GPU readings.
     private static TempLevel LevelFor(double celsius)
         => celsius >= 80 ? TempLevel.Critical
             : celsius >= 70 ? TempLevel.Hot
             : celsius >= 60 ? TempLevel.Warm
-            : TempLevel.Cool;
-
-    // CPUs idle and load hotter than GPUs, so they use their own, higher bands. Keeping this separate
-    // from LevelFor leaves the GPU thresholds untouched.
-    private static TempLevel CpuLevelFor(double celsius)
-        => celsius >= 90 ? TempLevel.Critical
-            : celsius >= 80 ? TempLevel.Hot
-            : celsius >= 65 ? TempLevel.Warm
-            : TempLevel.Cool;
+            : celsius >= 50 ? TempLevel.Cool
+            : celsius >= 40 ? TempLevel.Cold
+            : TempLevel.Frigid;
 }

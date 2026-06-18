@@ -57,7 +57,10 @@ public class RowBuilderTests
     }
 
     [TestMethod]
-    [DataRow(55.0, TempLevel.Cool)]
+    [DataRow(39.0, TempLevel.Frigid)]
+    [DataRow(40.0, TempLevel.Cold)]
+    [DataRow(49.0, TempLevel.Cold)]
+    [DataRow(50.0, TempLevel.Cool)]
     [DataRow(59.0, TempLevel.Cool)]
     [DataRow(60.0, TempLevel.Warm)]
     [DataRow(69.0, TempLevel.Warm)]
@@ -86,15 +89,15 @@ public class RowBuilderTests
     }
 
     [TestMethod]
+    [DataRow(39.0, TempLevel.Frigid)]
+    [DataRow(40.0, TempLevel.Cold)]
     [DataRow(50.0, TempLevel.Cool)]
-    [DataRow(64.0, TempLevel.Cool)]
-    [DataRow(65.0, TempLevel.Warm)]
-    [DataRow(79.0, TempLevel.Warm)]
-    [DataRow(80.0, TempLevel.Hot)]
-    [DataRow(89.0, TempLevel.Hot)]
-    [DataRow(90.0, TempLevel.Critical)]
+    [DataRow(59.0, TempLevel.Cool)]
+    [DataRow(60.0, TempLevel.Warm)]
+    [DataRow(70.0, TempLevel.Hot)]
+    [DataRow(80.0, TempLevel.Critical)]
     [DataRow(95.0, TempLevel.Critical)]
-    public void Build_color_codes_cpu_temperature_by_cpu_threshold(double temp, TempLevel expected)
+    public void Build_color_codes_cpu_temperature_by_threshold(double temp, TempLevel expected)
     {
         var snapshot = new MetricsSnapshot(
             new CpuMetrics(34.0, temp, 65.0),
