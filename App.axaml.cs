@@ -32,6 +32,7 @@ public partial class App : Application
     private Settings _settings = null!;
     private MetricWidgetViewModel _cpuViewModel = null!;
     private MetricWidgetViewModel _gpuViewModel = null!;
+    private WidgetCoordinator _widgetCoordinator = null!;
     private DateTimeWidgetViewModel _dateTimeViewModel = null!;
     private IWidgetAppearance[] _appearances = Array.Empty<IWidgetAppearance>();
     private WidgetHost _cpuHost = null!;
@@ -119,9 +120,11 @@ public partial class App : Application
                 ? new WindowsDriverProbe()
                 : new NoopDriverProbe();
 
+            _widgetCoordinator = new WidgetCoordinator(_settingsController, _cpuViewModel, _gpuViewModel, _source);
+
             // Release any device whose widget is hidden or whose every metric is hidden before the
             // first poll runs.
-            ApplyActiveDevices();
+            _widgetCoordinator.ApplyActiveDevices();
 
             _poller = new MetricsPoller(_source, TimeSpan.FromSeconds(1));
             _poller.SnapshotReady += snapshot =>
@@ -365,7 +368,7 @@ public partial class App : Application
         }
 
         _cpuShowHideItem.IsChecked = !hidden;
-        ApplyActiveDevices();
+        _widgetCoordinator.ApplyActiveDevices();
     }
 
     private void OnToggleGpuShowHide(object? sender, EventArgs e)
@@ -373,7 +376,7 @@ public partial class App : Application
         bool hidden = _settingsController.ToggleGpuHidden();
         UpdateGpuWindowVisibility();
         _gpuShowHideItem.IsChecked = !hidden;
-        ApplyActiveDevices();
+        _widgetCoordinator.ApplyActiveDevices();
     }
 
     private void OnToggleClockShowHide(object? sender, EventArgs e)
@@ -458,12 +461,9 @@ public partial class App : Application
             return;
         }
 
-        // The controller writes the shared Settings.Visibility map; the widgets read from it, and
-        // ApplyActiveDevices reads it to release any device whose metrics are now all hidden.
-        _settingsController.SetMetricVisibility(key, visible);
-        _cpuViewModel.RefreshVisibility(key);
-        _gpuViewModel.RefreshVisibility(key);
-        ApplyActiveDevices();
+        // Persist the change, re-render the owning widget, and release any device whose metrics are now
+        // all hidden, as one step so render, polling, and saved state cannot drift apart.
+        _widgetCoordinator.SetMetricVisibility(key, visible);
 
         bool isElevationMetric = MetricRegistry.All.Any(entry => entry.Key == key && entry.RequiresElevation);
         if (!isElevationMetric)
@@ -528,22 +528,7 @@ public partial class App : Application
             _suppressVisibilityHandler = false;
         }
 
-        _settingsController.SetMetricVisibility(key, false);
-        _cpuViewModel.RefreshVisibility(key);
-        _gpuViewModel.RefreshVisibility(key);
-        ApplyActiveDevices();
-    }
-
-    // A device is polled while its widget is shown and any of its metrics is visible; otherwise it
-    // is released so its sensors stop refreshing.
-    private void ApplyActiveDevices()
-    {
-        DeviceActivation.Result result = DeviceActivation.Compute(
-            _settings.Visibility,
-            cpuWidgetShown: !_settings.Hidden,
-            gpuWidgetShown: !_settings.GpuHidden);
-
-        _source?.SetActiveDevices(result.Cpu, result.Memory, result.Gpu);
+        _widgetCoordinator.SetMetricVisibility(key, false);
     }
 
     // Shows the GPU window only when a GPU is present and the widget is not hidden; idempotent so it
