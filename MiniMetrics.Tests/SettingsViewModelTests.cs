@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Linq;
 using MiniMetrics.Models;
 using MiniMetrics.ViewModels;
@@ -214,5 +215,76 @@ public class SettingsViewModelTests
         viewModel.UpdateFrequency = UpdateCheckFrequency.Monthly;
 
         Assert.AreEqual(2, raised);
+    }
+
+    [TestMethod]
+    public void Seeds_selected_locale_from_settings_id()
+    {
+        var viewModel = new SettingsViewModel(new Settings { ClockLocaleId = "fr-FR" });
+
+        Assert.AreEqual("fr-FR", viewModel.SelectedLocale.Name);
+    }
+
+    [TestMethod]
+    public void Defaults_selected_locale_to_current_culture_when_id_absent()
+    {
+        var viewModel = new SettingsViewModel(SampleSettings());
+
+        Assert.AreEqual(System.Globalization.CultureInfo.CurrentCulture.Name, viewModel.SelectedLocale.Name);
+    }
+
+    [TestMethod]
+    public void Changing_a_clock_format_raises_ClockFormatsChanged()
+    {
+        var viewModel = new SettingsViewModel(new Settings());
+        int count = 0;
+        viewModel.ClockFormatsChanged += () => count++;
+
+        viewModel.ClockDateFormat = "yyyy-MM-dd";
+
+        Assert.AreEqual(1, count);
+    }
+
+    [TestMethod]
+    public void Changing_locale_raises_ClockLocaleChanged()
+    {
+        var viewModel = new SettingsViewModel(new Settings { ClockLocaleId = "en-US" });
+        int count = 0;
+        viewModel.ClockLocaleChanged += () => count++;
+
+        viewModel.SelectedLocale = viewModel.Locales.First(culture => culture.Name == "fr-FR");
+
+        Assert.AreEqual(1, count);
+    }
+
+    [TestMethod]
+    public void Time_sample_reflects_a_valid_custom_format()
+    {
+        // TimeZoneId "UTC" makes the preview zone deterministic; en-US makes the rendering deterministic.
+        var viewModel = new SettingsViewModel(new Settings { TimeZoneId = "UTC", ClockLocaleId = "en-US" });
+
+        viewModel.ClockTimeFormat = "HH:mm";
+
+        Assert.AreEqual("14:26", viewModel.TimeSample);
+    }
+
+    [TestMethod]
+    public void Blank_time_sample_shows_the_default_long_time()
+    {
+        var viewModel = new SettingsViewModel(new Settings { TimeZoneId = "UTC", ClockLocaleId = "en-US" });
+
+        Assert.AreEqual("2:26:42 PM", viewModel.TimeSample);
+    }
+
+    [TestMethod]
+    public void Invalid_format_sets_an_error_and_a_valid_one_clears_it()
+    {
+        var viewModel = new SettingsViewModel(new Settings { ClockLocaleId = "en-US" });
+
+        viewModel.ClockTimeFormat = "h"; // lone standard specifier, invalid
+        Assert.AreNotEqual("", viewModel.TimeFormatError);
+
+        viewModel.ClockTimeFormat = "HH:mm";
+        Assert.AreEqual("", viewModel.TimeFormatError);
     }
 }
