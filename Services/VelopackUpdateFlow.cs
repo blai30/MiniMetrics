@@ -46,16 +46,22 @@ public sealed class VelopackUpdateFlow : IUpdateFlow
             return UpdateCheckResult.UpToDate(CurrentVersionString());
         }
 
-        string version = info.TargetFullRelease.Version.ToString();
+        // Velopack hands back the target version already known to be newer; the shared decision applies the
+        // same skip rule the portable flow uses, comparing against the installed package version.
+        UpdateCheckResult result = UpdateCheckDecision.Evaluate(
+            CurrentVersion(),
+            info.TargetFullRelease.Version.ToString(),
+            _settings.Current.SkippedUpdateVersion,
+            manual,
+            ReleasePageUrl,
+            CurrentVersionString());
 
-        // Auto-checks honor the skipped version; a manual check surfaces it regardless.
-        if (!manual && version == _settings.Current.SkippedUpdateVersion)
+        if (result.Outcome == UpdateOutcome.UpdateAvailable)
         {
-            return UpdateCheckResult.UpToDate(CurrentVersionString());
+            _pending = info;
         }
 
-        _pending = info;
-        return UpdateCheckResult.UpdateAvailable(version, ReleasePageUrl);
+        return result;
     }
 
     public async Task ApplyAndRestartAsync()
@@ -72,4 +78,11 @@ public sealed class VelopackUpdateFlow : IUpdateFlow
     }
 
     private string CurrentVersionString() => _manager.CurrentVersion?.ToString() ?? "0.0.0";
+
+    // The installed package version as a System.Version so the shared decision can compare it. Parses the
+    // major.minor.patch string Velopack reports; a missing or unparseable version collapses to 0.0.0.
+    private Version CurrentVersion() =>
+        Version.TryParse(CurrentVersionString(), out Version? parsed) && parsed is not null
+            ? parsed
+            : new Version(0, 0, 0);
 }
