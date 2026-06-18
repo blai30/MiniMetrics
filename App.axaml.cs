@@ -43,14 +43,7 @@ public partial class App : Application
     private DispatcherTimer? _clockTimer;
     private DispatcherTimer? _trimTimer;
 
-    private TrayIcon? _trayIcon;
-    private NativeMenuItem _cpuShowHideItem = null!;
-    private NativeMenuItem _gpuShowHideItem = null!;
-    private NativeMenuItem _clockShowHideItem = null!;
-    private NativeMenuItem _lockItem = null!;
-    private NativeMenuItem _alwaysOnTopItem = null!;
-    private NativeMenuItem _snapItem = null!;
-    private NativeMenuItem? _runAtStartupItem;
+    private TrayMenuController _tray = null!;
     private StartupManager? _startupManager;
     private SettingsWindow? _settingsWindow;
     private PawnIoPromptWindow? _pawnIoPromptWindow;
@@ -60,8 +53,6 @@ public partial class App : Application
     private string? _rootStubPath;
     private Version _currentVersion = null!;
     private UpdatePromptWindow? _updatePromptWindow;
-    private NativeMenu _trayMenu = null!;
-    private NativeMenuItem? _updateAvailableItem;
 
     public override void Initialize()
     {
@@ -242,56 +233,8 @@ public partial class App : Application
 
     private void BuildTray()
     {
-        _trayMenu = new NativeMenu();
-        NativeMenu menu = _trayMenu;
-
-        _cpuShowHideItem = new NativeMenuItem("Show CPU widget")
-        {
-            ToggleType = MenuItemToggleType.CheckBox,
-            IsChecked = !_settings.Hidden,
-        };
-        _cpuShowHideItem.Click += OnToggleCpuShowHide;
-        menu.Add(_cpuShowHideItem);
-
-        _gpuShowHideItem = new NativeMenuItem("Show GPU widget")
-        {
-            ToggleType = MenuItemToggleType.CheckBox,
-            IsChecked = !_settings.GpuHidden,
-        };
-        _gpuShowHideItem.Click += OnToggleGpuShowHide;
-        menu.Add(_gpuShowHideItem);
-
-        _clockShowHideItem = new NativeMenuItem("Show clock widget")
-        {
-            ToggleType = MenuItemToggleType.CheckBox,
-            IsChecked = !_settings.DateTimeHidden,
-        };
-        _clockShowHideItem.Click += OnToggleClockShowHide;
-        menu.Add(_clockShowHideItem);
-
-        _lockItem = new NativeMenuItem("Lock position")
-        {
-            ToggleType = MenuItemToggleType.CheckBox,
-            IsChecked = _settings.Locked,
-        };
-        _lockItem.Click += OnToggleLock;
-        menu.Add(_lockItem);
-
-        _alwaysOnTopItem = new NativeMenuItem("Always on top")
-        {
-            ToggleType = MenuItemToggleType.CheckBox,
-            IsChecked = _settings.AlwaysOnTop,
-        };
-        _alwaysOnTopItem.Click += OnToggleAlwaysOnTop;
-        menu.Add(_alwaysOnTopItem);
-
-        _snapItem = new NativeMenuItem("Snap to edges")
-        {
-            ToggleType = MenuItemToggleType.CheckBox,
-            IsChecked = _settings.SnapToEdges,
-        };
-        _snapItem.Click += OnToggleSnap;
-        menu.Add(_snapItem);
+        bool showRunAtStartup = false;
+        bool runAtStartupChecked = false;
 
         if (OperatingSystem.IsWindows())
         {
@@ -302,14 +245,6 @@ public partial class App : Application
             // Keep a stale run-key path corrected, but never prompt for elevation at launch.
             _startupManager.RefreshRunKeyPath();
 
-            _runAtStartupItem = new NativeMenuItem("Run at startup")
-            {
-                ToggleType = MenuItemToggleType.CheckBox,
-                IsChecked = _startupManager.IsEnabled(),
-            };
-            _runAtStartupItem.Click += OnToggleRunAtStartup;
-            menu.Add(_runAtStartupItem);
-
             // If we are already elevated (relaunched on demand, or started by the scheduled task) and
             // startup is on, migrate the registration to match the current elevation need. Because the
             // process is already elevated, this creates or removes the scheduled task with no prompt,
@@ -317,50 +252,56 @@ public partial class App : Application
             if (_elevation.IsElevated() && _startupManager.IsEnabled())
             {
                 _startupManager.Sync(true, RequiresElevation());
-                _runAtStartupItem.IsChecked = _startupManager.IsEnabled();
             }
+
+            showRunAtStartup = true;
+            runAtStartupChecked = _startupManager.IsEnabled();
         }
 
-        menu.Add(new NativeMenuItemSeparator());
+        _tray = new TrayMenuController(new TrayMenuController.InitialState(
+            CpuChecked: !_settings.Hidden,
+            GpuChecked: !_settings.GpuHidden,
+            ClockChecked: !_settings.DateTimeHidden,
+            LockChecked: _settings.Locked,
+            AlwaysOnTopChecked: _settings.AlwaysOnTop,
+            SnapChecked: _settings.SnapToEdges,
+            ShowRunAtStartup: showRunAtStartup,
+            RunAtStartupChecked: runAtStartupChecked,
+            ShowUninstall: OperatingSystem.IsWindows() && _isInstalled));
 
-        var settingsItem = new NativeMenuItem("Settings...");
-        settingsItem.Click += OnOpenSettings;
-        menu.Add(settingsItem);
-
-        var checkUpdatesItem = new NativeMenuItem("Check for updates...");
-        checkUpdatesItem.Click += (_, _) => RunUpdateCheck(manual: true);
-        menu.Add(checkUpdatesItem);
-
+        _tray.ToggleCpuRequested += OnToggleCpuShowHide;
+        _tray.ToggleGpuRequested += OnToggleGpuShowHide;
+        _tray.ToggleClockRequested += OnToggleClockShowHide;
+        _tray.ToggleLockRequested += OnToggleLock;
+        _tray.ToggleAlwaysOnTopRequested += OnToggleAlwaysOnTop;
+        _tray.ToggleSnapRequested += OnToggleSnap;
+        _tray.RunAtStartupRequested += OnToggleRunAtStartup;
+        _tray.OpenSettingsRequested += OnOpenSettings;
+        _tray.CheckUpdatesRequested += () => RunUpdateCheck(manual: true);
         if (OperatingSystem.IsWindows() && _isInstalled)
         {
-            var uninstallItem = new NativeMenuItem("Uninstall MiniMetrics...");
-            uninstallItem.Click += OnUninstall;
-            menu.Add(uninstallItem);
+            // The controller only surfaces the uninstall item under this same condition, so the handler
+            // is only ever reachable on the platform it supports.
+            _tray.UninstallRequested += OnUninstall;
         }
 
-        menu.Add(new NativeMenuItemSeparator());
-
-        var quit = new NativeMenuItem("Quit");
-        quit.Click += (_, _) =>
+        _tray.QuitRequested += () =>
         {
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
                 desktop.Shutdown();
             }
         };
-        menu.Add(quit);
+        _tray.ApplyUpdateRequested += ApplyUpdateInApp;
+        _tray.OpenReleasePageRequested += OpenReleasePage;
 
-        _trayIcon = new TrayIcon
-        {
-            Icon = new WindowIcon(AssetLoader.Open(new Uri("avares://MiniMetrics/Assets/minimetrics.ico"))),
-            ToolTipText = "Mini Metrics",
-            Menu = menu,
-        };
-
-        TrayIcon.SetIcons(this, new TrayIcons { _trayIcon });
+        _tray.Attach(
+            this,
+            new WindowIcon(AssetLoader.Open(new Uri("avares://MiniMetrics/Assets/minimetrics.ico"))),
+            "Mini Metrics");
     }
 
-    private void OnToggleCpuShowHide(object? sender, EventArgs e)
+    private void OnToggleCpuShowHide()
     {
         bool hidden = _settingsController.ToggleCpuHidden();
         if (hidden)
@@ -372,19 +313,19 @@ public partial class App : Application
             _cpuHost.Show();
         }
 
-        _cpuShowHideItem.IsChecked = !hidden;
+        _tray.SetCpuChecked(!hidden);
         _widgetCoordinator.ApplyActiveDevices();
     }
 
-    private void OnToggleGpuShowHide(object? sender, EventArgs e)
+    private void OnToggleGpuShowHide()
     {
         bool hidden = _settingsController.ToggleGpuHidden();
         UpdateGpuWindowVisibility();
-        _gpuShowHideItem.IsChecked = !hidden;
+        _tray.SetGpuChecked(!hidden);
         _widgetCoordinator.ApplyActiveDevices();
     }
 
-    private void OnToggleClockShowHide(object? sender, EventArgs e)
+    private void OnToggleClockShowHide()
     {
         bool hidden = _settingsController.ToggleDateTimeHidden();
         if (hidden)
@@ -396,10 +337,10 @@ public partial class App : Application
             _dateTimeHost.Show();
         }
 
-        _clockShowHideItem.IsChecked = !hidden;
+        _tray.SetClockChecked(!hidden);
     }
 
-    private void OnToggleLock(object? sender, EventArgs e)
+    private void OnToggleLock()
     {
         bool locked = _settingsController.ToggleLocked();
         foreach (WidgetHost host in _hosts)
@@ -407,10 +348,10 @@ public partial class App : Application
             host.SetLocked(locked);
         }
 
-        _lockItem.IsChecked = locked;
+        _tray.SetLockChecked(locked);
     }
 
-    private void OnOpenSettings(object? sender, EventArgs e)
+    private void OnOpenSettings()
     {
         // Single instance: focus the existing window instead of opening a second one.
         if (_settingsWindow is not null)
@@ -532,7 +473,7 @@ public partial class App : Application
         if (_startupManager is not null && _startupManager.IsEnabled())
         {
             _startupManager.Sync(true, RequiresElevation());
-            _runAtStartupItem!.IsChecked = _startupManager.IsEnabled();
+            _tray.SetRunAtStartupChecked(_startupManager.IsEnabled());
         }
     }
 
@@ -571,7 +512,7 @@ public partial class App : Application
         }
     }
 
-    private void OnToggleAlwaysOnTop(object? sender, EventArgs e)
+    private void OnToggleAlwaysOnTop()
     {
         bool onTop = _settingsController.ToggleAlwaysOnTop();
         foreach (WidgetHost host in _hosts)
@@ -579,10 +520,10 @@ public partial class App : Application
             host.SetAlwaysOnTop(onTop);
         }
 
-        _alwaysOnTopItem.IsChecked = onTop;
+        _tray.SetAlwaysOnTopChecked(onTop);
     }
 
-    private void OnToggleSnap(object? sender, EventArgs e)
+    private void OnToggleSnap()
     {
         bool snap = _settingsController.ToggleSnapToEdges();
         foreach (WidgetHost host in _hosts)
@@ -590,10 +531,10 @@ public partial class App : Application
             host.SetSnapEnabled(snap);
         }
 
-        _snapItem.IsChecked = snap;
+        _tray.SetSnapChecked(snap);
     }
 
-    private void OnToggleRunAtStartup(object? sender, EventArgs e)
+    private void OnToggleRunAtStartup()
     {
         if (_startupManager is null)
         {
@@ -606,13 +547,13 @@ public partial class App : Application
         _startupManager.Sync(target, RequiresElevation());
 
         // Reflect what is actually registered, so a declined UAC prompt reverts the checkmark.
-        _runAtStartupItem!.IsChecked = _startupManager.IsEnabled();
+        _tray.SetRunAtStartupChecked(_startupManager.IsEnabled());
     }
 
     // Opens the uninstall confirmation. Installed builds only; the menu item is not shown otherwise.
     // Reuses a single window so repeated clicks focus the existing prompt rather than stacking duplicates.
     [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-    private void OnUninstall(object? sender, EventArgs e)
+    private void OnUninstall()
     {
         if (_confirmUninstallWindow is not null)
         {
@@ -703,7 +644,7 @@ public partial class App : Application
     // launch check followed by a manual check focuses the existing prompt rather than stacking a second.
     private void ShowUpdateAvailable(string version, string url)
     {
-        AddUpdateTrayItem(version, url);
+        _tray.ShowUpdateAvailable(version, url, _updateFlow.CanApplyInApp);
 
         if (_updatePromptWindow is not null)
         {
@@ -719,21 +660,25 @@ public partial class App : Application
         _updatePromptWindow.SkipRequested += (_, _) =>
         {
             _settingsController.SetSkippedUpdateVersion(version);
-            RemoveUpdateTrayItem();
+            _tray.RemoveUpdateItem();
         };
-        _updatePromptWindow.InstallRequested += async (_, _) =>
-        {
-            try
-            {
-                await _updateFlow.ApplyAndRestartAsync();
-            }
-            catch (Exception)
-            {
-                ShowUpdateInfo(UpdatePromptViewModel.ForFailed());
-            }
-        };
+        _updatePromptWindow.InstallRequested += (_, _) => ApplyUpdateInApp();
         _updatePromptWindow.Closed += (_, _) => _updatePromptWindow = null;
         _updatePromptWindow.Show();
+    }
+
+    // Applies the pending update in place and restarts; on failure surfaces the failure prompt. Shared by
+    // the update prompt's install button and the tray's update item.
+    private async void ApplyUpdateInApp()
+    {
+        try
+        {
+            await _updateFlow.ApplyAndRestartAsync();
+        }
+        catch (Exception)
+        {
+            ShowUpdateInfo(UpdatePromptViewModel.ForFailed());
+        }
     }
 
     private void ShowUpdateInfo(UpdatePromptViewModel viewModel)
@@ -749,38 +694,6 @@ public partial class App : Application
         _updatePromptWindow.Show();
     }
 
-    private void AddUpdateTrayItem(string version, string url)
-    {
-        if (_updateAvailableItem is not null)
-        {
-            _updateAvailableItem.Header = $"Update available (v{version})";
-            return;
-        }
-
-        _updateAvailableItem = new NativeMenuItem($"Update available (v{version})");
-        if (_updateFlow.CanApplyInApp)
-        {
-            _updateAvailableItem.Click += async (_, _) =>
-            {
-                try
-                {
-                    await _updateFlow.ApplyAndRestartAsync();
-                }
-                catch (Exception)
-                {
-                    ShowUpdateInfo(UpdatePromptViewModel.ForFailed());
-                }
-            };
-        }
-        else
-        {
-            _updateAvailableItem.Click += (_, _) => OpenReleasePage(url);
-        }
-
-        _trayMenu.Items.Insert(0, _updateAvailableItem);
-        _trayMenu.Items.Insert(1, new NativeMenuItemSeparator());
-    }
-
     // Opens a release page in the default browser. Best effort: a broken shell association must not
     // crash the tray click.
     private static void OpenReleasePage(string url)
@@ -792,27 +705,6 @@ public partial class App : Application
         catch (Exception ex) when (ex is Win32Exception or InvalidOperationException)
         {
         }
-    }
-
-    private void RemoveUpdateTrayItem()
-    {
-        if (_updateAvailableItem is null)
-        {
-            return;
-        }
-
-        int index = _trayMenu.Items.IndexOf(_updateAvailableItem);
-        if (index >= 0)
-        {
-            _trayMenu.Items.RemoveAt(index);
-            // Remove the separator inserted directly after the item.
-            if (index < _trayMenu.Items.Count && _trayMenu.Items[index] is NativeMenuItemSeparator)
-            {
-                _trayMenu.Items.RemoveAt(index);
-            }
-        }
-
-        _updateAvailableItem = null;
     }
 
     // Resolves the saved zone id to a TimeZoneInfo, falling back to local if it is missing or the
