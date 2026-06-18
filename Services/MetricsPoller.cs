@@ -10,6 +10,7 @@ public sealed class MetricsPoller : IDisposable
     private readonly ISensorSource _source;
     private readonly TimeSpan _interval;
     private CancellationTokenSource? _cts;
+    private Task? _loop;
 
     public event Action<MetricsSnapshot>? SnapshotReady;
 
@@ -26,7 +27,7 @@ public sealed class MetricsPoller : IDisposable
         // Start the loop is invoked from the UI thread, which carries Avalonia's SynchronizationContext.
         // Task.Run hops to the thread pool so the loop (and every sensor read) runs off the UI thread;
         // otherwise the await continuation would post each read back to the UI thread and stutter drags.
-        _ = Task.Run(() => RunAsync(_cts.Token));
+        _loop = Task.Run(() => RunAsync(_cts.Token));
     }
 
     private async Task RunAsync(CancellationToken token)
@@ -67,6 +68,22 @@ public sealed class MetricsPoller : IDisposable
     public void Dispose()
     {
         _cts?.Cancel();
+
+        // Wait for any in-flight read to finish before returning. The owner disposes the sensor source
+        // right after this, and closing LibreHardwareMonitor (and its kernel driver) while a read is
+        // still running faults natively, which is the crash seen on Windows shutdown. The wait is bounded
+        // so a hung read cannot stall shutdown indefinitely. Safe to wait from the UI thread: the loop
+        // only ever posts to the dispatcher, which does not block.
+        try
+        {
+            _loop?.Wait(TimeSpan.FromSeconds(2));
+        }
+        catch (AggregateException)
+        {
+            // The loop never surfaces faults (Emit swallows read errors, cancellation is handled), so a
+            // fault here is not actionable; disposing proceeds regardless.
+        }
+
         _cts?.Dispose();
     }
 }
