@@ -34,14 +34,14 @@
                                Text="{Binding Label}"
                                FontSize="18"
                                FontWeight="Bold"
-                               Foreground="#C2C9D4"
+                               Foreground="{DynamicResource Widget.Text.Label}"
                                VerticalAlignment="Center" />
                     <TextBlock Grid.Column="1"
                                Text="{Binding Detail}"
                                Opacity="{Binding PowerVisible, Converter={StaticResource BoolToOpacity}}"
                                FontSize="18"
                                FontWeight="Bold"
-                               Foreground="#BCC3CE"
+                               Foreground="{DynamicResource Widget.Text.Secondary}"
                                VerticalAlignment="Center" />
                 </Grid>
 
@@ -69,7 +69,7 @@
                                VerticalAlignment="Bottom"
                                Margin="0,0,0,4"
                                Opacity="{Binding UsageVisible, Converter={StaticResource BoolToOpacity}}"
-                               Foreground="#EEF0F3"><Run Text="{Binding Value}" FontSize="24" FontWeight="Bold" /><Run Text=" " FontSize="8" /><Run Text="%" FontSize="14" FontWeight="SemiBold" /></TextBlock>
+                               Foreground="{DynamicResource Widget.Text.Primary}"><Run Text="{Binding Value}" FontSize="24" FontWeight="Bold" /><Run Text=" " FontSize="8" /><Run Text="%" FontSize="14" FontWeight="SemiBold" /></TextBlock>
                 </Grid>
 
                 <ProgressBar Classes="metric"
@@ -89,10 +89,10 @@
                                Text="{Binding Label}"
                                FontSize="16"
                                FontWeight="Bold"
-                               Foreground="#AEB6C2"
+                               Foreground="{DynamicResource Widget.Text.Label}"
                                VerticalAlignment="Center" />
                     <TextBlock Grid.Column="1"
-                               VerticalAlignment="Center"><Run Text="{Binding Value}" FontSize="16" FontWeight="Bold" Foreground="#EEF0F3" /><Run Text=" " /><Run Text="{Binding Detail}" FontSize="13" FontWeight="SemiBold" Foreground="#AEB6C2" /></TextBlock>
+                               VerticalAlignment="Center"><Run Text="{Binding Value}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource Widget.Text.Primary}" /><Run Text=" " /><Run Text="{Binding Detail}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Widget.Text.Secondary}" /></TextBlock>
                 </Grid>
 
                 <ProgressBar Classes="metric"
@@ -110,7 +110,7 @@
             <Setter Property="Height" Value="5" />
             <Setter Property="MinWidth" Value="0" />
             <Setter Property="CornerRadius" Value="0" />
-            <Setter Property="Background" Value="#40FFFFFF" />
+            <Setter Property="Background" Value="{DynamicResource Widget.Bar.Track}" />
         </Style>
         <Style Selector="ProgressBar.metric /template/ Border#PART_Indicator">
             <Setter Property="CornerRadius" Value="0" />
