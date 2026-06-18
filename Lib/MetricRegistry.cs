@@ -34,6 +34,11 @@ public static class MetricRegistry
     public static IEnumerable<MetricEntry> ForCard(string card) =>
         All.Where(entry => entry.Card == card);
 
+    // True when at least one of the card's metrics is visible. Absent keys default to visible, matching
+    // the render path: a fresh install with an empty visibility map shows every metric.
+    public static bool AnyVisible(string card, IReadOnlyDictionary<string, bool> visibility) =>
+        ForCard(card).Any(entry => visibility.GetValueOrDefault(entry.Key, true));
+
     // Elevation is required only for an elevation-flagged metric the user has explicitly turned on.
     // Absent keys default to false, so a fresh install (empty visibility map) never requires elevation
     // and never prompts at first launch.

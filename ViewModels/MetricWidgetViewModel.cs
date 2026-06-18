@@ -127,24 +127,31 @@ public partial class MetricWidgetViewModel : ObservableObject, IWidgetAppearance
     {
         bool Visible(string key) => _visibility.GetValueOrDefault(key, true);
 
-        switch (row.Key)
+        List<MetricEntry> metrics = MetricRegistry.ForCard(row.Key).ToList();
+
+        // A single-metric card (RAM, VRAM) collapses as a whole; a compute card (CPU, GPU) keeps its
+        // slots in place and toggles each element by its metric key suffix.
+        if (metrics.Count == 1)
         {
-            case "cpu":
-                row.UsageVisible = Visible("cpu.usage");
-                row.TempVisible = Visible("cpu.temp");
-                row.PowerVisible = Visible("cpu.power");
-                break;
-            case "gpu":
-                row.UsageVisible = Visible("gpu.usage");
-                row.TempVisible = Visible("gpu.temp");
-                row.PowerVisible = Visible("gpu.power");
-                break;
-            case "ram":
-                row.IsVisible = Visible("ram.usage");
-                break;
-            case "vram":
-                row.IsVisible = Visible("vram.usage");
-                break;
+            row.IsVisible = Visible(metrics[0].Key);
+            return;
+        }
+
+        foreach (MetricEntry metric in metrics)
+        {
+            bool visible = Visible(metric.Key);
+            switch (metric.Key[(metric.Card.Length + 1)..])
+            {
+                case "usage":
+                    row.UsageVisible = visible;
+                    break;
+                case "temp":
+                    row.TempVisible = visible;
+                    break;
+                case "power":
+                    row.PowerVisible = visible;
+                    break;
+            }
         }
     }
 }

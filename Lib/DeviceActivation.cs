@@ -15,14 +15,11 @@ public static class DeviceActivation
         bool cpuWidgetShown,
         bool gpuWidgetShown)
     {
-        bool Visible(string key) => visibility.GetValueOrDefault(key, true);
+        bool CardVisible(string card) => MetricRegistry.AnyVisible(card, visibility);
 
-        bool cpu = cpuWidgetShown
-            && (Visible("cpu.usage") || Visible("cpu.temp") || Visible("cpu.power"));
-        bool memory = cpuWidgetShown && Visible("ram.usage");
-        bool gpu = gpuWidgetShown
-            && (Visible("gpu.usage") || Visible("gpu.temp")
-                || Visible("gpu.power") || Visible("vram.usage"));
+        bool cpu = cpuWidgetShown && CardVisible("cpu");
+        bool memory = cpuWidgetShown && CardVisible("ram");
+        bool gpu = gpuWidgetShown && (CardVisible("gpu") || CardVisible("vram"));
 
         return new Result(cpu, memory, gpu);
     }
