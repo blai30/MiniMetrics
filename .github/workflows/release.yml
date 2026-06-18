@@ -54,14 +54,13 @@ jobs:
       - name: Test gate
         run: dotnet test --configuration Release --no-restore
 
-      - name: Publish self-contained single-file
+      - name: Publish default (framework-dependent) folder
         run: >
           dotnet publish MiniMetrics.csproj -c Release -r win-x64
-          --self-contained true
-          -p:PublishSingleFile=true
-          -p:IncludeNativeLibrariesForSelfExtract=true
+          --self-contained false
+          -p:PublishSingleFile=false
           -p:Version=$env:VERSION
-          -o publish/sc-singlefile
+          -o publish/fd-folder
 
       - name: Publish self-contained folder
         run: >
@@ -71,40 +70,13 @@ jobs:
           -p:Version=$env:VERSION
           -o publish/sc-folder
 
-      - name: Publish framework-dependent single-file
-        run: >
-          dotnet publish MiniMetrics.csproj -c Release -r win-x64
-          --self-contained false
-          -p:PublishSingleFile=true
-          -p:IncludeNativeLibrariesForSelfExtract=true
-          -p:Version=$env:VERSION
-          -o publish/fd-singlefile
-
-      - name: Publish framework-dependent folder
-        run: >
-          dotnet publish MiniMetrics.csproj -c Release -r win-x64
-          --self-contained false
-          -p:PublishSingleFile=false
-          -p:Version=$env:VERSION
-          -o publish/fd-folder
-
       - name: Install Velopack CLI
         run: dotnet tool install -g vpk
 
-      - name: Pack Velopack self-contained channel
-        run: >
-          vpk pack
-          --packId MiniMetrics
-          --packVersion $env:VERSION
-          --packDir publish/sc-folder
-          --mainExe MiniMetrics.exe
-          --packTitle MiniMetrics
-          --packAuthors "Brian Lai"
-          --icon Assets/minimetrics.ico
-          --channel sc
-          --outputDir velopack/sc
-
-      - name: Pack Velopack framework-dependent channel
+      # Default channel: framework-dependent. No --framework is declared, so the installer never
+      # downloads or installs the .NET runtime. If it is missing, the .NET apphost points the user to the
+      # runtime download on first launch.
+      - name: Pack Velopack default channel
         run: >
           vpk pack
           --packId MiniMetrics
@@ -117,27 +89,44 @@ jobs:
           --channel fd
           --outputDir velopack/fd
 
-      - name: Package artifacts
+      - name: Pack Velopack selfcontained channel
+        run: >
+          vpk pack
+          --packId MiniMetrics
+          --packVersion $env:VERSION
+          --packDir publish/sc-folder
+          --mainExe MiniMetrics.exe
+          --packTitle MiniMetrics
+          --packAuthors "Brian Lai"
+          --icon Assets/minimetrics.ico
+          --channel selfcontained
+          --outputDir velopack/sc
+
+      # Give the bootstrappers friendly names. The default (framework-dependent) Setup and Portable are
+      # unqualified; the self-contained ones keep the selfcontained marker. Only the standalone Setup.exe
+      # and Portable.zip are renamed; the .nupkg and releases.*.json feed files are left untouched because
+      # the in-app updater fetches them by their exact names.
+      - name: Name release assets
         run: |
-          Copy-Item publish/sc-singlefile/MiniMetrics.exe "MiniMetrics-v$env:VERSION-selfcontained.exe"
-          Copy-Item publish/fd-singlefile/MiniMetrics.exe "MiniMetrics-v$env:VERSION.exe"
-          Compress-Archive -Path (Get-ChildItem publish/sc-folder -Exclude *.pdb) -DestinationPath "MiniMetrics-v$env:VERSION-selfcontained.zip" -Force
-          Compress-Archive -Path (Get-ChildItem publish/fd-folder -Exclude *.pdb) -DestinationPath "MiniMetrics-v$env:VERSION.zip" -Force
-          Compress-Archive -Path (Get-ChildItem publish/sc-folder -Filter *.pdb)  -DestinationPath "MiniMetrics-v$env:VERSION-debug-symbols.zip" -Force
+          function Set-AssetName($dir, $filter, $target) {
+            $file = Get-ChildItem $dir -Filter $filter | Select-Object -First 1
+            if ($file -and $file.Name -ne $target) {
+              Rename-Item -Path $file.FullName -NewName $target
+            }
+          }
+          Set-AssetName velopack/fd "*Setup.exe"   "MiniMetrics-Setup.exe"
+          Set-AssetName velopack/fd "*Portable.zip" "MiniMetrics-Portable.zip"
+          Set-AssetName velopack/sc "*Setup.exe"   "MiniMetrics-Setup-selfcontained.exe"
+          Set-AssetName velopack/sc "*Portable.zip" "MiniMetrics-Portable-selfcontained.zip"
 
       - name: Create draft release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $velopackAssets = Get-ChildItem -Path velopack/sc, velopack/fd -File | ForEach-Object { $_.FullName }
+          $assets = Get-ChildItem -Path velopack/fd, velopack/sc -File | ForEach-Object { $_.FullName }
           gh release create "v$env:VERSION" `
             --draft `
             --generate-notes `
             --target $env:GITHUB_SHA `
             --title "v$env:VERSION" `
-            "MiniMetrics-v$env:VERSION-selfcontained.exe" `
-            "MiniMetrics-v$env:VERSION-selfcontained.zip" `
-            "MiniMetrics-v$env:VERSION.exe" `
-            "MiniMetrics-v$env:VERSION.zip" `
-            "MiniMetrics-v$env:VERSION-debug-symbols.zip" `
-            @velopackAssets
+            @assets

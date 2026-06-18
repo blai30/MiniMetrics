@@ -11,7 +11,7 @@ A mini widget display for performance metrics that sits on your desktop. MiniMet
 ## Requirements
 
 - Windows 10 or 11, 64-bit (x64)
-- The framework-dependent builds require the [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0). The self-contained builds need nothing extra.
+- The default builds require the [.NET 10 Runtime](https://dotnet.microsoft.com/download/dotnet/10.0). The `selfcontained` builds bundle it and need nothing extra.
 - For full hardware sensor access (for example CPU temperature and power), the app needs administrator rights and the [PawnIO](https://pawnio.eu/) driver. It asks for elevation only when you enable those metrics, points you to the driver if it is missing, and can start silently elevated at logon. See [Administrator rights and startup](docs/elevation-and-startup.md) for details.
 
 ## Features
@@ -29,26 +29,21 @@ A mini widget display for performance metrics that sits on your desktop. MiniMet
 
 ## Download
 
-Grab the newest build from the [latest release](https://github.com/blai30/MiniMetrics/releases/latest). Not sure which to pick? Use **`MiniMetrics-sc-Setup.exe`**, the recommended installer. The other files cover specific preferences, explained below.
+Grab the newest build from the [latest release](https://github.com/blai30/MiniMetrics/releases/latest). Not sure which to pick? Use **`MiniMetrics-Setup.exe`**, the recommended installer. Every build installs one-click (no wizard) and updates itself in place; the choice is just two preferences:
 
-Two questions decide which one you want:
+- **Install or portable?** The installers (`-Setup.exe`) put MiniMetrics in your user profile with a Start Menu shortcut. The portable builds (`-Portable.zip`) run from wherever you unzip them. Both keep themselves up to date.
+- **Do you have the [.NET 10 Runtime](https://dotnet.microsoft.com/download/dotnet/10.0)?** The default builds need it (they are smaller). If you do not have it, or are unsure, use a `selfcontained` build; it bundles the runtime and needs nothing else.
 
-- **Should MiniMetrics keep itself up to date?** The installers (`-Setup.exe`) and the portable bundles (`-Portable.zip`) update themselves in place. The plain portable builds do not; they only notify you when a new version is out and link back here. So if you want portable *and* self-updating, pick a `-Portable.zip`.
-- **Do you already have the [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0)?** If so, the smaller default builds work. If not, or you are unsure, pick a `selfcontained` build; it bundles the runtime and needs nothing extra.
+| Download | Runs without installing | Needs .NET 10 Runtime |
+| --- | --- | --- |
+| `MiniMetrics-Setup.exe` | No (installs) | Yes |
+| `MiniMetrics-Portable.zip` | Yes | Yes |
+| `MiniMetrics-Setup-selfcontained.exe` | No (installs) | No (bundled) |
+| `MiniMetrics-Portable-selfcontained.zip` | Yes | No (bundled) |
 
-| Download | Self-updating | Needs .NET 10 | Pick this if |
-| --- | --- | --- | --- |
-| `MiniMetrics-sc-Setup.exe` | Yes | No | Recommended. Installs, updates in place, uninstalls cleanly. Bundles the runtime. |
-| `MiniMetrics-fd-Setup.exe` | Yes | Yes | Same installer, smaller, when you already have the runtime. |
-| `MiniMetrics-sc-Portable.zip` | Yes | No | Portable but still self-updating. Unzip and run, no install, stays current. |
-| `MiniMetrics-fd-Portable.zip` | Yes | Yes | Same self-updating portable, smaller, when you have the runtime. |
-| `MiniMetrics-v<version>-selfcontained.exe` | No | No | Plain portable. One loose file, nothing to install; you update it yourself. |
-| `MiniMetrics-v<version>-selfcontained.zip` | No | No | Same as a folder. Unzip and run `MiniMetrics.exe`. |
-| `MiniMetrics-v<version>.exe` | No | Yes | Plain portable, smallest single file, when you have the runtime. |
-| `MiniMetrics-v<version>.zip` | No | Yes | Same as a folder. Unzip and run. |
-| `MiniMetrics-v<version>-debug-symbols.zip` | - | - | Only needed for diagnosing crash reports. |
+If you pick a default build without the .NET 10 Runtime installed, Windows tells you on first launch and links you to the download; install it and reopen MiniMetrics. The `selfcontained` builds never need this.
 
-The release also includes `.nupkg` and `releases.*.json` / `assets.*.json` files. The self-updating builds use those to fetch updates; you do not download them directly.
+The release also includes `.nupkg` and `releases.*.json` files, which the builds use to fetch their own updates; you do not download them directly.
 
 The builds and the installer are unsigned, so Windows SmartScreen may warn on first launch. Choose "More info" then "Run anyway".
 
