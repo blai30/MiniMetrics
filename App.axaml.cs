@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -104,6 +105,10 @@ public partial class App : Application
 
             _dateTimeViewModel = new DateTimeWidgetViewModel();
             _dateTimeViewModel.SetTimeZone(ResolveTimeZone(_settings.TimeZoneId));
+            _dateTimeViewModel.SetLocale(ResolveLocale(_settings.ClockLocaleId));
+            _dateTimeViewModel.SetFormats(
+                _settings.ClockTimeFormat, _settings.ClockDateFormat,
+                _settings.ClockTimeFormatHover, _settings.ClockDateFormatHover);
 
             _appearances = new IWidgetAppearance[] { _cpuViewModel, _gpuViewModel, _dateTimeViewModel };
             ApplyAppearanceToWidgets();
@@ -418,6 +423,8 @@ public partial class App : Application
         viewModel.AppearanceChanged += () => OnAppearanceChanged(viewModel);
         viewModel.MetricVisibilityChanged += OnMetricVisibilityChanged;
         viewModel.TimeZoneChanged += () => OnTimeZoneChanged(viewModel);
+        viewModel.ClockFormatsChanged += () => OnClockFormatsChanged(viewModel);
+        viewModel.ClockLocaleChanged += () => OnClockLocaleChanged(viewModel);
         viewModel.UpdatePreferencesChanged += () =>
             _settingsController.SetUpdatePreferences(viewModel.UpdateCheckEnabled, viewModel.UpdateFrequency);
 
@@ -444,10 +451,28 @@ public partial class App : Application
     private void OnTimeZoneChanged(SettingsViewModel viewModel)
     {
         // Local time persists as a null id; ResolveTimeZone(null) maps back to the machine zone,
-        // keeping this consistent with the startup path.
-        string? id = viewModel.UseLocalTime ? null : viewModel.SelectedTimeZone.Id;
+        // keeping this consistent with the startup path. SelectedTimeZone can be momentarily null while
+        // the user types in the search box, which also maps to local.
+        string? id = viewModel.UseLocalTime || viewModel.SelectedTimeZone is null ? null : viewModel.SelectedTimeZone.Id;
         _settingsController.SetTimeZone(id);
         _dateTimeViewModel.SetTimeZone(ResolveTimeZone(id));
+    }
+
+    private void OnClockFormatsChanged(SettingsViewModel viewModel)
+    {
+        _settingsController.SetClockFormats(
+            viewModel.ClockTimeFormat, viewModel.ClockDateFormat,
+            viewModel.ClockTimeFormatHover, viewModel.ClockDateFormatHover);
+        _dateTimeViewModel.SetFormats(
+            viewModel.ClockTimeFormat, viewModel.ClockDateFormat,
+            viewModel.ClockTimeFormatHover, viewModel.ClockDateFormatHover);
+    }
+
+    private void OnClockLocaleChanged(SettingsViewModel viewModel)
+    {
+        // SelectedLocale always comes from the list, so its Name is a valid culture name to persist.
+        _settingsController.SetClockLocale(viewModel.SelectedLocale.Name);
+        _dateTimeViewModel.SetLocale(viewModel.SelectedLocale);
     }
 
     // Re-entrancy guard: RevertMetricToggle flips a toggle back, which re-raises this event; the guard
@@ -810,6 +835,25 @@ public partial class App : Application
         catch (InvalidTimeZoneException)
         {
             return TimeZoneInfo.Local;
+        }
+    }
+
+    // Resolves the saved locale id to a CultureInfo, falling back to the machine's current culture if
+    // it is missing or unknown on this machine.
+    private static CultureInfo ResolveLocale(string? id)
+    {
+        if (string.IsNullOrEmpty(id))
+        {
+            return CultureInfo.CurrentCulture;
+        }
+
+        try
+        {
+            return CultureInfo.GetCultureInfo(id);
+        }
+        catch (CultureNotFoundException)
+        {
+            return CultureInfo.CurrentCulture;
         }
     }
 

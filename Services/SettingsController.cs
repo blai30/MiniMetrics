@@ -58,6 +58,24 @@ public sealed class SettingsController
         ScheduleSave();
     }
 
+    // Records the four clock format strings (null or blank means "use the built-in default" for that
+    // line), persisting on the debounce so a burst of edits writes once.
+    public void SetClockFormats(string? time, string? date, string? timeHover, string? dateHover)
+    {
+        _settings.ClockTimeFormat = time;
+        _settings.ClockDateFormat = date;
+        _settings.ClockTimeFormatHover = timeHover;
+        _settings.ClockDateFormatHover = dateHover;
+        ScheduleSave();
+    }
+
+    // Records the chosen clock locale id (null = machine current culture), persisting on the debounce.
+    public void SetClockLocale(string? localeId)
+    {
+        _settings.ClockLocaleId = localeId;
+        ScheduleSave();
+    }
+
     public void SetCpuPosition(int x, int y) { _settings.X = x; _settings.Y = y; ScheduleSave(); }
     public void SetGpuPosition(int x, int y) { _settings.GpuX = x; _settings.GpuY = y; ScheduleSave(); }
     public void SetDateTimePosition(int x, int y) { _settings.DateTimeX = x; _settings.DateTimeY = y; ScheduleSave(); }
