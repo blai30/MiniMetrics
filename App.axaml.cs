@@ -27,8 +27,7 @@ public partial class App : Application
 {
     private MetricsPoller? _poller;
     private ISensorSource? _source;
-    private IElevation _elevation = null!;
-    private IDriverProbe _driverProbe = null!;
+    private ElevationCoordinator _elevationCoordinator = null!;
     private SettingsController _settingsController = null!;
     private Settings _settings = null!;
     private MetricWidgetViewModel _cpuViewModel = null!;
@@ -108,13 +107,15 @@ public partial class App : Application
                 ? new HardwareSensorSource(new LibreHardwareTree())
                 : new MockSensorSource();
 
-            _elevation = OperatingSystem.IsWindows()
+            IElevation elevation = OperatingSystem.IsWindows()
                 ? new WindowsElevation()
                 : new NoopElevation();
 
-            _driverProbe = OperatingSystem.IsWindows()
+            IDriverProbe driverProbe = OperatingSystem.IsWindows()
                 ? new WindowsDriverProbe()
                 : new NoopDriverProbe();
+
+            _elevationCoordinator = new ElevationCoordinator(elevation, driverProbe);
 
             _widgetCoordinator = new WidgetCoordinator(_settingsController, _cpuViewModel, _gpuViewModel, _source);
 
@@ -208,7 +209,7 @@ public partial class App : Application
             // A driver-backed metric is enabled but PawnIO is missing: the launch gate did not relaunch
             // elevated (elevation alone cannot read the sensors), so surface the one-time install step
             // rather than leaving the metric silently blank.
-            if (OperatingSystem.IsWindows() && RequiresElevation() && !_driverProbe.IsInstalled())
+            if (OperatingSystem.IsWindows() && _elevationCoordinator.NeedsDriverInstallPrompt(_settings.Visibility))
             {
                 ShowPawnIoPrompt();
             }
@@ -249,7 +250,7 @@ public partial class App : Application
             // startup is on, migrate the registration to match the current elevation need. Because the
             // process is already elevated, this creates or removes the scheduled task with no prompt,
             // which is what keeps enabling a CPU sensor to a single UAC prompt overall.
-            if (_elevation.IsElevated() && _startupManager.IsEnabled())
+            if (_elevationCoordinator.IsElevated() && _startupManager.IsEnabled())
             {
                 _startupManager.Sync(true, RequiresElevation());
             }
@@ -437,31 +438,32 @@ public partial class App : Application
             return;
         }
 
-        // Turning an elevation metric on while not elevated: relaunch elevated so we can open the
-        // PawnIO driver device. Settings were just persisted, so the elevated instance reads the enabled
-        // state from disk and reconciles startup registration itself (one UAC prompt total).
-        if (visible && !_elevation.IsElevated())
+        // The coordinator decides what enabling this metric implies right now: relaunch elevated, point
+        // the user at the PawnIO installer, or nothing (turned off, or already elevated).
+        switch (_elevationCoordinator.DecideMetricEnable(key, visible))
         {
-            // Elevation only helps once PawnIO is installed; its device admits administrators only.
-            // Without the driver, relaunching elevated would read nothing, so point the user at the
-            // installer instead. The metric stays enabled and renders a placeholder until the driver is
-            // present, at which point it starts working.
-            if (!_driverProbe.IsInstalled())
-            {
+            case MetricEnableAction.DriverInstallPrompt:
+                // Elevation only helps once PawnIO is installed; its device admits administrators only.
+                // Without the driver, relaunching elevated would read nothing, so point the user at the
+                // installer instead. The metric stays enabled and renders a placeholder until the driver
+                // is present, at which point it starts working.
                 ShowPawnIoPrompt();
                 return;
-            }
 
-            _settingsController.Flush();
-            if (_elevation.RelaunchElevated(Environment.ProcessPath!))
-            {
-                (ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.Shutdown();
+            case MetricEnableAction.Relaunch:
+                // Relaunch elevated so we can open the PawnIO driver device. Settings were just
+                // persisted, so the elevated instance reads the enabled state from disk and reconciles
+                // startup registration itself (one UAC prompt total).
+                _settingsController.Flush();
+                if (_elevationCoordinator.RelaunchElevated(Environment.ProcessPath!))
+                {
+                    (ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.Shutdown();
+                    return;
+                }
+
+                // UAC declined: put the metric back to off and keep running non-elevated.
+                RevertMetricToggle(key);
                 return;
-            }
-
-            // UAC declined: put the metric back to off and keep running non-elevated.
-            RevertMetricToggle(key);
-            return;
         }
 
         // Reconcile startup registration to match the new elevation need. A scheduled task that is no
@@ -600,8 +602,9 @@ public partial class App : Application
     }
 
     // Some metrics are read through the PawnIO driver, whose device only an elevated process can open;
-    // elevation is required while any such metric is visible.
-    private bool RequiresElevation() => MetricRegistry.RequiresElevation(_settings.Visibility);
+    // elevation is required while any such metric is visible. Asks the coordinator so the predicate
+    // lives in one place.
+    private bool RequiresElevation() => _elevationCoordinator.RequiresElevation(_settings.Visibility);
 
     // Surfaces the one-time PawnIO install prompt, reusing a single instance so repeated toggles focus
     // the existing window rather than stacking duplicates.
