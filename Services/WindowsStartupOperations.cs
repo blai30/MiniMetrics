@@ -1,7 +1,10 @@
+using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.Versioning;
+using System.Security.Principal;
 using Microsoft.Win32;
+using MiniMetrics.Lib;
 
 namespace MiniMetrics.Services;
 
@@ -42,12 +45,54 @@ public sealed class WindowsStartupOperations : IStartupOperations
     {
         string arguments =
             $"/Create /TN \"{TaskName}\" /TR \"\\\"{exePath}\\\"\" /SC ONLOGON /RL HIGHEST /F";
-        return RunSchtasks(arguments, elevated: true) == 0;
+        if (RunSchtasks(arguments, elevated: true) != 0)
+        {
+            return false;
+        }
+
+        GrantCurrentUserDelete();
+        return true;
     }
 
+    // New tasks grant the user delete rights, so the non-elevated delete succeeds with no prompt. Tasks
+    // created by older versions are admin-only, so fall back to the elevated path (one UAC prompt).
     public bool RemoveTask()
     {
-        return RunSchtasks($"/Delete /TN \"{TaskName}\" /F", elevated: true) == 0;
+        return RemoveTaskNonElevated()
+            || RunSchtasks($"/Delete /TN \"{TaskName}\" /F", elevated: true) == 0;
+    }
+
+    // Deletes the task without elevating or showing UI. Used by the uninstall FastCallback, which must not
+    // show a UAC prompt and is terminated after 30 seconds.
+    public bool RemoveTaskNonElevated()
+    {
+        return RunSchtasks($"/Delete /TN \"{TaskName}\" /F", elevated: false) == 0;
+    }
+
+    // Grants the current user delete rights on the just-created task via the Task Scheduler COM API, so a
+    // later non-elevated uninstall can remove it. Best-effort: task creation only runs while elevated, but if
+    // setting the descriptor fails the task is still created and works, just admin-only-deletable as before.
+    private static void GrantCurrentUserDelete()
+    {
+        try
+        {
+            dynamic service = Activator.CreateInstance(Type.GetTypeFromProgID("Schedule.Service")!)!;
+            service.Connect();
+            dynamic folder = service.GetFolder(@"\MiniMetrics");
+            dynamic task = folder.GetTask("Autostart");
+
+            const int daclSecurityInformation = 0x4;
+            string existing = task.GetSecurityDescriptor(daclSecurityInformation);
+            string updated = AutostartTaskSecurity.GrantUserDelete(existing, WindowsIdentity.GetCurrent().User!);
+            if (updated != existing)
+            {
+                task.SetSecurityDescriptor(updated, 0);
+            }
+        }
+        catch
+        {
+            // See method summary: descriptor update is best-effort.
+        }
     }
 
     // Runs schtasks.exe and returns its exit code, or -1 if the call could not start or the
