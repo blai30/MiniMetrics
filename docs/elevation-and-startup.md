@@ -45,7 +45,7 @@ This is why the experience feels seamless in normal use: you grant rights once, 
 
 ## Removing MiniMetrics and clearing the startup entry
 
-If you used the installer, the cleanest removal is the tray menu's **Uninstall MiniMetrics**. It removes the elevated startup task first (you will see one UAC prompt; declining cancels the uninstall), then clears the startup entry and removes the app. Uninstalling from Windows Settings or Add/Remove Programs also works and clears the startup Run key, but it cannot show a prompt, so a leftover elevated scheduled task (only present if you had CPU temperature or power on) may remain; clear it with the Task Scheduler steps below.
+If you used the installer, either removal path now removes MiniMetrics completely. The tray menu's **Uninstall MiniMetrics** clears the elevated startup task, the startup entry, and the app. Uninstalling from Windows Settings or Add/Remove Programs does the same: it clears the startup Run key and the elevated scheduled task as well, because the task is created so that your own account can remove it without a prompt. The one exception is a scheduled task left over from a much older version of MiniMetrics, which only an administrator could delete; if you ever enabled CPU temperature or power on such a build, clear it with the Task Scheduler steps below.
 
 MiniMetrics is a portable app: there is no installer, so you remove it by deleting the program. The catch is that "Run at startup" records where the program lives, and deleting the program does not erase that record. The result is a leftover startup entry that points at a file that no longer exists.
 

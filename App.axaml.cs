@@ -500,7 +500,8 @@ public partial class App : Application
 
         // Reconcile startup registration to match the new elevation need. A scheduled task that is no
         // longer needed is removed even while unelevated: Sync only touches the task when one exists and is
-        // no longer wanted, and RemoveTask elevates via runas, so a UAC prompt appears only in that case.
+        // no longer wanted, and RemoveTask tries a non-elevated delete first, only prompting (runas) as a
+        // fallback for tasks left by older versions that an administrator alone can delete.
         // Turning a metric on while unelevated returns earlier into the relaunch path and never reaches
         // here, so this block only ever reduces or keeps the elevation requirement.
         if (_startupManager is not null && _startupManager.IsEnabled())
@@ -615,22 +616,30 @@ public partial class App : Application
         _confirmUninstallWindow.Show();
     }
 
-    // Runs the ordered in-app uninstall: remove the elevated scheduled task first (a declined UAC prompt
-    // aborts the whole thing and leaves everything in place), then the run key, then hand off to Velopack's
-    // uninstaller. Both outcomes are terminal for the app, so the result is not acted on further here.
+    // Runs the ordered in-app uninstall: remove the scheduled task first, then the run key, then hand off to
+    // Velopack's uninstaller. Tasks created by this version delete without a prompt; a task left by an older
+    // version is admin-only, so its removal prompts for UAC and a declined prompt aborts the whole thing and
+    // leaves everything in place. On success the app shuts itself down so Velopack can delete the install
+    // directory, shortcuts, and Add/Remove Programs entry; while this process is alive those files stay
+    // locked and the uninstall only partially completes. An aborted outcome leaves everything in place and
+    // keeps running.
     [System.Runtime.Versioning.SupportedOSPlatform("windows")]
     private void RunUninstall()
     {
         var coordinator = new UninstallCoordinator(
             new WindowsStartupOperations(),
             LaunchVelopackUninstaller);
-        coordinator.Run();
+
+        if (coordinator.Run() == UninstallOutcome.Completed
+            && ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            desktop.Shutdown();
+        }
     }
 
     private static void LaunchVelopackUninstaller()
     {
-        string root = Directory.GetParent(AppContext.BaseDirectory)!.FullName;
-        string updateExe = Path.Combine(root, "Update.exe");
+        string updateExe = VelopackPaths.ResolveUpdateExe(AppContext.BaseDirectory);
         Process.Start(new ProcessStartInfo
         {
             FileName = updateExe,
