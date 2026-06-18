@@ -195,4 +195,38 @@ public class SettingsControllerTests
         Assert.AreEqual("1.4.0", controller.Current.SkippedUpdateVersion);
         Assert.AreEqual("1.4.0", store.Load().SkippedUpdateVersion);
     }
+
+    [TestMethod]
+    public void SetClockFormats_updates_state_now_but_defers_the_write()
+    {
+        var (controller, store, scheduler) = NewController();
+
+        controller.SetClockFormats("HH:mm", "yyyy-MM-dd", "HH:mm:ss", "u");
+
+        Assert.AreEqual("HH:mm", controller.Current.ClockTimeFormat);
+        Assert.AreEqual(1, scheduler.ScheduleCount);
+        Assert.IsNull(store.Load().ClockTimeFormat);
+
+        controller.Flush();
+
+        Assert.AreEqual("HH:mm", store.Load().ClockTimeFormat);
+        Assert.AreEqual("yyyy-MM-dd", store.Load().ClockDateFormat);
+        Assert.AreEqual("HH:mm:ss", store.Load().ClockTimeFormatHover);
+        Assert.AreEqual("u", store.Load().ClockDateFormatHover);
+    }
+
+    [TestMethod]
+    public void SetClockLocale_updates_state_now_but_defers_the_write()
+    {
+        var (controller, store, _) = NewController();
+
+        controller.SetClockLocale("fr-FR");
+
+        Assert.AreEqual("fr-FR", controller.Current.ClockLocaleId);
+        Assert.IsNull(store.Load().ClockLocaleId);
+
+        controller.Flush();
+
+        Assert.AreEqual("fr-FR", store.Load().ClockLocaleId);
+    }
 }
