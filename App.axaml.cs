@@ -617,14 +617,21 @@ public partial class App : Application
 
     // Runs the ordered in-app uninstall: remove the elevated scheduled task first (a declined UAC prompt
     // aborts the whole thing and leaves everything in place), then the run key, then hand off to Velopack's
-    // uninstaller. Both outcomes are terminal for the app, so the result is not acted on further here.
+    // uninstaller. On success the app shuts itself down so Velopack can delete the install directory,
+    // shortcuts, and Add/Remove Programs entry; while this process is alive those files stay locked and the
+    // uninstall only partially completes. An aborted outcome leaves everything in place and keeps running.
     [System.Runtime.Versioning.SupportedOSPlatform("windows")]
     private void RunUninstall()
     {
         var coordinator = new UninstallCoordinator(
             new WindowsStartupOperations(),
             LaunchVelopackUninstaller);
-        coordinator.Run();
+
+        if (coordinator.Run() == UninstallOutcome.Completed
+            && ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            desktop.Shutdown();
+        }
     }
 
     private static void LaunchVelopackUninstaller()
