@@ -1,7 +1,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using MiniMetrics.Lib;
 
 namespace MiniMetrics.Services;
 
@@ -42,22 +41,13 @@ public sealed class UpdateService
 
             _settings.SetLastUpdateCheck(_nowUtc());
 
-            UpdateDecision decision = UpdatePolicy.Evaluate(
-                _currentVersion, release.TagName, _settings.Current.SkippedUpdateVersion);
-
-            if (!decision.UpdateAvailable)
-            {
-                return UpdateCheckResult.UpToDate(CurrentVersionString());
-            }
-
-            // Auto-checks honor the skip; a manual check shows the update regardless, since the user
-            // explicitly asked.
-            if (!manual && !decision.ShouldNotify)
-            {
-                return UpdateCheckResult.UpToDate(CurrentVersionString());
-            }
-
-            return UpdateCheckResult.UpdateAvailable(decision.LatestVersion!.ToString(), release.HtmlUrl);
+            return UpdateCheckDecision.Evaluate(
+                _currentVersion,
+                release.TagName,
+                _settings.Current.SkippedUpdateVersion,
+                manual,
+                release.HtmlUrl,
+                CurrentVersionString());
         }
         finally
         {
