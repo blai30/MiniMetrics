@@ -266,6 +266,20 @@ public class SettingsViewModelTests
     }
 
     [TestMethod]
+    public void Clearing_the_locale_to_null_is_ignored_and_does_not_raise_ClockLocaleChanged()
+    {
+        // The locale AutoCompleteBox clears its selection to null while the user types a filter; that
+        // must not raise the change event (the host handles it by dereferencing the locale).
+        var viewModel = new SettingsViewModel(new Settings { ClockLocaleId = "en-US" });
+        int count = 0;
+        viewModel.ClockLocaleChanged += () => count++;
+
+        viewModel.SelectedLocale = null!;
+
+        Assert.AreEqual(0, count);
+    }
+
+    [TestMethod]
     public void Time_sample_reflects_a_valid_custom_format()
     {
         // TimeZoneId "UTC" makes the preview zone deterministic; en-US makes the rendering deterministic.

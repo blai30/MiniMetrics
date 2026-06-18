@@ -12,15 +12,20 @@
         x:DataType="vm:SettingsViewModel"
         Title="Mini Metrics Settings"
         Icon="avares://MiniMetrics/Assets/minimetrics.ico"
-        Width="520"
-        Height="440"
-        CanResize="False"
+        Width="640"
+        Height="560"
+        CanResize="True"
+        MinWidth="480"
+        MinHeight="400"
+        FontSize="16"
+        PointerPressed="OnSettingsPointerPressed"
         WindowStartupLocation="CenterScreen">
 
     <Window.Resources>
         <conv:UpdateFrequencyLabelConverter x:Key="FrequencyLabel" />
     </Window.Resources>
 
+    <Grid x:Name="RootArea" Focusable="True">
     <TabControl TabStripPlacement="Left">
 
         <TabItem Header="Appearance">
@@ -78,101 +83,112 @@
 
                     <StackPanel Spacing="8">
                         <TextBlock Text="Time zone" />
-                        <ComboBox ItemsSource="{Binding TimeZones}"
-                                  SelectedItem="{Binding SelectedTimeZone}"
-                                  IsEnabled="{Binding !UseLocalTime}"
-                                  HorizontalAlignment="Stretch"
-                                  MaxDropDownHeight="280"
-                                  ScrollViewer.VerticalScrollBarVisibility="Visible">
-                            <ComboBox.Styles>
-                                <Style Selector="ComboBox /template/ ScrollViewer">
-                                    <Setter Property="(ScrollViewer.AllowAutoHide)" Value="False" />
-                                </Style>
-                            </ComboBox.Styles>
-                            <ComboBox.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <StackPanel />
-                                </ItemsPanelTemplate>
-                            </ComboBox.ItemsPanel>
-                            <ComboBox.ItemTemplate>
-                                <DataTemplate x:DataType="sys:TimeZoneInfo">
-                                    <TextBlock Text="{Binding DisplayName}" />
-                                </DataTemplate>
-                            </ComboBox.ItemTemplate>
-                        </ComboBox>
+                        <Grid IsEnabled="{Binding !UseLocalTime}">
+                            <AutoCompleteBox x:Name="TimeZoneBox"
+                                             ItemsSource="{Binding TimeZones}"
+                                             SelectedItem="{Binding SelectedTimeZone}"
+                                             FilterMode="Custom"
+                                             MinimumPrefixLength="0"
+                                             MaxDropDownHeight="280"
+                                             HorizontalAlignment="Stretch"
+                                             PlaceholderText="Search time zone...">
+                                <AutoCompleteBox.ValueMemberBinding>
+                                    <Binding Path="DisplayName" />
+                                </AutoCompleteBox.ValueMemberBinding>
+                                <AutoCompleteBox.ItemTemplate>
+                                    <DataTemplate x:DataType="sys:TimeZoneInfo">
+                                        <TextBlock Text="{Binding DisplayName}" />
+                                    </DataTemplate>
+                                </AutoCompleteBox.ItemTemplate>
+                            </AutoCompleteBox>
+                            <!-- Chevron opens the list, so the field works as a dropdown too. -->
+                            <Button x:Name="TimeZoneChevron"
+                                    HorizontalAlignment="Right" VerticalAlignment="Stretch"
+                                    Background="Transparent" BorderThickness="0"
+                                    Padding="9,0" Focusable="False">
+                                <PathIcon Width="11" Height="11" Data="M0,0 L4,4 L8,0 Z" />
+                            </Button>
+                        </Grid>
                     </StackPanel>
 
                     <StackPanel Spacing="8">
                         <TextBlock Text="Locale" />
-                        <ComboBox ItemsSource="{Binding Locales}"
-                                  SelectedItem="{Binding SelectedLocale}"
-                                  HorizontalAlignment="Stretch"
-                                  MaxDropDownHeight="280"
-                                  ScrollViewer.VerticalScrollBarVisibility="Visible">
-                            <ComboBox.Styles>
-                                <Style Selector="ComboBox /template/ ScrollViewer">
-                                    <Setter Property="(ScrollViewer.AllowAutoHide)" Value="False" />
-                                </Style>
-                            </ComboBox.Styles>
-                            <ComboBox.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <StackPanel />
-                                </ItemsPanelTemplate>
-                            </ComboBox.ItemsPanel>
-                            <ComboBox.ItemTemplate>
-                                <DataTemplate x:DataType="glob:CultureInfo">
-                                    <TextBlock Text="{Binding DisplayName}" />
-                                </DataTemplate>
-                            </ComboBox.ItemTemplate>
-                        </ComboBox>
+                        <Grid>
+                            <AutoCompleteBox x:Name="LocaleBox"
+                                             ItemsSource="{Binding Locales}"
+                                             SelectedItem="{Binding SelectedLocale}"
+                                             FilterMode="Custom"
+                                             MinimumPrefixLength="0"
+                                             MaxDropDownHeight="280"
+                                             HorizontalAlignment="Stretch"
+                                             PlaceholderText="Search locale...">
+                                <AutoCompleteBox.ValueMemberBinding>
+                                    <Binding Path="DisplayName" />
+                                </AutoCompleteBox.ValueMemberBinding>
+                                <AutoCompleteBox.ItemTemplate>
+                                    <DataTemplate x:DataType="glob:CultureInfo">
+                                        <TextBlock Text="{Binding DisplayName}" />
+                                    </DataTemplate>
+                                </AutoCompleteBox.ItemTemplate>
+                            </AutoCompleteBox>
+                            <!-- Chevron opens the list, so the field works as a dropdown too. -->
+                            <Button x:Name="LocaleChevron"
+                                    HorizontalAlignment="Right" VerticalAlignment="Stretch"
+                                    Background="Transparent" BorderThickness="0"
+                                    Padding="9,0" Focusable="False">
+                                <PathIcon Width="11" Height="11" Data="M0,0 L4,4 L8,0 Z" />
+                            </Button>
+                        </Grid>
                     </StackPanel>
 
                     <StackPanel Spacing="8">
-                        <TextBlock Text="Normal display" FontSize="12" />
+                        <TextBlock Text="Normal display" FontSize="13" />
 
                         <StackPanel Spacing="2">
                             <TextBlock Text="Time format" />
                             <TextBox Text="{Binding ClockTimeFormat}" PlaceholderText="T" />
-                            <TextBlock Text="{Binding TimeSample}" FontSize="12" Foreground="#8A93A3" />
-                            <TextBlock Text="{Binding TimeFormatError}" FontSize="12" Foreground="#E06C75"
+                            <TextBlock Text="{Binding TimeSample}" FontSize="13" Foreground="#8A93A3" />
+                            <TextBlock Text="{Binding TimeFormatError}" FontSize="13" Foreground="#E06C75"
                                        IsVisible="{Binding TimeFormatError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                         </StackPanel>
 
                         <StackPanel Spacing="2">
                             <TextBlock Text="Date format" />
                             <TextBox Text="{Binding ClockDateFormat}" PlaceholderText="D" />
-                            <TextBlock Text="{Binding DateSample}" FontSize="12" Foreground="#8A93A3" />
-                            <TextBlock Text="{Binding DateFormatError}" FontSize="12" Foreground="#E06C75"
+                            <TextBlock Text="{Binding DateSample}" FontSize="13" Foreground="#8A93A3" />
+                            <TextBlock Text="{Binding DateFormatError}" FontSize="13" Foreground="#E06C75"
                                        IsVisible="{Binding DateFormatError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                         </StackPanel>
                     </StackPanel>
 
                     <StackPanel Spacing="8">
-                        <TextBlock Text="Hover display" FontSize="12" />
+                        <TextBlock Text="Hover display" FontSize="13" />
 
                         <StackPanel Spacing="2">
                             <TextBlock Text="Time format" />
                             <TextBox Text="{Binding ClockTimeFormatHover}" PlaceholderText="HH:mm:ss" />
-                            <TextBlock Text="{Binding TimeHoverSample}" FontSize="12" Foreground="#8A93A3" />
-                            <TextBlock Text="{Binding TimeHoverFormatError}" FontSize="12" Foreground="#E06C75"
+                            <TextBlock Text="{Binding TimeHoverSample}" FontSize="13" Foreground="#8A93A3" />
+                            <TextBlock Text="{Binding TimeHoverFormatError}" FontSize="13" Foreground="#E06C75"
                                        IsVisible="{Binding TimeHoverFormatError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                         </StackPanel>
 
                         <StackPanel Spacing="2">
                             <TextBlock Text="Date format" />
                             <TextBox Text="{Binding ClockDateFormatHover}" PlaceholderText="u" />
-                            <TextBlock Text="{Binding DateHoverSample}" FontSize="12" Foreground="#8A93A3" />
-                            <TextBlock Text="{Binding DateHoverFormatError}" FontSize="12" Foreground="#E06C75"
+                            <TextBlock Text="{Binding DateHoverSample}" FontSize="13" Foreground="#8A93A3" />
+                            <TextBlock Text="{Binding DateHoverFormatError}" FontSize="13" Foreground="#E06C75"
                                        IsVisible="{Binding DateHoverFormatError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                         </StackPanel>
                     </StackPanel>
 
                     <StackPanel Spacing="4">
                         <TextBlock Text="Tokens: HH h mm ss tt dddd ddd MMMM MMM d yyyy zzz"
-                                   FontSize="12" Foreground="#8A93A3" TextWrapping="Wrap" />
-                        <Button Content="Custom date and time format strings reference"
-                                Click="OnOpenFormatDocs"
-                                HorizontalAlignment="Left" />
+                                   FontSize="13" Foreground="#8A93A3" TextWrapping="Wrap" />
+                        <HyperlinkButton NavigateUri="https://learn.microsoft.com/dotnet/standard/base-types/custom-date-and-time-format-strings"
+                                         HorizontalContentAlignment="Left"
+                                         Padding="0">
+                            <TextBlock Text="Custom date and time format strings" TextWrapping="Wrap" />
+                        </HyperlinkButton>
                     </StackPanel>
                 </StackPanel>
             </ScrollViewer>
@@ -185,7 +201,7 @@
                         <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="vm:MetricGroupViewModel">
                                 <StackPanel Spacing="4" Margin="0,0,0,6">
-                                    <TextBlock Text="{Binding Header}" FontSize="12" />
+                                    <TextBlock Text="{Binding Header}" FontSize="13" />
                                     <ItemsControl ItemsSource="{Binding Toggles}">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate x:DataType="vm:MetricToggleViewModel">
@@ -221,4 +237,5 @@
         </TabItem>
 
     </TabControl>
+    </Grid>
 </Window>

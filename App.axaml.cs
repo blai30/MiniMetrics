@@ -451,8 +451,9 @@ public partial class App : Application
     private void OnTimeZoneChanged(SettingsViewModel viewModel)
     {
         // Local time persists as a null id; ResolveTimeZone(null) maps back to the machine zone,
-        // keeping this consistent with the startup path.
-        string? id = viewModel.UseLocalTime ? null : viewModel.SelectedTimeZone.Id;
+        // keeping this consistent with the startup path. SelectedTimeZone can be momentarily null while
+        // the user types in the search box, which also maps to local.
+        string? id = viewModel.UseLocalTime || viewModel.SelectedTimeZone is null ? null : viewModel.SelectedTimeZone.Id;
         _settingsController.SetTimeZone(id);
         _dateTimeViewModel.SetTimeZone(ResolveTimeZone(id));
     }

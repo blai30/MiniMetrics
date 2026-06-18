@@ -63,8 +63,9 @@ public partial class SettingsViewModel : ObservableObject
     // A fixed instant so the settings preview stays stable while the user edits.
     private static readonly DateTimeOffset PreviewInstant = new(2026, 6, 16, 14, 26, 42, TimeSpan.Zero);
 
-    // The zone used for previews mirrors the clock's resolved zone selection.
-    private TimeZoneInfo PreviewZone => UseLocalTime ? TimeZoneInfo.Local : SelectedTimeZone;
+    // The zone used for previews mirrors the clock's resolved zone selection. SelectedTimeZone can be
+    // momentarily null while the user types in the time zone search box, so fall back to local then.
+    private TimeZoneInfo PreviewZone => UseLocalTime || SelectedTimeZone is null ? TimeZoneInfo.Local : SelectedTimeZone;
 
     public string TimeSample => ClockFormatting.Render(
         PreviewInstant, PreviewZone, ClockTimeFormat, ClockFormatting.DefaultTimeFormat, SelectedLocale);
@@ -169,7 +170,17 @@ public partial class SettingsViewModel : ObservableObject
 
     partial void OnOpacityChanged(int value) => AppearanceChanged?.Invoke();
 
-    partial void OnSelectedTimeZoneChanged(TimeZoneInfo value) => TimeZoneChanged?.Invoke();
+    partial void OnSelectedTimeZoneChanged(TimeZoneInfo value)
+    {
+        // The time zone search box clears its selection to null while the user types a filter; ignore
+        // that so we never persist or dereference a null zone.
+        if (value is null)
+        {
+            return;
+        }
+
+        TimeZoneChanged?.Invoke();
+    }
 
     partial void OnUseLocalTimeChanged(bool value) => TimeZoneChanged?.Invoke();
 
@@ -183,6 +194,13 @@ public partial class SettingsViewModel : ObservableObject
 
     partial void OnSelectedLocaleChanged(CultureInfo value)
     {
+        // The locale box clears its selection to null while the user types a filter; ignore that so we
+        // never persist a null locale or dereference it downstream.
+        if (value is null)
+        {
+            return;
+        }
+
         // The samples and errors all depend on the locale, so refresh every one, then notify the host.
         OnPropertyChanged(nameof(TimeSample));
         OnPropertyChanged(nameof(DateSample));
