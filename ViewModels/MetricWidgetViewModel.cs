@@ -47,6 +47,16 @@ public partial class MetricWidgetViewModel : ObservableObject, IWidgetAppearance
         CardBackground = new SolidColorBrush(Color.Parse(color));
     }
 
+    // Re-raises accent notifications on every row so the theme-aware converters re-run after a theme
+    // change. Called by App when the resolved variant changes.
+    public void RefreshThemeColors()
+    {
+        foreach (MetricRowViewModel row in Rows)
+        {
+            row.NotifyThemeChanged();
+        }
+    }
+
     // Reconciles the bound row collection against the freshly built rows this widget owns, updating
     // existing rows in place so bindings stay alive and the UI animates smoothly.
     public void ApplySnapshot(MetricsSnapshot snapshot)

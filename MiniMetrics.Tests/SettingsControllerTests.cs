@@ -55,11 +55,11 @@ public class SettingsControllerTests
     }
 
     [TestMethod]
-    public void SetAppearance_updates_state_now_but_defers_the_write()
+    public void SetAppearance_writes_the_dark_color_and_defers_the_write()
     {
         var (controller, store, scheduler) = NewController();
 
-        controller.SetAppearance("#112233", 50);
+        controller.SetAppearance(targetIsDark: true, "#112233", 50);
 
         // In-memory state is current immediately; the disk write waits for the debounce.
         Assert.AreEqual("#112233", controller.Current.BackgroundColor);
@@ -71,6 +71,31 @@ public class SettingsControllerTests
 
         Assert.AreEqual("#112233", store.Load().BackgroundColor);
         Assert.AreEqual(50, store.Load().Opacity);
+    }
+
+    [TestMethod]
+    public void SetAppearance_writes_the_light_color_when_targeting_light()
+    {
+        var (controller, store, scheduler) = NewController();
+
+        controller.SetAppearance(targetIsDark: false, "#FAFBFF", 80);
+        controller.Flush();
+
+        Assert.AreEqual("#FAFBFF", store.Load().LightBackgroundColor);
+        Assert.AreEqual("#0F121D", store.Load().BackgroundColor);
+        Assert.AreEqual(80, store.Load().Opacity);
+    }
+
+    [TestMethod]
+    public void SetTheme_persists_immediately()
+    {
+        var (controller, store, scheduler) = NewController();
+
+        controller.SetTheme(AppTheme.Light);
+
+        Assert.AreEqual(AppTheme.Light, controller.Current.Theme);
+        Assert.AreEqual(AppTheme.Light, store.Load().Theme);
+        Assert.AreEqual(0, scheduler.ScheduleCount);
     }
 
     [TestMethod]

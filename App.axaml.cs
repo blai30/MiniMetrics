@@ -12,6 +12,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Platform;
+using Avalonia.Styling;
 using Avalonia.Threading;
 using MiniMetrics.Lib;
 using MiniMetrics.Models;
@@ -70,6 +71,9 @@ public partial class App : Application
                 settingsStore,
                 new DispatcherSaveScheduler(TimeSpan.FromMilliseconds(600)));
             _settings = _settingsController.Current;
+
+            ApplyThemeVariant();
+            ActualThemeVariantChanged += OnActualThemeVariantChanged;
 
             _currentVersion = Assembly.GetEntryAssembly()?.GetName().Version ?? new Version(0, 0, 0);
 
@@ -361,8 +365,9 @@ public partial class App : Application
             return;
         }
 
-        var viewModel = new SettingsViewModel(_settings);
+        var viewModel = new SettingsViewModel(_settings, ResolvedIsDark());
         viewModel.AppearanceChanged += () => OnAppearanceChanged(viewModel);
+        viewModel.ThemeChanged += () => OnThemeChanged(viewModel);
         viewModel.MetricVisibilityChanged += OnMetricVisibilityChanged;
         viewModel.TimeZoneChanged += () => OnTimeZoneChanged(viewModel);
         viewModel.ClockFormatsChanged += () => OnClockFormatsChanged(viewModel);
@@ -377,17 +382,58 @@ public partial class App : Application
 
     private void OnAppearanceChanged(SettingsViewModel viewModel)
     {
-        _settingsController.SetAppearance(viewModel.BackgroundColor, viewModel.Opacity);
+        _settingsController.SetAppearance(viewModel.EditingVariantIsDark, viewModel.BackgroundColor, viewModel.Opacity);
         ApplyAppearanceToWidgets();
     }
 
-    // Pushes the current color and opacity to every widget through the shared appearance seam.
+    private void OnThemeChanged(SettingsViewModel viewModel)
+    {
+        _settingsController.SetTheme(viewModel.Theme);
+        ApplyThemeVariant();
+        ApplyAppearanceToWidgets();
+        RefreshWidgetAccents();
+    }
+
+    // Pushes the current opacity and the resolved theme's background color to every widget through the
+    // shared appearance seam.
     private void ApplyAppearanceToWidgets()
     {
+        string background = ResolvedIsDark() ? _settings.BackgroundColor : _settings.LightBackgroundColor;
         foreach (IWidgetAppearance widget in _appearances)
         {
-            widget.ApplyAppearance(_settings.BackgroundColor, _settings.Opacity);
+            widget.ApplyAppearance(background, _settings.Opacity);
         }
+    }
+
+    // The effective variant resolved by Avalonia (Default resolves to Light or Dark). Dark is the
+    // default when no app exists (design time) so the original look is preserved.
+    private bool ResolvedIsDark() => ActualThemeVariant != ThemeVariant.Light;
+
+    private void ApplyThemeVariant()
+    {
+        RequestedThemeVariant = _settings.Theme switch
+        {
+            AppTheme.Light => ThemeVariant.Light,
+            AppTheme.Dark => ThemeVariant.Dark,
+            _ => ThemeVariant.Default,
+        };
+    }
+
+    // When the OS theme changes under System, re-apply the per-variant background and refresh accents.
+    // Chrome colors update automatically through DynamicResource.
+    private void OnActualThemeVariantChanged(object? sender, EventArgs e)
+    {
+        if (_settings.Theme == AppTheme.System)
+        {
+            ApplyAppearanceToWidgets();
+            RefreshWidgetAccents();
+        }
+    }
+
+    private void RefreshWidgetAccents()
+    {
+        _cpuViewModel.RefreshThemeColors();
+        _gpuViewModel.RefreshThemeColors();
     }
 
     private void OnTimeZoneChanged(SettingsViewModel viewModel)

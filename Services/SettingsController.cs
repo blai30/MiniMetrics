@@ -43,12 +43,28 @@ public sealed class SettingsController
         Persist();
     }
 
-    // Records the base color and opacity, persisting on the debounce so dragging the slider writes once.
-    public void SetAppearance(string backgroundColor, int opacity)
+    // Records the base color and opacity for one theme, persisting on the debounce so dragging the
+    // slider writes once. The widget background is stored per theme so each keeps its own color.
+    public void SetAppearance(bool targetIsDark, string backgroundColor, int opacity)
     {
-        _settings.BackgroundColor = backgroundColor;
+        if (targetIsDark)
+        {
+            _settings.BackgroundColor = backgroundColor;
+        }
+        else
+        {
+            _settings.LightBackgroundColor = backgroundColor;
+        }
+
         _settings.Opacity = opacity;
         ScheduleSave();
+    }
+
+    // Records the chosen theme, writing through immediately like the other discrete toggles.
+    public void SetTheme(AppTheme theme)
+    {
+        _settings.Theme = theme;
+        Persist();
     }
 
     // Records the chosen time zone id, persisting on the debounce.

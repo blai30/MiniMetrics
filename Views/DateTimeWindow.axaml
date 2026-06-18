@@ -26,11 +26,11 @@
             <TextBlock Text="{Binding TimeText}"
                        FontSize="80"
                        FontWeight="Medium"
-                       Foreground="#EEF0F3" />
+                       Foreground="{DynamicResource Widget.Text.Primary}" />
             <TextBlock Text="{Binding DateText}"
                        FontSize="28"
                        FontWeight="Medium"
-                       Foreground="#C2C9D4"
+                       Foreground="{DynamicResource Widget.Text.Label}"
                        Margin="2,0,0,0" />
         </StackPanel>
     </Border>

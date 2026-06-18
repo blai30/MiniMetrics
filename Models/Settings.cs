@@ -12,6 +12,8 @@ public sealed class Settings
     public bool AlwaysOnTop { get; set; }
     public bool SnapToEdges { get; set; } = true;
     public string BackgroundColor { get; set; } = "#0F121D";
+    public AppTheme Theme { get; set; } = AppTheme.System;
+    public string LightBackgroundColor { get; set; } = "#EEF1F5";
     public int Opacity { get; set; } = 96;
     public int? DateTimeX { get; set; }
     public int? DateTimeY { get; set; }
