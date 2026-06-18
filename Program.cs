@@ -68,14 +68,13 @@ sealed class Program
     private static bool RelaunchedElevated()
     {
         var settings = new SettingsStore(SettingsStore.DefaultPath).Load();
-        var elevation = new WindowsElevation();
-        var driver = new WindowsDriverProbe();
-        if (!ElevationGate.ShouldRelaunch(settings.Visibility, elevation.IsElevated(), driver.IsInstalled()))
+        var coordinator = new ElevationCoordinator(new WindowsElevation(), new WindowsDriverProbe());
+        if (!coordinator.ShouldRelaunch(settings.Visibility))
         {
             return false;
         }
 
-        return elevation.RelaunchElevated(Environment.ProcessPath!);
+        return coordinator.RelaunchElevated(Environment.ProcessPath!);
     }
 
     // Avalonia configuration, don't remove; also used by visual designer.
