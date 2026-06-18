@@ -29,17 +29,26 @@ A mini widget display for performance metrics that sits on your desktop. MiniMet
 
 ## Download
 
-Grab the newest build from the [latest release](https://github.com/blai30/MiniMetrics/releases/latest). The installer is the easiest path and updates itself in place; the portable downloads remain for anyone who prefers a loose exe.
+Grab the newest build from the [latest release](https://github.com/blai30/MiniMetrics/releases/latest). Not sure which to pick? Use **`MiniMetrics-sc-Setup.exe`**, the recommended installer. The other files cover specific preferences, explained below.
 
-| Download (suffix) | Pick this if |
-| --- | --- |
-| `-win-x64-sc-Setup.exe` | Recommended. Installs MiniMetrics, updates itself in place, and uninstalls cleanly. Self-contained, no .NET install needed. |
-| `-win-x64-fd-Setup.exe` | Same installer, smaller, but requires the .NET 10 Desktop Runtime already installed. |
-| `-selfcontained.exe` | Portable. One file, no .NET install needed (largest download). |
-| `-selfcontained.zip` | Portable. Same, but a smaller download. Unzip the folder and run `MiniMetrics.exe`. |
-| `-framework-dependent.exe` | Portable. You already have the .NET 10 Desktop Runtime. One lean file. |
-| `-framework-dependent.zip` | Portable. Same, smallest download. Unzip and run. |
-| `-debug-symbols.zip` | Only needed for diagnosing crash reports. |
+Two questions decide which one you want:
+
+- **Should MiniMetrics keep itself up to date?** The installers (`-Setup.exe`) and the portable bundles (`-Portable.zip`) update themselves in place. The plain portable builds do not; they only notify you when a new version is out and link back here. So if you want portable *and* self-updating, pick a `-Portable.zip`.
+- **Do you already have the [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0)?** If so, the smaller default builds work. If not, or you are unsure, pick a `selfcontained` build; it bundles the runtime and needs nothing extra.
+
+| Download | Self-updating | Needs .NET 10 | Pick this if |
+| --- | --- | --- | --- |
+| `MiniMetrics-sc-Setup.exe` | Yes | No | Recommended. Installs, updates in place, uninstalls cleanly. Bundles the runtime. |
+| `MiniMetrics-fd-Setup.exe` | Yes | Yes | Same installer, smaller, when you already have the runtime. |
+| `MiniMetrics-sc-Portable.zip` | Yes | No | Portable but still self-updating. Unzip and run, no install, stays current. |
+| `MiniMetrics-fd-Portable.zip` | Yes | Yes | Same self-updating portable, smaller, when you have the runtime. |
+| `MiniMetrics-v<version>-selfcontained.exe` | No | No | Plain portable. One loose file, nothing to install; you update it yourself. |
+| `MiniMetrics-v<version>-selfcontained.zip` | No | No | Same as a folder. Unzip and run `MiniMetrics.exe`. |
+| `MiniMetrics-v<version>.exe` | No | Yes | Plain portable, smallest single file, when you have the runtime. |
+| `MiniMetrics-v<version>.zip` | No | Yes | Same as a folder. Unzip and run. |
+| `MiniMetrics-v<version>-debug-symbols.zip` | - | - | Only needed for diagnosing crash reports. |
+
+The release also includes `.nupkg` and `releases.*.json` / `assets.*.json` files. The self-updating builds use those to fetch updates; you do not download them directly.
 
 The builds and the installer are unsigned, so Windows SmartScreen may warn on first launch. Choose "More info" then "Run anyway".
 
