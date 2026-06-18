@@ -20,6 +20,11 @@ public sealed class Settings
     public int? GpuY { get; set; }
     public bool GpuHidden { get; set; }
     public string? TimeZoneId { get; set; }
+    public string? ClockLocaleId { get; set; }
+    public string? ClockTimeFormat { get; set; }
+    public string? ClockDateFormat { get; set; }
+    public string? ClockTimeFormatHover { get; set; }
+    public string? ClockDateFormatHover { get; set; }
     public Dictionary<string, bool> Visibility { get; set; } = new();
     public bool UpdateCheckEnabled { get; set; } = true;
     public UpdateCheckFrequency UpdateFrequency { get; set; } = UpdateCheckFrequency.Daily;

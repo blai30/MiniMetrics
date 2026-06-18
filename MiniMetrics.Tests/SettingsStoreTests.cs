@@ -212,4 +212,44 @@ public class SettingsStoreTests
         Assert.AreEqual(when, loaded.LastUpdateCheckUtc);
         Assert.AreEqual("1.3.0", loaded.SkippedUpdateVersion);
     }
+
+    [TestMethod]
+    public void Save_then_Load_round_trips_clock_format_and_locale_fields()
+    {
+        var path = TempPath();
+        var store = new SettingsStore(path);
+        store.Save(new Settings
+        {
+            ClockLocaleId = "fr-FR",
+            ClockTimeFormat = "HH:mm",
+            ClockDateFormat = "yyyy-MM-dd",
+            ClockTimeFormatHover = "HH:mm:ss",
+            ClockDateFormatHover = "u",
+        });
+
+        var loaded = store.Load();
+
+        Assert.AreEqual("fr-FR", loaded.ClockLocaleId);
+        Assert.AreEqual("HH:mm", loaded.ClockTimeFormat);
+        Assert.AreEqual("yyyy-MM-dd", loaded.ClockDateFormat);
+        Assert.AreEqual("HH:mm:ss", loaded.ClockTimeFormatHover);
+        Assert.AreEqual("u", loaded.ClockDateFormatHover);
+    }
+
+    [TestMethod]
+    public void Load_defaults_clock_format_and_locale_to_null_when_absent()
+    {
+        // A settings file written before the custom-format feature existed.
+        var path = TempPath();
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        File.WriteAllText(path, "{ \"X\": 10, \"Y\": 20 }");
+
+        var loaded = new SettingsStore(path).Load();
+
+        Assert.IsNull(loaded.ClockLocaleId);
+        Assert.IsNull(loaded.ClockTimeFormat);
+        Assert.IsNull(loaded.ClockDateFormat);
+        Assert.IsNull(loaded.ClockTimeFormatHover);
+        Assert.IsNull(loaded.ClockDateFormatHover);
+    }
 }
