@@ -10,12 +10,19 @@ namespace MiniMetrics.Services;
 public sealed class HardwareSensorSource : ISensorSource, IDisposable
 {
     private readonly IHardwareTree _tree;
+    private readonly ulong _installedMemoryBytes;
 
     private bool _cpuActive = true;
     private bool _memoryActive = true;
     private bool _gpuActive = true;
 
-    public HardwareSensorSource(IHardwareTree tree) => _tree = tree;
+    // installedMemoryBytes defaults to the firmware-reported installed RAM; tests inject a fixed value.
+    // It is read once because installed memory does not change while the process runs.
+    public HardwareSensorSource(IHardwareTree tree, Func<ulong>? installedMemoryBytes = null)
+    {
+        _tree = tree;
+        _installedMemoryBytes = (installedMemoryBytes ?? PhysicalMemory.InstalledBytes)();
+    }
 
     // Releases or restores devices. A released device is both unloaded from the tree and skipped when
     // building the snapshot, so the app stops reading it entirely once all its metrics are hidden.
@@ -53,9 +60,17 @@ public sealed class HardwareSensorSource : ISensorSource, IDisposable
         {
             double usedGib = _tree.Read(HardwareKind.Memory, SensorKind.Data, "Memory Used") ?? 0;
             double availableGib = _tree.Read(HardwareKind.Memory, SensorKind.Data, "Memory Available") ?? 0;
-            memory = new MemoryMetrics(
-                GibToBytes(usedGib),
-                GibToBytes(usedGib + availableGib));
+            ulong usedBytes = GibToBytes(usedGib);
+            ulong usableTotalBytes = GibToBytes(usedGib + availableGib);
+
+            // The firmware-reported installed total includes hardware-reserved memory the OS cannot
+            // address. Counting that reserve as used reports the full installed size while keeping
+            // used + available equal to the total. When the installed figure is unavailable or not
+            // larger than the usable total, fall back to the usable total so the reserve never
+            // underflows.
+            memory = _installedMemoryBytes > usableTotalBytes
+                ? new MemoryMetrics(usedBytes + (_installedMemoryBytes - usableTotalBytes), _installedMemoryBytes)
+                : new MemoryMetrics(usedBytes, usableTotalBytes);
         }
 
         GpuMetrics? gpu = null;

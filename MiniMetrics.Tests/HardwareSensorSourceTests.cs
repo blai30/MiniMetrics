@@ -84,12 +84,29 @@ public class HardwareSensorSourceTests
     }
 
     [TestMethod]
-    public void Read_converts_memory_gib_to_bytes()
+    public void Read_reports_installed_total_and_counts_reserved_memory_as_used()
     {
         var tree = new FakeHardwareTree();
         tree.Set(HardwareKind.Memory, SensorKind.Data, "Memory Used", 8);
         tree.Set(HardwareKind.Memory, SensorKind.Data, "Memory Available", 8);
-        var source = new HardwareSensorSource(tree);
+        // The OS-usable total is 16 GiB, but the firmware reports 18 GiB installed: 2 GiB is reserved.
+        var source = new HardwareSensorSource(tree, installedMemoryBytes: () => 18UL * BytesPerGib);
+
+        var snapshot = source.Read();
+
+        // Total is the installed figure; the 2 GiB reserve is folded into used so used + available == total.
+        Assert.AreEqual(10UL * BytesPerGib, snapshot.Memory!.UsedBytes);
+        Assert.AreEqual(18UL * BytesPerGib, snapshot.Memory.TotalBytes);
+    }
+
+    [TestMethod]
+    public void Memory_falls_back_to_usable_total_when_installed_size_is_unavailable()
+    {
+        var tree = new FakeHardwareTree();
+        tree.Set(HardwareKind.Memory, SensorKind.Data, "Memory Used", 8);
+        tree.Set(HardwareKind.Memory, SensorKind.Data, "Memory Available", 8);
+        // The firmware call returned 0 (unavailable), so the widget keeps the OS-usable total.
+        var source = new HardwareSensorSource(tree, installedMemoryBytes: () => 0);
 
         var snapshot = source.Read();
 

@@ -73,9 +73,10 @@ jobs:
       - name: Install Velopack CLI
         run: dotnet tool install -g vpk
 
-      # Default channel: framework-dependent. No --framework is declared, so the installer never
-      # downloads or installs the .NET runtime. If it is missing, the .NET apphost points the user to the
-      # runtime download on first launch.
+      # Default download: framework-dependent. No --channel is passed, so it uses Velopack's built-in
+      # default channel (win), which is what the feed files (releases.win.json, the nupkg, RELEASES-win)
+      # are named after. No --framework is declared, so the installer never downloads or installs the .NET
+      # runtime; if it is missing, the .NET apphost points the user to the runtime download on first launch.
       - name: Pack Velopack default channel
         run: >
           vpk pack
@@ -86,8 +87,7 @@ jobs:
           --packTitle MiniMetrics
           --packAuthors "Brian Lai"
           --icon Assets/minimetrics.ico
-          --channel fd
-          --outputDir velopack/fd
+          --outputDir velopack/default
 
       - name: Pack Velopack selfcontained channel
         run: >
@@ -114,8 +114,8 @@ jobs:
               Rename-Item -Path $file.FullName -NewName $target
             }
           }
-          Set-AssetName velopack/fd "*Setup.exe"   "MiniMetrics-Setup.exe"
-          Set-AssetName velopack/fd "*Portable.zip" "MiniMetrics-Portable.zip"
+          Set-AssetName velopack/default "*Setup.exe"   "MiniMetrics-Setup.exe"
+          Set-AssetName velopack/default "*Portable.zip" "MiniMetrics-Portable.zip"
           Set-AssetName velopack/sc "*Setup.exe"   "MiniMetrics-Setup-selfcontained.exe"
           Set-AssetName velopack/sc "*Portable.zip" "MiniMetrics-Portable-selfcontained.zip"
 
@@ -123,7 +123,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $assets = Get-ChildItem -Path velopack/fd, velopack/sc -File | ForEach-Object { $_.FullName }
+          $assets = Get-ChildItem -Path velopack/default, velopack/sc -File | ForEach-Object { $_.FullName }
           gh release create "v$env:VERSION" `
             --draft `
             --generate-notes `
