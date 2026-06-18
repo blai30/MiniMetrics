@@ -377,7 +377,7 @@ public partial class App : Application
 
     private void OnAppearanceChanged(SettingsViewModel viewModel)
     {
-        _settingsController.SetAppearance(viewModel.BackgroundColor, viewModel.Opacity);
+        _settingsController.SetAppearance(targetIsDark: true, viewModel.BackgroundColor, viewModel.Opacity);
         ApplyAppearanceToWidgets();
     }
 
