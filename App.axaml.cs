@@ -34,6 +34,8 @@ public partial class App : Application
     private MetricActivator _metricActivator = null!;
     private DateTimeWidgetViewModel _dateTimeViewModel = null!;
     private IWidgetAppearance[] _appearances = [];
+    private IWidgetFont[] _fonts = [];
+    private IFontCatalog _fontCatalog = null!;
     private WidgetHost _cpuHost = null!;
     private WidgetHost _gpuHost = null!;
     private WidgetHost _dateTimeHost = null!;
@@ -109,6 +111,10 @@ public partial class App : Application
 
             _appearances = [_cpuViewModel, _gpuViewModel, _dateTimeViewModel];
             ApplyAppearanceToWidgets();
+
+            _fontCatalog = new SystemFontCatalog();
+            _fonts = [_cpuViewModel, _gpuViewModel, _dateTimeViewModel];
+            ApplyFontToWidgets();
 
             _source = OperatingSystem.IsWindows()
                 ? new HardwareSensorSource(new LibreHardwareTree())
@@ -351,7 +357,7 @@ public partial class App : Application
             return;
         }
 
-        var viewModel = new SettingsViewModel(_settings, ResolvedIsDark());
+        var viewModel = new SettingsViewModel(_settings, ResolvedIsDark(), _fontCatalog);
         viewModel.SettingChanged += change => OnSettingChanged(viewModel, change);
 
         _settingsWindow = new() { DataContext = viewModel };
@@ -392,6 +398,9 @@ public partial class App : Application
             case SettingKind.UpdatePreferences:
                 _settingsController.SetUpdatePreferences(viewModel.UpdateCheckEnabled, viewModel.UpdateFrequency);
                 break;
+            case SettingKind.Font:
+                OnFontChanged(viewModel);
+                break;
         }
     }
 
@@ -415,6 +424,22 @@ public partial class App : Application
     {
         string background = ResolvedIsDark() ? _settings.BackgroundColor : _settings.LightBackgroundColor;
         foreach (var widget in _appearances) widget.ApplyAppearance(background, _settings.Opacity);
+    }
+
+    private void OnFontChanged(SettingsViewModel viewModel)
+    {
+        _settingsController.SetWidgetFont(
+            viewModel.WidgetFontFamily, viewModel.WidgetFontScale, viewModel.WidgetFontWeight);
+        ApplyFontToWidgets();
+    }
+
+    // Resolves one font profile from the current settings and pushes it to every widget through the
+    // shared font seam.
+    private void ApplyFontToWidgets()
+    {
+        var profile = WidgetFontProfile.Resolve(
+            _settings.WidgetFontFamily, _settings.WidgetFontScale, _settings.WidgetFontWeight);
+        foreach (var widget in _fonts) widget.ApplyFont(profile);
     }
 
     // The effective variant resolved by Avalonia (Default resolves to Light or Dark). Dark is the
