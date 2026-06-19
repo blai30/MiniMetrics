@@ -13,8 +13,8 @@
         x:DataType="vm:SettingsViewModel"
         Title="Mini Metrics Settings"
         Icon="avares://MiniMetrics/Assets/minimetrics.ico"
-        Width="760"
-        Height="620"
+        Width="940"
+        Height="680"
         CanResize="True"
         MinWidth="540"
         MinHeight="440"
@@ -102,7 +102,7 @@
                             </ui:FASettingsExpanderItem>
                         </ui:FASettingsExpander>
 
-                        <ui:FASettingsExpander Header="Opacity" Description="How transparent the widget background is">
+                        <ui:FASettingsExpander Header="Opacity" Description="How opaque the widget background is">
                             <ui:FASettingsExpander.IconSource>
                                 <ui:FASymbolIconSource Symbol="Highlight" />
                             </ui:FASettingsExpander.IconSource>
@@ -276,7 +276,7 @@
                             </ui:FASettingsExpander.Footer>
                         </ui:FASettingsExpander>
 
-                        <ui:FASettingsExpander Header="Normal display" Description="Time and date shown by default">
+                        <ui:FASettingsExpander Header="Display format" Description="Time and date shown by default">
                             <ui:FASettingsExpander.IconSource>
                                 <ui:FASymbolIconSource Symbol="Calendar" />
                             </ui:FASettingsExpander.IconSource>
@@ -302,7 +302,7 @@
                             </ui:FASettingsExpanderItem>
                         </ui:FASettingsExpander>
 
-                        <ui:FASettingsExpander Header="Hover display" Description="Time and date shown while hovering the clock">
+                        <ui:FASettingsExpander Header="Display format on hover" Description="Time and date shown while hovering the widget">
                             <ui:FASettingsExpander.IconSource>
                                 <ui:FASymbolIconSource Symbol="Calendar" />
                             </ui:FASettingsExpander.IconSource>
