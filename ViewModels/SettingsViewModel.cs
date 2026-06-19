@@ -6,6 +6,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MiniMetrics.Lib;
 using MiniMetrics.Models;
+using MiniMetrics.Services;
 
 namespace MiniMetrics.ViewModels;
 
@@ -45,6 +46,14 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] public partial bool GpuCompact { get; set; }
     [ObservableProperty] public partial bool DateTimeCompact { get; set; }
     [ObservableProperty] public partial ClockAlignment ClockAlignment { get; set; }
+
+    public IReadOnlyList<string> AvailableFonts { get; }
+    public IReadOnlyList<WidgetFontWeight> WidgetFontWeights { get; } =
+        [WidgetFontWeight.Light, WidgetFontWeight.Regular, WidgetFontWeight.Bold];
+
+    [ObservableProperty] public partial string WidgetFontFamily { get; set; }
+    [ObservableProperty] public partial int WidgetFontScale { get; set; }
+    [ObservableProperty] public partial WidgetFontWeight WidgetFontWeight { get; set; }
     [ObservableProperty] public partial bool UseLocalTime { get; set; }
 
     // The full set of specific cultures for the locale picker, ordered by display name.
@@ -115,7 +124,7 @@ public partial class SettingsViewModel : ObservableObject
 
     private readonly Dictionary<string, MetricToggleViewModel> _togglesByKey = new();
 
-    public SettingsViewModel(Settings settings, bool systemIsDark = true)
+    public SettingsViewModel(Settings settings, bool systemIsDark = true, IFontCatalog? fonts = null)
     {
         EditingVariantIsDark = systemIsDark;
         Theme = settings.Theme;
@@ -128,6 +137,10 @@ public partial class SettingsViewModel : ObservableObject
         CpuCompact = settings.CpuCompact;
         GpuCompact = settings.GpuCompact;
         DateTimeCompact = settings.DateTimeCompact;
+        AvailableFonts = fonts?.AvailableFamilies() ?? [WidgetFontProfile.DefaultFamilyName];
+        WidgetFontFamily = settings.WidgetFontFamily ?? WidgetFontProfile.DefaultFamilyName;
+        WidgetFontScale = settings.WidgetFontScale;
+        WidgetFontWeight = settings.WidgetFontWeight;
         ClockAlignment = settings.ClockAlignment;
         UseLocalTime = settings.TimeZoneId is null;
         ClockTimeFormat = settings.ClockTimeFormat;
@@ -250,6 +263,15 @@ public partial class SettingsViewModel : ObservableObject
     partial void OnGpuCompactChanged(bool value) => SettingChanged?.Invoke(SettingChange.Compact("gpu", value));
 
     partial void OnDateTimeCompactChanged(bool value) => SettingChanged?.Invoke(SettingChange.Compact("clock", value));
+
+    partial void OnWidgetFontFamilyChanged(string value) =>
+        SettingChanged?.Invoke(SettingChange.Of(SettingKind.Font));
+
+    partial void OnWidgetFontScaleChanged(int value) =>
+        SettingChanged?.Invoke(SettingChange.Of(SettingKind.Font));
+
+    partial void OnWidgetFontWeightChanged(WidgetFontWeight value) =>
+        SettingChanged?.Invoke(SettingChange.Of(SettingKind.Font));
 
     partial void OnClockAlignmentChanged(ClockAlignment value) =>
         SettingChanged?.Invoke(SettingChange.ForAlignment(value));

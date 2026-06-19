@@ -14,7 +14,8 @@ public enum SettingKind
     TimeZone,
     ClockFormats,
     ClockLocale,
-    UpdatePreferences
+    UpdatePreferences,
+    Font
 }
 
 // One settings change. For the per-key facets (metric visibility, compact toggles, clock alignment) it

@@ -1,4 +1,5 @@
 using System.Globalization;
+using MiniMetrics.Lib;
 using MiniMetrics.Models;
 using MiniMetrics.ViewModels;
 
@@ -432,5 +433,75 @@ public class SettingsViewModelTests
 
         viewModel.ClockTimeFormat = "HH:mm";
         Assert.AreEqual("", viewModel.TimeFormatError);
+    }
+
+    [TestMethod]
+    public void Populates_available_fonts_from_the_catalog_with_inter_first()
+    {
+        var viewModel = new SettingsViewModel(new(), true, new FakeFontCatalog("Verdana", "Arial"));
+
+        Assert.AreEqual("Inter", viewModel.AvailableFonts[0]);
+        CollectionAssert.Contains(viewModel.AvailableFonts.ToArray(), "Arial");
+    }
+
+    [TestMethod]
+    public void Defaults_font_family_to_inter_when_unset()
+    {
+        var viewModel = new SettingsViewModel(new(), true, new FakeFontCatalog());
+
+        Assert.AreEqual("Inter", viewModel.WidgetFontFamily);
+        Assert.AreEqual(100, viewModel.WidgetFontScale);
+        Assert.AreEqual(WidgetFontWeight.Regular, viewModel.WidgetFontWeight);
+    }
+
+    [TestMethod]
+    public void Seeds_font_settings_from_saved_values()
+    {
+        var settings = new Settings
+        {
+            WidgetFontFamily = "Cascadia Code", WidgetFontScale = 130, WidgetFontWeight = WidgetFontWeight.Bold
+        };
+
+        var viewModel = new SettingsViewModel(settings, true, new FakeFontCatalog("Cascadia Code"));
+
+        Assert.AreEqual("Cascadia Code", viewModel.WidgetFontFamily);
+        Assert.AreEqual(130, viewModel.WidgetFontScale);
+        Assert.AreEqual(WidgetFontWeight.Bold, viewModel.WidgetFontWeight);
+    }
+
+    [TestMethod]
+    public void Changing_font_family_raises_a_font_change()
+    {
+        var viewModel = new SettingsViewModel(new(), true, new FakeFontCatalog("Arial"));
+        var changes = Capture(viewModel);
+
+        viewModel.WidgetFontFamily = "Arial";
+
+        Assert.AreEqual(1, changes.Count);
+        Assert.AreEqual(SettingKind.Font, changes[0].Kind);
+    }
+
+    [TestMethod]
+    public void Changing_font_scale_raises_a_font_change()
+    {
+        var viewModel = new SettingsViewModel(new(), true, new FakeFontCatalog());
+        var changes = Capture(viewModel);
+
+        viewModel.WidgetFontScale = 120;
+
+        Assert.AreEqual(1, changes.Count);
+        Assert.AreEqual(SettingKind.Font, changes[0].Kind);
+    }
+
+    [TestMethod]
+    public void Changing_font_weight_raises_a_font_change()
+    {
+        var viewModel = new SettingsViewModel(new(), true, new FakeFontCatalog());
+        var changes = Capture(viewModel);
+
+        viewModel.WidgetFontWeight = WidgetFontWeight.Light;
+
+        Assert.AreEqual(1, changes.Count);
+        Assert.AreEqual(SettingKind.Font, changes[0].Kind);
     }
 }
