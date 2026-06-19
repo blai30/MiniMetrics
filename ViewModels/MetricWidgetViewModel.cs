@@ -11,7 +11,8 @@ namespace MiniMetrics.ViewModels;
 // One standalone metrics widget: a compute card stacked over its memory card. Constructed with the
 // two keys it owns (the CPU widget owns "cpu"+"ram", the GPU widget owns "gpu"+"vram") and ignores
 // every other row the builder produces.
-public partial class MetricWidgetViewModel(string computeKey, string memoryKey) : ObservableObject, IWidgetAppearance, IWidgetStyle
+public partial class MetricWidgetViewModel(string computeKey, string memoryKey)
+    : ObservableObject, IWidgetAppearance, IWidgetStyle
 {
     // A read-only view onto the single visibility map (Settings.Visibility); the widget never owns a
     // copy, so what it renders cannot drift from what drives device polling.

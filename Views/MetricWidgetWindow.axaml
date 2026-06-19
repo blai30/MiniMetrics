@@ -66,7 +66,10 @@
                                    FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=19}"
                                    FontWeight="{Binding UnitWeight}"
                                    Foreground="{Binding TempLevel, Converter={StaticResource TempLevelToBrush}}">
-                            <Run Text="°" FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=13}" BaselineAlignment="Superscript" /><Run Text="C" />
+                            <Run Text="°"
+                                 FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=13}"
+                                 BaselineAlignment="Superscript" />
+                            <Run Text="C" />
                         </TextBlock>
                     </StackPanel>
 
@@ -76,8 +79,14 @@
                                Margin="{Binding Scale, Converter={StaticResource ThicknessScale}, ConverterParameter='0,0,0,4'}"
                                Opacity="{Binding UsageVisible, Converter={StaticResource BoolToOpacity}}"
                                Foreground="{DynamicResource Widget.Text.Primary}">
-                        <Run Text="{Binding Value}" FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=24}" FontWeight="{Binding StrongWeight}" /><Run Text=" " FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=8}" />
-                        <Run Text="%" FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=14}" FontWeight="{Binding UnitWeight}" />
+                        <Run Text="{Binding Value}"
+                             FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=24}"
+                             FontWeight="{Binding StrongWeight}" />
+                        <Run Text=" "
+                             FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=8}" />
+                        <Run Text="%"
+                             FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=14}"
+                             FontWeight="{Binding UnitWeight}" />
                     </TextBlock>
                 </Grid>
 
@@ -109,16 +118,22 @@
                            MinWidth="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=72}"
                            TextAlignment="Right"
                            Foreground="{Binding TempLevel, Converter={StaticResource TempLevelToBrush}}">
-                    <Run Text="{Binding Temp}" FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=26}" FontWeight="{Binding StrongWeight}" />
-                    <Run Text="°C" FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=16}" FontWeight="{Binding UnitWeight}" />
+                    <Run Text="{Binding Temp}"
+                         FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=26}"
+                         FontWeight="{Binding StrongWeight}" />
+                    <Run Text="°C" FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=16}"
+                         FontWeight="{Binding UnitWeight}" />
                 </TextBlock>
                 <TextBlock IsVisible="{Binding UsageVisible}"
                            VerticalAlignment="Center"
                            MinWidth="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=64}"
                            TextAlignment="Right"
                            Foreground="{DynamicResource Widget.Text.Primary}">
-                    <Run Text="{Binding Value}" FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=26}" FontWeight="{Binding StrongWeight}" />
-                    <Run Text="%" FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=16}" FontWeight="{Binding UnitWeight}" />
+                    <Run Text="{Binding Value}"
+                         FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=26}"
+                         FontWeight="{Binding StrongWeight}" />
+                    <Run Text="%" FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=16}"
+                         FontWeight="{Binding UnitWeight}" />
                 </TextBlock>
                 <TextBlock IsVisible="{Binding PowerVisible}"
                            Text="{Binding Detail}"
@@ -142,10 +157,14 @@
                            Foreground="{DynamicResource Widget.Text.Label}"
                            VerticalAlignment="Center" />
                 <TextBlock VerticalAlignment="Center">
-                    <Run Text="{Binding Value}" FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=26}" FontWeight="{Binding StrongWeight}"
+                    <Run Text="{Binding Value}"
+                         FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=26}"
+                         FontWeight="{Binding StrongWeight}"
                          Foreground="{DynamicResource Widget.Text.Primary}" />
                     <Run Text=" " />
-                    <Run Text="{Binding Detail}" FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=17}" FontWeight="{Binding UnitWeight}"
+                    <Run Text="{Binding Detail}"
+                         FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=17}"
+                         FontWeight="{Binding UnitWeight}"
                          Foreground="{DynamicResource Widget.Text.Secondary}" />
                 </TextBlock>
             </StackPanel>
@@ -164,10 +183,14 @@
                                VerticalAlignment="Center" />
                     <TextBlock Grid.Column="1"
                                VerticalAlignment="Center">
-                        <Run Text="{Binding Value}" FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=16}" FontWeight="{Binding StrongWeight}"
+                        <Run Text="{Binding Value}"
+                             FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=16}"
+                             FontWeight="{Binding StrongWeight}"
                              Foreground="{DynamicResource Widget.Text.Primary}" />
                         <Run Text=" " />
-                        <Run Text="{Binding Detail}" FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=13}" FontWeight="{Binding UnitWeight}"
+                        <Run Text="{Binding Detail}"
+                             FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=13}"
+                             FontWeight="{Binding UnitWeight}"
                              Foreground="{DynamicResource Widget.Text.Secondary}" />
                     </TextBlock>
                 </Grid>

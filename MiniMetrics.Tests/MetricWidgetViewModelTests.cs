@@ -145,8 +145,8 @@ public class MetricWidgetViewModelTests
         var vm = Cpu();
         vm.ApplyAppearance("#0F121D", 100);
 
-        var brush = Assert.IsInstanceOfType<Avalonia.Media.SolidColorBrush>(vm.CardBackground);
-        Assert.AreEqual(Avalonia.Media.Color.Parse("#FF0F121D"), brush.Color);
+        var brush = Assert.IsInstanceOfType<SolidColorBrush>(vm.CardBackground);
+        Assert.AreEqual(Color.Parse("#FF0F121D"), brush.Color);
     }
 
     [TestMethod]
@@ -159,7 +159,7 @@ public class MetricWidgetViewModelTests
         Assert.AreEqual("Arial", viewModel.FontFamily.Name);
         Assert.AreEqual(1.2, viewModel.Scale, 1e-9);
         Assert.AreEqual(FontWeight.SemiBold, viewModel.StrongWeight); // Light preset strong = 600
-        Assert.AreEqual(FontWeight.Medium, viewModel.UnitWeight);     // Light preset unit = 500
+        Assert.AreEqual(FontWeight.Medium, viewModel.UnitWeight); // Light preset unit = 500
         Assert.AreEqual(210 * 1.2, viewModel.ScaledWidth, 1e-9);
         Assert.AreEqual(176 * 1.2, viewModel.ScaledHeight, 1e-9);
     }
@@ -169,7 +169,7 @@ public class MetricWidgetViewModelTests
     {
         var viewModel = new MetricWidgetViewModel("cpu", "ram");
         // MetricsSnapshot uses positional constructor args: (CpuMetrics? Cpu, MemoryMetrics? Memory, GpuMetrics? Gpu)
-        var snapshot = new MetricsSnapshot(new CpuMetrics(40, null, null), null, null);
+        var snapshot = new MetricsSnapshot(new(40, null, null), null, null);
         viewModel.ApplySnapshot(snapshot);
 
         viewModel.ApplyStyle(WidgetStyleProfile.Resolve(null, 140, WidgetFontWeight.Bold));
@@ -177,7 +177,7 @@ public class MetricWidgetViewModelTests
         var row = viewModel.Compute!;
         Assert.AreEqual(1.4, row.Scale, 1e-9);
         Assert.AreEqual(FontWeight.ExtraBold, row.StrongWeight); // Bold preset strong = 800
-        Assert.AreEqual(FontWeight.Bold, row.UnitWeight);        // Bold preset unit = 700
+        Assert.AreEqual(FontWeight.Bold, row.UnitWeight); // Bold preset unit = 700
     }
 
     [TestMethod]
@@ -186,7 +186,7 @@ public class MetricWidgetViewModelTests
         var viewModel = new MetricWidgetViewModel("cpu", "ram");
         viewModel.ApplyStyle(WidgetStyleProfile.Resolve(null, 130, WidgetFontWeight.Regular));
 
-        viewModel.ApplySnapshot(new MetricsSnapshot(new CpuMetrics(50, null, null), null, null));
+        viewModel.ApplySnapshot(new(new(50, null, null), null, null));
 
         Assert.AreEqual(1.3, viewModel.Compute!.Scale, 1e-9);
         Assert.AreEqual(FontWeight.Bold, viewModel.Compute!.StrongWeight);

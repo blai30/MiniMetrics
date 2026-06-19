@@ -124,8 +124,8 @@ public class DateTimeWidgetViewModelTests
 
         vm.ApplyAppearance("#0F121D", 100);
 
-        var brush = Assert.IsInstanceOfType<Avalonia.Media.SolidColorBrush>(vm.CardBackground);
-        Assert.AreEqual(Avalonia.Media.Color.Parse("#FF0F121D"), brush.Color);
+        var brush = Assert.IsInstanceOfType<SolidColorBrush>(vm.CardBackground);
+        Assert.AreEqual(Color.Parse("#FF0F121D"), brush.Color);
     }
 
     [TestMethod]

@@ -48,6 +48,7 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] public partial ClockAlignment ClockAlignment { get; set; }
 
     public IReadOnlyList<string> AvailableFonts { get; }
+
     public IReadOnlyList<WidgetFontWeight> WidgetFontWeights { get; } =
         [WidgetFontWeight.Light, WidgetFontWeight.Regular, WidgetFontWeight.Bold];
 
