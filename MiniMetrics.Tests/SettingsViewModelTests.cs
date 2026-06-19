@@ -450,7 +450,7 @@ public class SettingsViewModelTests
         var viewModel = new SettingsViewModel(new(), true, new FakeFontCatalog());
 
         Assert.AreEqual("Inter", viewModel.WidgetFontFamily);
-        Assert.AreEqual(100, viewModel.WidgetFontScale);
+        Assert.AreEqual(100, viewModel.WidgetScale);
         Assert.AreEqual(WidgetFontWeight.Regular, viewModel.WidgetFontWeight);
     }
 
@@ -459,13 +459,13 @@ public class SettingsViewModelTests
     {
         var settings = new Settings
         {
-            WidgetFontFamily = "Cascadia Code", WidgetFontScale = 130, WidgetFontWeight = WidgetFontWeight.Bold
+            WidgetFontFamily = "Cascadia Code", WidgetScale = 130, WidgetFontWeight = WidgetFontWeight.Bold
         };
 
         var viewModel = new SettingsViewModel(settings, true, new FakeFontCatalog("Cascadia Code"));
 
         Assert.AreEqual("Cascadia Code", viewModel.WidgetFontFamily);
-        Assert.AreEqual(130, viewModel.WidgetFontScale);
+        Assert.AreEqual(130, viewModel.WidgetScale);
         Assert.AreEqual(WidgetFontWeight.Bold, viewModel.WidgetFontWeight);
     }
 
@@ -478,7 +478,7 @@ public class SettingsViewModelTests
         viewModel.WidgetFontFamily = "Arial";
 
         Assert.AreEqual(1, changes.Count);
-        Assert.AreEqual(SettingKind.Font, changes[0].Kind);
+        Assert.AreEqual(SettingKind.WidgetStyle, changes[0].Kind);
     }
 
     [TestMethod]
@@ -487,10 +487,10 @@ public class SettingsViewModelTests
         var viewModel = new SettingsViewModel(new(), true, new FakeFontCatalog());
         var changes = Capture(viewModel);
 
-        viewModel.WidgetFontScale = 120;
+        viewModel.WidgetScale = 120;
 
         Assert.AreEqual(1, changes.Count);
-        Assert.AreEqual(SettingKind.Font, changes[0].Kind);
+        Assert.AreEqual(SettingKind.WidgetStyle, changes[0].Kind);
     }
 
     [TestMethod]
@@ -502,6 +502,6 @@ public class SettingsViewModelTests
         viewModel.WidgetFontWeight = WidgetFontWeight.Light;
 
         Assert.AreEqual(1, changes.Count);
-        Assert.AreEqual(SettingKind.Font, changes[0].Kind);
+        Assert.AreEqual(SettingKind.WidgetStyle, changes[0].Kind);
     }
 }

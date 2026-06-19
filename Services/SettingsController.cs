@@ -119,10 +119,10 @@ public sealed class SettingsController
 
     // Records the chosen widget font family, scale, and weight preset, persisting on the debounce so a
     // drag of the size slider or a burst of picks writes once. Applied globally to every widget.
-    public void SetWidgetFont(string? family, int scale, WidgetFontWeight weight)
+    public void SetWidgetStyle(string? family, int scale, WidgetFontWeight weight)
     {
         _settings.WidgetFontFamily = family;
-        _settings.WidgetFontScale = scale;
+        _settings.WidgetScale = scale;
         _settings.WidgetFontWeight = weight;
         ScheduleSave();
     }

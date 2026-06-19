@@ -114,7 +114,7 @@ public partial class App : Application
 
             _fontCatalog = new SystemFontCatalog();
             _fonts = [_cpuViewModel, _gpuViewModel, _dateTimeViewModel];
-            ApplyFontToWidgets();
+            ApplyWidgetStyle();
 
             _source = OperatingSystem.IsWindows()
                 ? new HardwareSensorSource(new LibreHardwareTree())
@@ -398,8 +398,8 @@ public partial class App : Application
             case SettingKind.UpdatePreferences:
                 _settingsController.SetUpdatePreferences(viewModel.UpdateCheckEnabled, viewModel.UpdateFrequency);
                 break;
-            case SettingKind.Font:
-                OnFontChanged(viewModel);
+            case SettingKind.WidgetStyle:
+                OnWidgetStyleChanged(viewModel);
                 break;
         }
     }
@@ -426,19 +426,19 @@ public partial class App : Application
         foreach (var widget in _appearances) widget.ApplyAppearance(background, _settings.Opacity);
     }
 
-    private void OnFontChanged(SettingsViewModel viewModel)
+    private void OnWidgetStyleChanged(SettingsViewModel viewModel)
     {
-        _settingsController.SetWidgetFont(
-            viewModel.WidgetFontFamily, viewModel.WidgetFontScale, viewModel.WidgetFontWeight);
-        ApplyFontToWidgets();
+        _settingsController.SetWidgetStyle(
+            viewModel.WidgetFontFamily, viewModel.WidgetScale, viewModel.WidgetFontWeight);
+        ApplyWidgetStyle();
     }
 
     // Resolves one font profile from the current settings and pushes it to every widget through the
     // shared font seam.
-    private void ApplyFontToWidgets()
+    private void ApplyWidgetStyle()
     {
         var profile = WidgetFontProfile.Resolve(
-            _settings.WidgetFontFamily, _settings.WidgetFontScale, _settings.WidgetFontWeight);
+            _settings.WidgetFontFamily, _settings.WidgetScale, _settings.WidgetFontWeight);
         foreach (var widget in _fonts) widget.ApplyFont(profile);
     }
 

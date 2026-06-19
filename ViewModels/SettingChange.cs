@@ -15,7 +15,7 @@ public enum SettingKind
     ClockFormats,
     ClockLocale,
     UpdatePreferences,
-    Font
+    WidgetStyle
 }
 
 // One settings change. For the per-key facets (metric visibility, compact toggles, clock alignment) it
