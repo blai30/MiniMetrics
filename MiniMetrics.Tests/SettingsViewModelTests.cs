@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using MiniMetrics.Models;
@@ -26,6 +27,14 @@ public class SettingsViewModelTests
             ["vram.usage"] = true,
         },
     };
+
+    // Records every change raised on the single SettingChanged channel after the view model is seeded.
+    private static List<SettingChange> Capture(SettingsViewModel viewModel)
+    {
+        var changes = new List<SettingChange>();
+        viewModel.SettingChanged += changes.Add;
+        return changes;
+    }
 
     [TestMethod]
     public void Seeds_values_from_settings()
@@ -63,64 +72,67 @@ public class SettingsViewModelTests
     }
 
     [TestMethod]
-    public void Changing_color_raises_AppearanceChanged()
+    public void Changing_color_raises_an_appearance_change()
     {
         var viewModel = new SettingsViewModel(SampleSettings());
-        int count = 0;
-        viewModel.AppearanceChanged += () => count++;
+        List<SettingChange> changes = Capture(viewModel);
 
         viewModel.BackgroundColor = "#1A1F2B";
 
-        Assert.AreEqual(1, count);
+        Assert.AreEqual(1, changes.Count);
+        Assert.AreEqual(SettingKind.Appearance, changes[0].Kind);
     }
 
     [TestMethod]
-    public void Changing_opacity_raises_AppearanceChanged()
+    public void Changing_opacity_raises_an_appearance_change()
     {
         var viewModel = new SettingsViewModel(SampleSettings());
-        int count = 0;
-        viewModel.AppearanceChanged += () => count++;
+        List<SettingChange> changes = Capture(viewModel);
 
         viewModel.Opacity = 50;
 
-        Assert.AreEqual(1, count);
+        Assert.AreEqual(1, changes.Count);
+        Assert.AreEqual(SettingKind.Appearance, changes[0].Kind);
     }
 
     [TestMethod]
-    public void Toggling_metric_raises_MetricVisibilityChanged_with_key_and_value()
+    public void Toggling_metric_raises_a_metric_visibility_change_with_key_and_value()
     {
         var viewModel = new SettingsViewModel(SampleSettings());
-        (string Key, bool Value)? last = null;
-        viewModel.MetricVisibilityChanged += (key, value) => last = (key, value);
+        List<SettingChange> changes = Capture(viewModel);
 
         viewModel.ToggleFor("ram.usage").IsVisible = true;
 
-        Assert.AreEqual(("ram.usage", true), last);
+        Assert.AreEqual(1, changes.Count);
+        Assert.AreEqual(SettingKind.MetricVisibility, changes[0].Kind);
+        Assert.AreEqual("ram.usage", changes[0].Key);
+        Assert.IsTrue(changes[0].Flag);
     }
 
     [TestMethod]
-    public void Toggling_gpu_power_raises_MetricVisibilityChanged_with_dotted_key()
+    public void Toggling_gpu_power_raises_a_metric_visibility_change_with_dotted_key()
     {
         var viewModel = new SettingsViewModel(SampleSettings());
-        (string Key, bool Value)? last = null;
-        viewModel.MetricVisibilityChanged += (key, value) => last = (key, value);
+        List<SettingChange> changes = Capture(viewModel);
 
         viewModel.ToggleFor("gpu.power").IsVisible = false;
 
-        Assert.AreEqual(("gpu.power", false), last);
+        Assert.AreEqual(1, changes.Count);
+        Assert.AreEqual(SettingKind.MetricVisibility, changes[0].Kind);
+        Assert.AreEqual("gpu.power", changes[0].Key);
+        Assert.IsFalse(changes[0].Flag);
     }
 
     [TestMethod]
-    public void Seeding_a_toggle_does_not_raise_MetricVisibilityChanged()
+    public void Seeding_a_toggle_does_not_raise_a_change()
     {
-        int count = 0;
         var settings = SampleSettings();
 
         var viewModel = new SettingsViewModel(settings);
-        viewModel.MetricVisibilityChanged += (_, _) => count++;
+        List<SettingChange> changes = Capture(viewModel);
 
-        // Construction already happened above with no subscriber; re-seeding nothing fires now.
-        Assert.AreEqual(0, count);
+        // Construction already seeded the toggles with no subscriber; nothing fires now.
+        Assert.AreEqual(0, changes.Count);
     }
 
     [TestMethod]
@@ -150,12 +162,11 @@ public class SettingsViewModelTests
     {
         var settings = new Settings { BackgroundColor = "#0F121D", LightBackgroundColor = "#EEF1F5" };
         var viewModel = new SettingsViewModel(settings, systemIsDark: true);
-        bool themeChanged = false;
-        viewModel.ThemeChanged += () => themeChanged = true;
+        List<SettingChange> changes = Capture(viewModel);
 
         viewModel.Theme = AppTheme.Light;
 
-        Assert.IsTrue(themeChanged);
+        Assert.IsTrue(changes.Any(change => change.Kind == SettingKind.Theme));
         Assert.IsFalse(viewModel.EditingVariantIsDark);
         Assert.AreEqual("#EEF1F5", viewModel.BackgroundColor);
         Assert.AreEqual("#FFFFFF", viewModel.Swatches[2]);
@@ -194,16 +205,16 @@ public class SettingsViewModelTests
     }
 
     [TestMethod]
-    public void Changing_time_zone_raises_TimeZoneChanged()
+    public void Changing_time_zone_raises_a_time_zone_change()
     {
         var viewModel = new SettingsViewModel(new Settings { TimeZoneId = "UTC" });
-        int count = 0;
-        viewModel.TimeZoneChanged += () => count++;
+        List<SettingChange> changes = Capture(viewModel);
 
         var target = System.TimeZoneInfo.GetSystemTimeZones().First(tz => tz.Id != viewModel.SelectedTimeZone.Id);
         viewModel.SelectedTimeZone = target;
 
-        Assert.AreEqual(1, count);
+        Assert.AreEqual(1, changes.Count);
+        Assert.AreEqual(SettingKind.TimeZone, changes[0].Kind);
     }
 
     [TestMethod]
@@ -223,15 +234,15 @@ public class SettingsViewModelTests
     }
 
     [TestMethod]
-    public void Toggling_use_local_time_raises_TimeZoneChanged()
+    public void Toggling_use_local_time_raises_a_time_zone_change()
     {
         var viewModel = new SettingsViewModel(new Settings { TimeZoneId = "UTC" });
-        int count = 0;
-        viewModel.TimeZoneChanged += () => count++;
+        List<SettingChange> changes = Capture(viewModel);
 
         viewModel.UseLocalTime = true;
 
-        Assert.AreEqual(1, count);
+        Assert.AreEqual(1, changes.Count);
+        Assert.AreEqual(SettingKind.TimeZone, changes[0].Kind);
     }
 
     [TestMethod]
@@ -247,16 +258,16 @@ public class SettingsViewModelTests
     }
 
     [TestMethod]
-    public void Changing_an_update_preference_raises_the_event()
+    public void Changing_an_update_preference_raises_an_update_preferences_change()
     {
         var viewModel = new SettingsViewModel(new Settings());
-        int raised = 0;
-        viewModel.UpdatePreferencesChanged += () => raised++;
+        List<SettingChange> changes = Capture(viewModel);
 
         viewModel.UpdateCheckEnabled = false;
         viewModel.UpdateFrequency = UpdateCheckFrequency.Monthly;
 
-        Assert.AreEqual(2, raised);
+        Assert.AreEqual(2, changes.Count);
+        Assert.IsTrue(changes.All(change => change.Kind == SettingKind.UpdatePreferences));
     }
 
     [TestMethod]
@@ -272,39 +283,45 @@ public class SettingsViewModelTests
     }
 
     [TestMethod]
-    public void Toggling_cpu_compact_raises_CompactChanged_with_widget_key()
+    public void Toggling_cpu_compact_raises_a_compact_change_with_widget_key()
     {
         var viewModel = new SettingsViewModel(new Settings());
-        (string Widget, bool Value)? last = null;
-        viewModel.CompactChanged += (widget, value) => last = (widget, value);
+        List<SettingChange> changes = Capture(viewModel);
 
         viewModel.CpuCompact = true;
 
-        Assert.AreEqual(("cpu", true), last);
+        Assert.AreEqual(1, changes.Count);
+        Assert.AreEqual(SettingKind.Compact, changes[0].Kind);
+        Assert.AreEqual("cpu", changes[0].Key);
+        Assert.IsTrue(changes[0].Flag);
     }
 
     [TestMethod]
-    public void Toggling_gpu_compact_raises_CompactChanged_with_widget_key()
+    public void Toggling_gpu_compact_raises_a_compact_change_with_widget_key()
     {
         var viewModel = new SettingsViewModel(new Settings());
-        (string Widget, bool Value)? last = null;
-        viewModel.CompactChanged += (widget, value) => last = (widget, value);
+        List<SettingChange> changes = Capture(viewModel);
 
         viewModel.GpuCompact = true;
 
-        Assert.AreEqual(("gpu", true), last);
+        Assert.AreEqual(1, changes.Count);
+        Assert.AreEqual(SettingKind.Compact, changes[0].Kind);
+        Assert.AreEqual("gpu", changes[0].Key);
+        Assert.IsTrue(changes[0].Flag);
     }
 
     [TestMethod]
-    public void Toggling_clock_compact_raises_CompactChanged_with_clock_key()
+    public void Toggling_clock_compact_raises_a_compact_change_with_clock_key()
     {
         var viewModel = new SettingsViewModel(new Settings());
-        (string Widget, bool Value)? last = null;
-        viewModel.CompactChanged += (widget, value) => last = (widget, value);
+        List<SettingChange> changes = Capture(viewModel);
 
         viewModel.DateTimeCompact = true;
 
-        Assert.AreEqual(("clock", true), last);
+        Assert.AreEqual(1, changes.Count);
+        Assert.AreEqual(SettingKind.Compact, changes[0].Kind);
+        Assert.AreEqual("clock", changes[0].Key);
+        Assert.IsTrue(changes[0].Flag);
     }
 
     [TestMethod]
@@ -318,15 +335,16 @@ public class SettingsViewModelTests
     }
 
     [TestMethod]
-    public void Changing_clock_alignment_raises_ClockAlignmentChanged()
+    public void Changing_clock_alignment_raises_a_clock_alignment_change()
     {
         var viewModel = new SettingsViewModel(new Settings());
-        ClockAlignment? last = null;
-        viewModel.ClockAlignmentChanged += value => last = value;
+        List<SettingChange> changes = Capture(viewModel);
 
         viewModel.ClockAlignment = ClockAlignment.Center;
 
-        Assert.AreEqual(ClockAlignment.Center, last);
+        Assert.AreEqual(1, changes.Count);
+        Assert.AreEqual(SettingKind.ClockAlignment, changes[0].Kind);
+        Assert.AreEqual(ClockAlignment.Center, changes[0].Alignment);
     }
 
     [TestMethod]
@@ -354,41 +372,40 @@ public class SettingsViewModelTests
     }
 
     [TestMethod]
-    public void Changing_a_clock_format_raises_ClockFormatsChanged()
+    public void Changing_a_clock_format_raises_a_clock_formats_change()
     {
         var viewModel = new SettingsViewModel(new Settings());
-        int count = 0;
-        viewModel.ClockFormatsChanged += () => count++;
+        List<SettingChange> changes = Capture(viewModel);
 
         viewModel.ClockDateFormat = "yyyy-MM-dd";
 
-        Assert.AreEqual(1, count);
+        Assert.AreEqual(1, changes.Count);
+        Assert.AreEqual(SettingKind.ClockFormats, changes[0].Kind);
     }
 
     [TestMethod]
-    public void Changing_locale_raises_ClockLocaleChanged()
+    public void Changing_locale_raises_a_clock_locale_change()
     {
         var viewModel = new SettingsViewModel(new Settings { ClockLocaleId = "en-US" });
-        int count = 0;
-        viewModel.ClockLocaleChanged += () => count++;
+        List<SettingChange> changes = Capture(viewModel);
 
         viewModel.SelectedLocale = viewModel.Locales.First(culture => culture.Name == "fr-FR");
 
-        Assert.AreEqual(1, count);
+        Assert.AreEqual(1, changes.Count);
+        Assert.AreEqual(SettingKind.ClockLocale, changes[0].Kind);
     }
 
     [TestMethod]
-    public void Clearing_the_locale_to_null_is_ignored_and_does_not_raise_ClockLocaleChanged()
+    public void Clearing_the_locale_to_null_is_ignored_and_does_not_raise_a_change()
     {
         // The locale AutoCompleteBox clears its selection to null while the user types a filter; that
         // must not raise the change event (the host handles it by dereferencing the locale).
         var viewModel = new SettingsViewModel(new Settings { ClockLocaleId = "en-US" });
-        int count = 0;
-        viewModel.ClockLocaleChanged += () => count++;
+        List<SettingChange> changes = Capture(viewModel);
 
         viewModel.SelectedLocale = null!;
 
-        Assert.AreEqual(0, count);
+        Assert.AreEqual(0, changes.Count);
     }
 
     [TestMethod]

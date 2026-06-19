@@ -380,20 +380,47 @@ public partial class App : Application
         }
 
         var viewModel = new SettingsViewModel(_settings, ResolvedIsDark());
-        viewModel.AppearanceChanged += () => OnAppearanceChanged(viewModel);
-        viewModel.ThemeChanged += () => OnThemeChanged(viewModel);
-        viewModel.MetricVisibilityChanged += OnMetricVisibilityChanged;
-        viewModel.CompactChanged += OnCompactChanged;
-        viewModel.ClockAlignmentChanged += OnClockAlignmentChanged;
-        viewModel.TimeZoneChanged += () => OnTimeZoneChanged(viewModel);
-        viewModel.ClockFormatsChanged += () => OnClockFormatsChanged(viewModel);
-        viewModel.ClockLocaleChanged += () => OnClockLocaleChanged(viewModel);
-        viewModel.UpdatePreferencesChanged += () =>
-            _settingsController.SetUpdatePreferences(viewModel.UpdateCheckEnabled, viewModel.UpdateFrequency);
+        viewModel.SettingChanged += change => OnSettingChanged(viewModel, change);
 
         _settingsWindow = new SettingsWindow { DataContext = viewModel };
         _settingsWindow.Closed += (_, _) => _settingsWindow = null;
         _settingsWindow.Show();
+    }
+
+    // Routes one settings change to its handler. The per-key facets carry their payload; the rest read
+    // the current value back off the view model.
+    private void OnSettingChanged(SettingsViewModel viewModel, SettingChange change)
+    {
+        switch (change.Kind)
+        {
+            case SettingKind.Appearance:
+                OnAppearanceChanged(viewModel);
+                break;
+            case SettingKind.Theme:
+                OnThemeChanged(viewModel);
+                break;
+            case SettingKind.MetricVisibility:
+                OnMetricVisibilityChanged(change.Key!, change.Flag);
+                break;
+            case SettingKind.Compact:
+                OnCompactChanged(change.Key!, change.Flag);
+                break;
+            case SettingKind.ClockAlignment:
+                OnClockAlignmentChanged(change.Alignment);
+                break;
+            case SettingKind.TimeZone:
+                OnTimeZoneChanged(viewModel);
+                break;
+            case SettingKind.ClockFormats:
+                OnClockFormatsChanged(viewModel);
+                break;
+            case SettingKind.ClockLocale:
+                OnClockLocaleChanged(viewModel);
+                break;
+            case SettingKind.UpdatePreferences:
+                _settingsController.SetUpdatePreferences(viewModel.UpdateCheckEnabled, viewModel.UpdateFrequency);
+                break;
+        }
     }
 
     private void OnAppearanceChanged(SettingsViewModel viewModel)
