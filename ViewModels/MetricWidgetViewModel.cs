@@ -39,7 +39,7 @@ public partial class MetricWidgetViewModel(string computeKey, string memoryKey) 
     private const double BaseHeight = 176;
 
     [ObservableProperty] public partial FontFamily FontFamily { get; set; } = new(WidgetFontProfile.BundledInter);
-    [ObservableProperty] public partial double FontScale { get; set; } = 1.0;
+    [ObservableProperty] public partial double Scale { get; set; } = 1.0;
     [ObservableProperty] public partial double ScaledWidth { get; set; } = BaseWidth;
     [ObservableProperty] public partial double ScaledHeight { get; set; } = BaseHeight;
     [ObservableProperty] public partial FontWeight StrongWeight { get; set; } = FontWeight.Bold;
@@ -64,7 +64,7 @@ public partial class MetricWidgetViewModel(string computeKey, string memoryKey) 
     public void ApplyFont(WidgetFontProfile profile)
     {
         FontFamily = new(profile.FontFamily);
-        FontScale = profile.Scale;
+        Scale = profile.Scale;
         ScaledWidth = BaseWidth * profile.Scale;
         ScaledHeight = BaseHeight * profile.Scale;
         StrongWeight = (FontWeight)profile.StrongWeight;
@@ -75,7 +75,7 @@ public partial class MetricWidgetViewModel(string computeKey, string memoryKey) 
 
     private void StampFont(MetricRowViewModel row)
     {
-        row.FontScale = FontScale;
+        row.Scale = Scale;
         row.StrongWeight = StrongWeight;
         row.UnitWeight = UnitWeight;
     }

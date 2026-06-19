@@ -24,7 +24,7 @@ public partial class MetricRowViewModel : ObservableObject
 
     // The active font scale and resolved weights, stamped by the owning widget so the row template
     // (whose DataContext is this row) can bind them. Defaults reproduce the original look.
-    [ObservableProperty] public partial double FontScale { get; set; } = 1.0;
+    [ObservableProperty] public partial double Scale { get; set; } = 1.0;
     [ObservableProperty] public partial FontWeight StrongWeight { get; set; } = FontWeight.Bold;
     [ObservableProperty] public partial FontWeight UnitWeight { get; set; } = FontWeight.SemiBold;
 

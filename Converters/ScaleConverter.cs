@@ -7,7 +7,7 @@ namespace MiniMetrics.Converters;
 // Multiplies a base scalar (a font size, spacing, or min-width given as the converter parameter) by the
 // bound scale factor. Scaling the real font size, rather than applying a render transform, keeps text
 // crisp at every scale. The parameter is parsed with the invariant culture because it comes from XAML.
-public sealed class FontScaleConverter : IValueConverter
+public sealed class ScaleConverter : IValueConverter
 {
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {

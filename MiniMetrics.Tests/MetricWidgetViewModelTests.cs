@@ -157,7 +157,7 @@ public class MetricWidgetViewModelTests
         viewModel.ApplyFont(WidgetFontProfile.Resolve("Arial", 120, WidgetFontWeight.Light));
 
         Assert.AreEqual("Arial", viewModel.FontFamily.Name);
-        Assert.AreEqual(1.2, viewModel.FontScale, 1e-9);
+        Assert.AreEqual(1.2, viewModel.Scale, 1e-9);
         Assert.AreEqual(FontWeight.SemiBold, viewModel.StrongWeight); // Light preset strong = 600
         Assert.AreEqual(FontWeight.Medium, viewModel.UnitWeight);     // Light preset unit = 500
         Assert.AreEqual(210 * 1.2, viewModel.ScaledWidth, 1e-9);
@@ -175,7 +175,7 @@ public class MetricWidgetViewModelTests
         viewModel.ApplyFont(WidgetFontProfile.Resolve(null, 140, WidgetFontWeight.Bold));
 
         var row = viewModel.Compute!;
-        Assert.AreEqual(1.4, row.FontScale, 1e-9);
+        Assert.AreEqual(1.4, row.Scale, 1e-9);
         Assert.AreEqual(FontWeight.ExtraBold, row.StrongWeight); // Bold preset strong = 800
         Assert.AreEqual(FontWeight.Bold, row.UnitWeight);        // Bold preset unit = 700
     }
@@ -188,7 +188,7 @@ public class MetricWidgetViewModelTests
 
         viewModel.ApplySnapshot(new MetricsSnapshot(new CpuMetrics(50, null, null), null, null));
 
-        Assert.AreEqual(1.3, viewModel.Compute!.FontScale, 1e-9);
+        Assert.AreEqual(1.3, viewModel.Compute!.Scale, 1e-9);
         Assert.AreEqual(FontWeight.Bold, viewModel.Compute!.StrongWeight);
     }
 }

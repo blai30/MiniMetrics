@@ -39,7 +39,7 @@ public partial class DateTimeWidgetViewModel : ObservableObject, IWidgetAppearan
     private const double BaseHeight = 176;
 
     [ObservableProperty] public partial FontFamily FontFamily { get; set; } = new(WidgetFontProfile.BundledInter);
-    [ObservableProperty] public partial double FontScale { get; set; } = 1.0;
+    [ObservableProperty] public partial double Scale { get; set; } = 1.0;
     [ObservableProperty] public partial double ScaledWidth { get; set; } = BaseWidth;
     [ObservableProperty] public partial double ScaledHeight { get; set; } = BaseHeight;
     [ObservableProperty] public partial FontWeight ClockWeight { get; set; } = FontWeight.Medium;
@@ -55,7 +55,7 @@ public partial class DateTimeWidgetViewModel : ObservableObject, IWidgetAppearan
     public void ApplyFont(WidgetFontProfile profile)
     {
         FontFamily = new(profile.FontFamily);
-        FontScale = profile.Scale;
+        Scale = profile.Scale;
         ScaledWidth = BaseWidth * profile.Scale;
         ScaledHeight = BaseHeight * profile.Scale;
         ClockWeight = (FontWeight)profile.ClockWeight;

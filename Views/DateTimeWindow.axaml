@@ -21,7 +21,7 @@
                      FontFamily="{Binding FontFamily}">
 
     <Window.Resources>
-        <conv:FontScaleConverter x:Key="FontScale" />
+        <conv:ScaleConverter x:Key="Scale" />
         <conv:ThicknessScaleConverter x:Key="ThicknessScale" />
     </Window.Resources>
 
@@ -31,15 +31,15 @@
         <Panel>
             <!-- Full layout: time over date. -->
             <StackPanel VerticalAlignment="Center"
-                        Margin="{Binding FontScale, Converter={StaticResource ThicknessScale}, ConverterParameter='28,0,28,0'}"
+                        Margin="{Binding Scale, Converter={StaticResource ThicknessScale}, ConverterParameter='28,0,28,0'}"
                         IsVisible="{Binding !IsCompact}">
                 <TextBlock Text="{Binding TimeText}"
-                           FontSize="{Binding FontScale, Converter={StaticResource FontScale}, ConverterParameter=80}"
+                           FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=80}"
                            FontWeight="{Binding ClockWeight}"
                            TextAlignment="{Binding TextAlignment}"
                            Foreground="{DynamicResource Widget.Text.Primary}" />
                 <TextBlock Text="{Binding DateText}"
-                           FontSize="{Binding FontScale, Converter={StaticResource FontScale}, ConverterParameter=28}"
+                           FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=28}"
                            FontWeight="{Binding ClockWeight}"
                            TextAlignment="{Binding TextAlignment}"
                            Foreground="{DynamicResource Widget.Text.Label}" />
@@ -49,16 +49,16 @@
             <StackPanel Orientation="Horizontal"
                         VerticalAlignment="Center"
                         HorizontalAlignment="{Binding BlockAlignment}"
-                        Margin="{Binding FontScale, Converter={StaticResource ThicknessScale}, ConverterParameter='20,0'}"
-                        Spacing="{Binding FontScale, Converter={StaticResource FontScale}, ConverterParameter=16}"
+                        Margin="{Binding Scale, Converter={StaticResource ThicknessScale}, ConverterParameter='20,0'}"
+                        Spacing="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=16}"
                         IsVisible="{Binding IsCompact}">
                 <TextBlock Text="{Binding TimeText}"
-                           FontSize="{Binding FontScale, Converter={StaticResource FontScale}, ConverterParameter=46}"
+                           FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=46}"
                            FontWeight="{Binding ClockWeight}"
                            VerticalAlignment="Center"
                            Foreground="{DynamicResource Widget.Text.Primary}" />
                 <TextBlock Text="{Binding DateText}"
-                           FontSize="{Binding FontScale, Converter={StaticResource FontScale}, ConverterParameter=28}"
+                           FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=28}"
                            FontWeight="{Binding ClockWeight}"
                            VerticalAlignment="Center"
                            Foreground="{DynamicResource Widget.Text.Label}" />
