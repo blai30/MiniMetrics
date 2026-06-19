@@ -34,6 +34,7 @@ public partial class App : Application
     private MetricWidgetViewModel _cpuViewModel = null!;
     private MetricWidgetViewModel _gpuViewModel = null!;
     private WidgetCoordinator _widgetCoordinator = null!;
+    private MetricActivator _metricActivator = null!;
     private DateTimeWidgetViewModel _dateTimeViewModel = null!;
     private IWidgetAppearance[] _appearances = Array.Empty<IWidgetAppearance>();
     private WidgetHost _cpuHost = null!;
@@ -126,6 +127,15 @@ public partial class App : Application
             _elevationCoordinator = new ElevationCoordinator(elevation, driverProbe);
 
             _widgetCoordinator = new WidgetCoordinator(_settingsController, _cpuViewModel, _gpuViewModel, _source);
+
+            // Owns the elevation sequence a metric toggle implies. Resolves the startup manager lazily
+            // because BuildTray creates it after this point (and only on Windows).
+            _metricActivator = new MetricActivator(
+                _widgetCoordinator,
+                _elevationCoordinator,
+                _settingsController,
+                () => _startupManager,
+                Environment.ProcessPath!);
 
             // Release any device whose widget is hidden or whose every metric is hidden before the
             // first poll runs.
@@ -507,54 +517,29 @@ public partial class App : Application
             return;
         }
 
-        // Persist the change, re-render the owning widget, and release any device whose metrics are now
-        // all hidden, as one step so render, polling, and saved state cannot drift apart.
-        _widgetCoordinator.SetMetricVisibility(key, visible);
+        // The activator persists the change, re-renders the owning widget, reconciles polled devices,
+        // and decides the elevation follow-through; App only renders the returned outcome.
+        MetricActivationResult result = _metricActivator.Apply(key, visible);
 
-        bool isElevationMetric = MetricRegistry.All.Any(entry => entry.Key == key && entry.RequiresElevation);
-        if (!isElevationMetric)
+        switch (result.Outcome)
         {
-            return;
-        }
-
-        // The coordinator decides what enabling this metric implies right now: relaunch elevated, point
-        // the user at the PawnIO installer, or nothing (turned off, or already elevated).
-        switch (_elevationCoordinator.DecideMetricEnable(key, visible))
-        {
-            case MetricEnableAction.DriverInstallPrompt:
-                // Elevation only helps once PawnIO is installed; its device admits administrators only.
-                // Without the driver, relaunching elevated would read nothing, so point the user at the
-                // installer instead. The metric stays enabled and renders a placeholder until the driver
-                // is present, at which point it starts working.
+            case MetricActivationOutcome.ShowDriverInstallPrompt:
                 ShowPawnIoPrompt();
-                return;
+                break;
 
-            case MetricEnableAction.Relaunch:
-                // Relaunch elevated so we can open the PawnIO driver device. Settings were just
-                // persisted, so the elevated instance reads the enabled state from disk and reconciles
-                // startup registration itself (one UAC prompt total).
-                _settingsController.Flush();
-                if (_elevationCoordinator.RelaunchElevated(Environment.ProcessPath!))
-                {
-                    (ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.Shutdown();
-                    return;
-                }
+            case MetricActivationOutcome.Relaunching:
+                (ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.Shutdown();
+                break;
 
+            case MetricActivationOutcome.RelaunchDeclined:
                 // UAC declined: put the metric back to off and keep running non-elevated.
                 RevertMetricToggle(key);
-                return;
+                break;
         }
 
-        // Reconcile startup registration to match the new elevation need. A scheduled task that is no
-        // longer needed is removed even while unelevated: Sync only touches the task when one exists and is
-        // no longer wanted, and RemoveTask tries a non-elevated delete first, only prompting (runas) as a
-        // fallback for tasks left by older versions that an administrator alone can delete.
-        // Turning a metric on while unelevated returns earlier into the relaunch path and never reaches
-        // here, so this block only ever reduces or keeps the elevation requirement.
-        if (_startupManager is not null && _startupManager.IsEnabled())
+        if (result.StartupResynced)
         {
-            _startupManager.Sync(true, RequiresElevation());
-            _tray.SetRunAtStartupChecked(_startupManager.IsEnabled());
+            _tray.SetRunAtStartupChecked(result.StartupEnabled);
         }
     }
 
