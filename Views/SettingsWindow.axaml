@@ -23,6 +23,7 @@
 
     <Window.Resources>
         <conv:UpdateFrequencyLabelConverter x:Key="FrequencyLabel" />
+        <conv:EnumToBoolConverter x:Key="EnumToBool" />
     </Window.Resources>
 
     <Grid x:Name="RootArea" Focusable="True">
@@ -149,6 +150,21 @@
                     </StackPanel>
 
                     <StackPanel Spacing="8">
+                        <TextBlock Text="Text alignment" />
+                        <StackPanel Orientation="Horizontal" Spacing="16">
+                            <RadioButton Content="Left"
+                                         GroupName="ClockAlignment"
+                                         IsChecked="{Binding ClockAlignment, Converter={StaticResource EnumToBool}, ConverterParameter={x:Static models:ClockAlignment.Left}}" />
+                            <RadioButton Content="Centered"
+                                         GroupName="ClockAlignment"
+                                         IsChecked="{Binding ClockAlignment, Converter={StaticResource EnumToBool}, ConverterParameter={x:Static models:ClockAlignment.Center}}" />
+                            <RadioButton Content="Right"
+                                         GroupName="ClockAlignment"
+                                         IsChecked="{Binding ClockAlignment, Converter={StaticResource EnumToBool}, ConverterParameter={x:Static models:ClockAlignment.Right}}" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <StackPanel Spacing="8">
                         <TextBlock Text="Normal display" FontSize="13" />
 
                         <StackPanel Spacing="2">
@@ -194,7 +210,7 @@
                         <HyperlinkButton NavigateUri="https://learn.microsoft.com/dotnet/standard/base-types/custom-date-and-time-format-strings"
                                          HorizontalContentAlignment="Left"
                                          Padding="0">
-                            <TextBlock Text="Custom date and time format strings" TextWrapping="Wrap" />
+                            <TextBlock Text="Reference: Date and time format strings ↗" TextWrapping="Wrap" />
                         </HyperlinkButton>
                     </StackPanel>
                 </StackPanel>

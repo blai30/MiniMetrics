@@ -64,6 +64,9 @@ public partial class SettingsViewModel : ObservableObject
     private bool _dateTimeCompact;
 
     [ObservableProperty]
+    private ClockAlignment _clockAlignment;
+
+    [ObservableProperty]
     private bool _useLocalTime;
 
     // The full set of specific cultures for the locale picker, ordered by display name.
@@ -155,6 +158,7 @@ public partial class SettingsViewModel : ObservableObject
         _cpuCompact = settings.CpuCompact;
         _gpuCompact = settings.GpuCompact;
         _dateTimeCompact = settings.DateTimeCompact;
+        _clockAlignment = settings.ClockAlignment;
         _useLocalTime = settings.TimeZoneId is null;
         _clockTimeFormat = settings.ClockTimeFormat;
         _clockDateFormat = settings.ClockDateFormat;
@@ -208,6 +212,9 @@ public partial class SettingsViewModel : ObservableObject
     // Raised when a per-widget compact toggle changes, with the widget key ("cpu", "gpu", "clock")
     // and the new value.
     public event Action<string, bool>? CompactChanged;
+
+    // Raised when the clock text alignment changes (persist + live clock update).
+    public event Action<ClockAlignment>? ClockAlignmentChanged;
 
     // The toggle for a metric key.
     public MetricToggleViewModel ToggleFor(string key) => _togglesByKey[key];
@@ -292,6 +299,8 @@ public partial class SettingsViewModel : ObservableObject
     partial void OnGpuCompactChanged(bool value) => CompactChanged?.Invoke("gpu", value);
 
     partial void OnDateTimeCompactChanged(bool value) => CompactChanged?.Invoke("clock", value);
+
+    partial void OnClockAlignmentChanged(ClockAlignment value) => ClockAlignmentChanged?.Invoke(value);
 
     // Picks the saved zone by id, else the machine's local zone (matched from the list so the
     // dropdown highlights it), else local as a last resort.
