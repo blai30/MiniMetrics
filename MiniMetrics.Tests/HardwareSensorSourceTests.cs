@@ -1,5 +1,4 @@
 using MiniMetrics.Services;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace MiniMetrics.Tests;
 
@@ -90,7 +89,7 @@ public class HardwareSensorSourceTests
         tree.Set(HardwareKind.Memory, SensorKind.Data, "Memory Used", 8);
         tree.Set(HardwareKind.Memory, SensorKind.Data, "Memory Available", 8);
         // The OS-usable total is 16 GiB, but the firmware reports 18 GiB installed: 2 GiB is reserved.
-        var source = new HardwareSensorSource(tree, installedMemoryBytes: () => 18UL * BytesPerGib);
+        var source = new HardwareSensorSource(tree, () => 18UL * BytesPerGib);
 
         var snapshot = source.Read();
 
@@ -106,7 +105,7 @@ public class HardwareSensorSourceTests
         tree.Set(HardwareKind.Memory, SensorKind.Data, "Memory Used", 8);
         tree.Set(HardwareKind.Memory, SensorKind.Data, "Memory Available", 8);
         // The firmware call returned 0 (unavailable), so the widget keeps the OS-usable total.
-        var source = new HardwareSensorSource(tree, installedMemoryBytes: () => 0);
+        var source = new HardwareSensorSource(tree, () => 0);
 
         var snapshot = source.Read();
 
@@ -161,7 +160,7 @@ public class HardwareSensorSourceTests
         var tree = new FakeHardwareTree();
         var source = new HardwareSensorSource(tree);
 
-        source.SetActiveDevices(cpu: false, memory: true, gpu: false);
+        source.SetActiveDevices(false, true, false);
 
         // The unload call actually reaches the tree, so the process drops its handle to the device.
         Assert.IsFalse(tree.CpuEnabled);
@@ -176,7 +175,7 @@ public class HardwareSensorSourceTests
         tree.Set(HardwareKind.Cpu, SensorKind.Load, "CPU Total", 34);
         var source = new HardwareSensorSource(tree);
 
-        source.SetActiveDevices(cpu: false, memory: true, gpu: true);
+        source.SetActiveDevices(false, true, true);
         var snapshot = source.Read();
 
         // Even though a CPU value is present, a released device emits no section.

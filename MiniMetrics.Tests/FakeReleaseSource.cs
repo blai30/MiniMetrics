@@ -1,5 +1,3 @@
-using System.Threading;
-using System.Threading.Tasks;
 using MiniMetrics.Services;
 
 namespace MiniMetrics.Tests;

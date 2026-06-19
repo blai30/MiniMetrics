@@ -1,8 +1,5 @@
-using System;
-using System.IO;
 using MiniMetrics.Models;
 using MiniMetrics.Services;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace MiniMetrics.Tests;
 
@@ -12,7 +9,8 @@ public class SettingsControllerTests
     private static string TempPath() =>
         Path.Combine(Path.GetTempPath(), "dm-tests", Path.GetRandomFileName(), "settings.json");
 
-    private static (SettingsController controller, SettingsStore store, FakeSaveScheduler scheduler) NewController(Settings? settings = null)
+    private static (SettingsController controller, SettingsStore store, FakeSaveScheduler scheduler) NewController(
+        Settings? settings = null)
     {
         var store = new SettingsStore(TempPath());
         var scheduler = new FakeSaveScheduler();
@@ -59,7 +57,7 @@ public class SettingsControllerTests
     {
         var (controller, store, scheduler) = NewController();
 
-        controller.SetAppearance(targetIsDark: true, "#112233", 50);
+        controller.SetAppearance(true, "#112233", 50);
 
         // In-memory state is current immediately; the disk write waits for the debounce.
         Assert.AreEqual("#112233", controller.Current.BackgroundColor);
@@ -78,7 +76,7 @@ public class SettingsControllerTests
     {
         var (controller, store, scheduler) = NewController();
 
-        controller.SetAppearance(targetIsDark: false, "#FAFBFF", 80);
+        controller.SetAppearance(false, "#FAFBFF", 80);
         controller.Flush();
 
         Assert.AreEqual("#FAFBFF", store.Load().LightBackgroundColor);
@@ -215,7 +213,7 @@ public class SettingsControllerTests
 
         var (controller, _, _) = NewController(settings);
 
-        Settings current = controller.Current;
+        var current = controller.Current;
         Assert.IsFalse(current.Visibility.ContainsKey("cpu"));
         Assert.IsFalse(current.Visibility["cpu.usage"]);
         Assert.IsFalse(current.Visibility["cpu.temp"]);

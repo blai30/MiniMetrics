@@ -1,4 +1,3 @@
-using System;
 using MiniMetrics.Lib;
 using MiniMetrics.Models;
 
@@ -50,7 +49,7 @@ public class UpdatePolicyTests
     [TestMethod]
     public void Evaluate_flags_a_newer_release()
     {
-        UpdateDecision decision = UpdatePolicy.Evaluate(new Version(1, 2, 0), "v1.3.0", null);
+        var decision = UpdatePolicy.Evaluate(new Version(1, 2, 0), "v1.3.0", null);
 
         Assert.IsTrue(decision.UpdateAvailable);
         Assert.IsTrue(decision.ShouldNotify);
@@ -73,7 +72,7 @@ public class UpdatePolicyTests
     [TestMethod]
     public void Evaluate_suppresses_notify_for_the_skipped_version()
     {
-        UpdateDecision decision = UpdatePolicy.Evaluate(new Version(1, 2, 0), "v1.3.0", "1.3.0");
+        var decision = UpdatePolicy.Evaluate(new Version(1, 2, 0), "v1.3.0", "1.3.0");
 
         Assert.IsTrue(decision.UpdateAvailable);
         Assert.IsFalse(decision.ShouldNotify);
@@ -82,7 +81,7 @@ public class UpdatePolicyTests
     [TestMethod]
     public void Evaluate_still_notifies_for_a_version_above_the_skipped_one()
     {
-        UpdateDecision decision = UpdatePolicy.Evaluate(new Version(1, 2, 0), "v1.4.0", "1.3.0");
+        var decision = UpdatePolicy.Evaluate(new Version(1, 2, 0), "v1.4.0", "1.3.0");
 
         Assert.IsTrue(decision.ShouldNotify);
     }
@@ -90,7 +89,7 @@ public class UpdatePolicyTests
     [TestMethod]
     public void Evaluate_treats_an_unparseable_tag_as_no_update()
     {
-        UpdateDecision decision = UpdatePolicy.Evaluate(new Version(1, 2, 0), "nightly-build", null);
+        var decision = UpdatePolicy.Evaluate(new Version(1, 2, 0), "nightly-build", null);
 
         Assert.IsFalse(decision.UpdateAvailable);
         Assert.IsNull(decision.LatestVersion);

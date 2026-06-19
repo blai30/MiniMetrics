@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using MiniMetrics.Services;
 
 namespace MiniMetrics.Tests;

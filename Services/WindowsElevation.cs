@@ -12,7 +12,7 @@ public sealed class WindowsElevation : IElevation
 {
     public bool IsElevated()
     {
-        using WindowsIdentity identity = WindowsIdentity.GetCurrent();
+        using var identity = WindowsIdentity.GetCurrent();
         return new WindowsPrincipal(identity).IsInRole(WindowsBuiltInRole.Administrator);
     }
 
@@ -22,7 +22,7 @@ public sealed class WindowsElevation : IElevation
         {
             FileName = exePath,
             UseShellExecute = true,
-            Verb = "runas",
+            Verb = "runas"
         };
 
         try

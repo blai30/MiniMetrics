@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 
 namespace MiniMetrics.Lib;
 
@@ -14,20 +15,10 @@ public static class FuzzySearch
     public static bool Matches(string display, string key, string? query)
     {
         string trimmed = (query ?? "").Trim();
-        if (trimmed.Length == 0)
-        {
-            return true;
-        }
+        if (trimmed.Length == 0) return true;
 
         string haystack = $"{display} {key} {key.Replace("-", "")}";
-        foreach (string token in trimmed.Replace('_', '-').Split(Separators, StringSplitOptions.RemoveEmptyEntries))
-        {
-            if (haystack.IndexOf(token, StringComparison.InvariantCultureIgnoreCase) < 0)
-            {
-                return false;
-            }
-        }
-
-        return true;
+        return trimmed.Replace('_', '-').Split(Separators, StringSplitOptions.RemoveEmptyEntries).All(token =>
+            haystack.Contains(token, StringComparison.InvariantCultureIgnoreCase));
     }
 }

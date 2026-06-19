@@ -1,12 +1,9 @@
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -81,7 +78,8 @@ public partial class App : Application
             // Decide the update mode once. An installed Velopack build updates in place; a portable or dev
             // build links to the release page. The installed build runs from "<root>\current\", so the
             // stable root stub is one directory up.
-            var updateManager = new UpdateManager(new GithubSource("https://github.com/blai30/MiniMetrics", null, false));
+            var updateManager =
+                new UpdateManager(new GithubSource("https://github.com/blai30/MiniMetrics", null, false));
             _isInstalled = updateManager.IsInstalled;
             _rootStubPath = _isInstalled
                 ? Path.Combine(Directory.GetParent(AppContext.BaseDirectory)!.FullName, "MiniMetrics.exe")
@@ -154,25 +152,25 @@ public partial class App : Application
 
             _cpuHost = CreateHost(
                 new MetricWidgetWindow { DataContext = _cpuViewModel },
-                () => _settings.X is int x && _settings.Y is int y ? (x, y) : null,
+                () => _settings is { X: { } x, Y: { } y } ? (x, y) : null,
                 _settingsController.SetCpuPosition);
 
             _gpuHost = CreateHost(
                 new MetricWidgetWindow { DataContext = _gpuViewModel },
-                () => _settings.GpuX is int x && _settings.GpuY is int y ? (x, y) : null,
+                () => _settings is { GpuX: { } x, GpuY: { } y } ? (x, y) : null,
                 _settingsController.SetGpuPosition);
 
             _dateTimeHost = CreateHost(
                 new DateTimeWindow { DataContext = _dateTimeViewModel },
-                () => _settings.DateTimeX is int x && _settings.DateTimeY is int y ? (x, y) : null,
+                () => _settings is { DateTimeX: { } x, DateTimeY: { } y } ? (x, y) : null,
                 _settingsController.SetDateTimePosition);
 
-            _hosts = new[] { _cpuHost, _gpuHost, _dateTimeHost };
+            _hosts = [_cpuHost, _gpuHost, _dateTimeHost];
 
             // On first appearance with no saved position, the GPU widget sits flush-right of the CPU widget.
             _gpuHost.OnFirstPlacement = () =>
             {
-                EdgeSnap.Rect cpu = _cpuHost.Rect;
+                var cpu = _cpuHost.Rect;
                 _gpuHost.MoveTo(cpu.X + cpu.Width, cpu.Y);
             };
 
@@ -194,18 +192,12 @@ public partial class App : Application
             _trimTimer.Start();
 
             desktop.MainWindow = _cpuHost.Window;
-            if (!_settings.Hidden)
-            {
-                _cpuHost.Show();
-            }
+            if (!_settings.Hidden) _cpuHost.Show();
 
             // The GPU window is shown reactively by UpdateGpuWindowVisibility once the first
             // snapshot confirms a GPU is present.
 
-            if (!_settings.DateTimeHidden)
-            {
-                _dateTimeHost.Show();
-            }
+            if (!_settings.DateTimeHidden) _dateTimeHost.Show();
 
             _poller.Start();
 
@@ -228,9 +220,7 @@ public partial class App : Application
             // elevated (elevation alone cannot read the sensors), so surface the one-time install step
             // rather than leaving the metric silently blank.
             if (OperatingSystem.IsWindows() && _elevationCoordinator.NeedsDriverInstallPrompt(_settings.Visibility))
-            {
                 ShowPawnIoPrompt();
-            }
 
             // Run the launch-time update check a few seconds after startup so it never competes with
             // warmup, and only when enabled and the cadence is due.
@@ -241,7 +231,7 @@ public partial class App : Application
                 updateTimer.Tick += (_, _) =>
                 {
                     updateTimer.Stop();
-                    RunUpdateCheck(manual: false);
+                    RunUpdateCheck(false);
                 };
                 updateTimer.Start();
             }
@@ -269,24 +259,22 @@ public partial class App : Application
             // process is already elevated, this creates or removes the scheduled task with no prompt,
             // which is what keeps enabling a CPU sensor to a single UAC prompt overall.
             if (_elevationCoordinator.IsElevated() && _startupManager.IsEnabled())
-            {
                 _startupManager.Sync(true, RequiresElevation());
-            }
 
             showRunAtStartup = true;
             runAtStartupChecked = _startupManager.IsEnabled();
         }
 
         _tray = new TrayMenuController(new TrayMenuController.InitialState(
-            CpuChecked: !_settings.Hidden,
-            GpuChecked: !_settings.GpuHidden,
-            ClockChecked: !_settings.DateTimeHidden,
-            LockChecked: _settings.Locked,
-            AlwaysOnTopChecked: _settings.AlwaysOnTop,
-            SnapChecked: _settings.SnapToEdges,
-            ShowRunAtStartup: showRunAtStartup,
-            RunAtStartupChecked: runAtStartupChecked,
-            ShowUninstall: OperatingSystem.IsWindows() && _isInstalled));
+            !_settings.Hidden,
+            !_settings.GpuHidden,
+            !_settings.DateTimeHidden,
+            _settings.Locked,
+            _settings.AlwaysOnTop,
+            _settings.SnapToEdges,
+            showRunAtStartup,
+            runAtStartupChecked,
+            OperatingSystem.IsWindows() && _isInstalled));
 
         _tray.ToggleCpuRequested += OnToggleCpuShowHide;
         _tray.ToggleGpuRequested += OnToggleGpuShowHide;
@@ -296,20 +284,15 @@ public partial class App : Application
         _tray.ToggleSnapRequested += OnToggleSnap;
         _tray.RunAtStartupRequested += OnToggleRunAtStartup;
         _tray.OpenSettingsRequested += OnOpenSettings;
-        _tray.CheckUpdatesRequested += () => RunUpdateCheck(manual: true);
+        _tray.CheckUpdatesRequested += () => RunUpdateCheck(true);
         if (OperatingSystem.IsWindows() && _isInstalled)
-        {
             // The controller only surfaces the uninstall item under this same condition, so the handler
             // is only ever reachable on the platform it supports.
             _tray.UninstallRequested += OnUninstall;
-        }
 
         _tray.QuitRequested += () =>
         {
-            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-            {
-                desktop.Shutdown();
-            }
+            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop) desktop.Shutdown();
         };
         _tray.ApplyUpdateRequested += ApplyUpdateInApp;
         _tray.OpenReleasePageRequested += OpenReleasePage;
@@ -324,13 +307,9 @@ public partial class App : Application
     {
         bool hidden = _settingsController.ToggleCpuHidden();
         if (hidden)
-        {
             _cpuHost.Hide();
-        }
         else
-        {
             _cpuHost.Show();
-        }
 
         _tray.SetCpuChecked(!hidden);
         _widgetCoordinator.ApplyActiveDevices();
@@ -348,13 +327,9 @@ public partial class App : Application
     {
         bool hidden = _settingsController.ToggleDateTimeHidden();
         if (hidden)
-        {
             _dateTimeHost.Hide();
-        }
         else
-        {
             _dateTimeHost.Show();
-        }
 
         _tray.SetClockChecked(!hidden);
     }
@@ -362,10 +337,7 @@ public partial class App : Application
     private void OnToggleLock()
     {
         bool locked = _settingsController.ToggleLocked();
-        foreach (WidgetHost host in _hosts)
-        {
-            host.SetLocked(locked);
-        }
+        foreach (var host in _hosts) host.SetLocked(locked);
 
         _tray.SetLockChecked(locked);
     }
@@ -442,10 +414,7 @@ public partial class App : Application
     private void ApplyAppearanceToWidgets()
     {
         string background = ResolvedIsDark() ? _settings.BackgroundColor : _settings.LightBackgroundColor;
-        foreach (IWidgetAppearance widget in _appearances)
-        {
-            widget.ApplyAppearance(background, _settings.Opacity);
-        }
+        foreach (var widget in _appearances) widget.ApplyAppearance(background, _settings.Opacity);
     }
 
     // The effective variant resolved by Avalonia (Default resolves to Light or Dark). Dark is the
@@ -458,7 +427,7 @@ public partial class App : Application
         {
             AppTheme.Light => ThemeVariant.Light,
             AppTheme.Dark => ThemeVariant.Dark,
-            _ => ThemeVariant.Default,
+            _ => ThemeVariant.Default
         };
     }
 
@@ -484,7 +453,9 @@ public partial class App : Application
         // Local time persists as a null id; ResolveTimeZone(null) maps back to the machine zone,
         // keeping this consistent with the startup path. SelectedTimeZone can be momentarily null while
         // the user types in the search box, which also maps to local.
-        string? id = viewModel.UseLocalTime || viewModel.SelectedTimeZone is null ? null : viewModel.SelectedTimeZone.Id;
+        string? id = viewModel.UseLocalTime
+            ? null
+            : viewModel.SelectedTimeZone.Id;
         _settingsController.SetTimeZone(id);
         _dateTimeViewModel.SetTimeZone(ResolveTimeZone(id));
     }
@@ -539,14 +510,11 @@ public partial class App : Application
 
     private void OnMetricVisibilityChanged(string key, bool visible)
     {
-        if (_suppressVisibilityHandler)
-        {
-            return;
-        }
+        if (_suppressVisibilityHandler) return;
 
         // The activator persists the change, re-renders the owning widget, reconciles polled devices,
         // and decides the elevation follow-through; App only renders the returned outcome.
-        MetricActivationResult result = _metricActivator.Apply(key, visible);
+        var result = _metricActivator.Apply(key, visible);
 
         switch (result.Outcome)
         {
@@ -564,10 +532,7 @@ public partial class App : Application
                 break;
         }
 
-        if (result.StartupResynced)
-        {
-            _tray.SetRunAtStartupChecked(result.StartupEnabled);
-        }
+        if (result.StartupResynced) _tray.SetRunAtStartupChecked(result.StartupEnabled);
     }
 
     // Puts an elevation metric back to off after a declined UAC prompt: the settings checkbox, the
@@ -577,10 +542,7 @@ public partial class App : Application
         _suppressVisibilityHandler = true;
         try
         {
-            if (_settingsWindow?.DataContext is SettingsViewModel viewModel)
-            {
-                viewModel.ToggleFor(key).IsVisible = false;
-            }
+            if (_settingsWindow?.DataContext is SettingsViewModel viewModel) viewModel.ToggleFor(key).IsVisible = false;
         }
         finally
         {
@@ -596,22 +558,14 @@ public partial class App : Application
     {
         bool shouldShow = !_settings.GpuHidden && _gpuViewModel.HasContent;
         if (shouldShow && !_gpuHost.IsVisible)
-        {
             _gpuHost.Show();
-        }
-        else if (!shouldShow && _gpuHost.IsVisible)
-        {
-            _gpuHost.Hide();
-        }
+        else if (!shouldShow && _gpuHost.IsVisible) _gpuHost.Hide();
     }
 
     private void OnToggleAlwaysOnTop()
     {
         bool onTop = _settingsController.ToggleAlwaysOnTop();
-        foreach (WidgetHost host in _hosts)
-        {
-            host.SetAlwaysOnTop(onTop);
-        }
+        foreach (var host in _hosts) host.SetAlwaysOnTop(onTop);
 
         _tray.SetAlwaysOnTopChecked(onTop);
     }
@@ -619,20 +573,14 @@ public partial class App : Application
     private void OnToggleSnap()
     {
         bool snap = _settingsController.ToggleSnapToEdges();
-        foreach (WidgetHost host in _hosts)
-        {
-            host.SetSnapEnabled(snap);
-        }
+        foreach (var host in _hosts) host.SetSnapEnabled(snap);
 
         _tray.SetSnapChecked(snap);
     }
 
     private void OnToggleRunAtStartup()
     {
-        if (_startupManager is null)
-        {
-            return;
-        }
+        if (_startupManager is null) return;
 
         // Compute the target from reality so the result is correct regardless of any
         // framework-side checkbox auto-toggle.
@@ -676,9 +624,7 @@ public partial class App : Application
 
         if (coordinator.Run() == UninstallOutcome.Completed
             && ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-        {
             desktop.Shutdown();
-        }
     }
 
     private static void LaunchVelopackUninstaller()
@@ -688,7 +634,7 @@ public partial class App : Application
         {
             FileName = updateExe,
             Arguments = "--uninstall",
-            UseShellExecute = false,
+            UseShellExecute = false
         });
     }
 
@@ -714,7 +660,7 @@ public partial class App : Application
 
     private async void RunUpdateCheck(bool manual)
     {
-        UpdateCheckResult result = await _updateFlow.CheckAsync(manual);
+        var result = await _updateFlow.CheckAsync(manual);
 
         switch (result.Outcome)
         {
@@ -731,7 +677,8 @@ public partial class App : Application
     }
 
     private string CurrentVersionString =>
-        new Version(_currentVersion.Major, _currentVersion.Minor, _currentVersion.Build < 0 ? 0 : _currentVersion.Build).ToString();
+        new Version(_currentVersion.Major, _currentVersion.Minor, _currentVersion.Build < 0 ? 0 : _currentVersion.Build)
+            .ToString();
 
     // Shows the actionable update prompt and adds the persistent tray item. Installed builds offer an
     // in-place install and restart; portable builds offer the release page. Reuses a single window so a
@@ -746,7 +693,7 @@ public partial class App : Application
             return;
         }
 
-        UpdatePromptViewModel viewModel = _updateFlow.CanApplyInApp
+        var viewModel = _updateFlow.CanApplyInApp
             ? UpdatePromptViewModel.ForInstallReady(version, CurrentVersionString)
             : UpdatePromptViewModel.ForAvailable(version, CurrentVersionString, url);
 
@@ -805,10 +752,7 @@ public partial class App : Application
     // id is unknown on this machine.
     private static TimeZoneInfo ResolveTimeZone(string? id)
     {
-        if (string.IsNullOrEmpty(id))
-        {
-            return TimeZoneInfo.Local;
-        }
+        if (string.IsNullOrEmpty(id)) return TimeZoneInfo.Local;
 
         try
         {
@@ -828,10 +772,7 @@ public partial class App : Application
     // it is missing or unknown on this machine.
     private static CultureInfo ResolveLocale(string? id)
     {
-        if (string.IsNullOrEmpty(id))
-        {
-            return CultureInfo.CurrentCulture;
-        }
+        if (string.IsNullOrEmpty(id)) return CultureInfo.CurrentCulture;
 
         try
         {

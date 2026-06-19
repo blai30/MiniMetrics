@@ -1,9 +1,6 @@
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using MiniMetrics.Models;
 using MiniMetrics.ViewModels;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace MiniMetrics.Tests;
 
@@ -24,8 +21,8 @@ public class SettingsViewModelTests
             ["gpu.usage"] = true,
             ["gpu.temp"] = true,
             ["gpu.power"] = true,
-            ["vram.usage"] = true,
-        },
+            ["vram.usage"] = true
+        }
     };
 
     // Records every change raised on the single SettingChanged channel after the view model is seeded.
@@ -75,7 +72,7 @@ public class SettingsViewModelTests
     public void Changing_color_raises_an_appearance_change()
     {
         var viewModel = new SettingsViewModel(SampleSettings());
-        List<SettingChange> changes = Capture(viewModel);
+        var changes = Capture(viewModel);
 
         viewModel.BackgroundColor = "#1A1F2B";
 
@@ -87,7 +84,7 @@ public class SettingsViewModelTests
     public void Changing_opacity_raises_an_appearance_change()
     {
         var viewModel = new SettingsViewModel(SampleSettings());
-        List<SettingChange> changes = Capture(viewModel);
+        var changes = Capture(viewModel);
 
         viewModel.Opacity = 50;
 
@@ -99,7 +96,7 @@ public class SettingsViewModelTests
     public void Toggling_metric_raises_a_metric_visibility_change_with_key_and_value()
     {
         var viewModel = new SettingsViewModel(SampleSettings());
-        List<SettingChange> changes = Capture(viewModel);
+        var changes = Capture(viewModel);
 
         viewModel.ToggleFor("ram.usage").IsVisible = true;
 
@@ -113,7 +110,7 @@ public class SettingsViewModelTests
     public void Toggling_gpu_power_raises_a_metric_visibility_change_with_dotted_key()
     {
         var viewModel = new SettingsViewModel(SampleSettings());
-        List<SettingChange> changes = Capture(viewModel);
+        var changes = Capture(viewModel);
 
         viewModel.ToggleFor("gpu.power").IsVisible = false;
 
@@ -129,7 +126,7 @@ public class SettingsViewModelTests
         var settings = SampleSettings();
 
         var viewModel = new SettingsViewModel(settings);
-        List<SettingChange> changes = Capture(viewModel);
+        var changes = Capture(viewModel);
 
         // Construction already seeded the toggles with no subscriber; nothing fires now.
         Assert.AreEqual(0, changes.Count);
@@ -150,7 +147,7 @@ public class SettingsViewModelTests
     {
         var settings = new Settings { BackgroundColor = "#0F121D", LightBackgroundColor = "#EEF1F5" };
 
-        var viewModel = new SettingsViewModel(settings, systemIsDark: true);
+        var viewModel = new SettingsViewModel(settings, true);
 
         Assert.AreEqual(AppTheme.System, viewModel.Theme);
         Assert.IsTrue(viewModel.EditingVariantIsDark);
@@ -161,8 +158,8 @@ public class SettingsViewModelTests
     public void Switching_to_light_loads_the_light_color_and_swatches()
     {
         var settings = new Settings { BackgroundColor = "#0F121D", LightBackgroundColor = "#EEF1F5" };
-        var viewModel = new SettingsViewModel(settings, systemIsDark: true);
-        List<SettingChange> changes = Capture(viewModel);
+        var viewModel = new SettingsViewModel(settings, true);
+        var changes = Capture(viewModel);
 
         viewModel.Theme = AppTheme.Light;
 
@@ -176,11 +173,11 @@ public class SettingsViewModelTests
     public void Editing_color_under_each_theme_keeps_both_independently()
     {
         var settings = new Settings { BackgroundColor = "#0F121D", LightBackgroundColor = "#EEF1F5" };
-        var viewModel = new SettingsViewModel(settings, systemIsDark: true);
+        var viewModel = new SettingsViewModel(settings, true);
 
-        viewModel.BackgroundColor = "#101010";   // edits dark
+        viewModel.BackgroundColor = "#101010"; // edits dark
         viewModel.Theme = AppTheme.Light;
-        viewModel.BackgroundColor = "#FAFAFA";    // edits light
+        viewModel.BackgroundColor = "#FAFAFA"; // edits light
         viewModel.Theme = AppTheme.Dark;
 
         Assert.AreEqual("#101010", viewModel.BackgroundColor);
@@ -201,16 +198,16 @@ public class SettingsViewModelTests
     {
         var viewModel = new SettingsViewModel(SampleSettings());
 
-        Assert.AreEqual(System.TimeZoneInfo.Local.Id, viewModel.SelectedTimeZone.Id);
+        Assert.AreEqual(TimeZoneInfo.Local.Id, viewModel.SelectedTimeZone.Id);
     }
 
     [TestMethod]
     public void Changing_time_zone_raises_a_time_zone_change()
     {
         var viewModel = new SettingsViewModel(new Settings { TimeZoneId = "UTC" });
-        List<SettingChange> changes = Capture(viewModel);
+        var changes = Capture(viewModel);
 
-        var target = System.TimeZoneInfo.GetSystemTimeZones().First(tz => tz.Id != viewModel.SelectedTimeZone.Id);
+        var target = TimeZoneInfo.GetSystemTimeZones().First(tz => tz.Id != viewModel.SelectedTimeZone.Id);
         viewModel.SelectedTimeZone = target;
 
         Assert.AreEqual(1, changes.Count);
@@ -237,7 +234,7 @@ public class SettingsViewModelTests
     public void Toggling_use_local_time_raises_a_time_zone_change()
     {
         var viewModel = new SettingsViewModel(new Settings { TimeZoneId = "UTC" });
-        List<SettingChange> changes = Capture(viewModel);
+        var changes = Capture(viewModel);
 
         viewModel.UseLocalTime = true;
 
@@ -261,7 +258,7 @@ public class SettingsViewModelTests
     public void Changing_an_update_preference_raises_an_update_preferences_change()
     {
         var viewModel = new SettingsViewModel(new Settings());
-        List<SettingChange> changes = Capture(viewModel);
+        var changes = Capture(viewModel);
 
         viewModel.UpdateCheckEnabled = false;
         viewModel.UpdateFrequency = UpdateCheckFrequency.Monthly;
@@ -286,7 +283,7 @@ public class SettingsViewModelTests
     public void Toggling_cpu_compact_raises_a_compact_change_with_widget_key()
     {
         var viewModel = new SettingsViewModel(new Settings());
-        List<SettingChange> changes = Capture(viewModel);
+        var changes = Capture(viewModel);
 
         viewModel.CpuCompact = true;
 
@@ -300,7 +297,7 @@ public class SettingsViewModelTests
     public void Toggling_gpu_compact_raises_a_compact_change_with_widget_key()
     {
         var viewModel = new SettingsViewModel(new Settings());
-        List<SettingChange> changes = Capture(viewModel);
+        var changes = Capture(viewModel);
 
         viewModel.GpuCompact = true;
 
@@ -314,7 +311,7 @@ public class SettingsViewModelTests
     public void Toggling_clock_compact_raises_a_compact_change_with_clock_key()
     {
         var viewModel = new SettingsViewModel(new Settings());
-        List<SettingChange> changes = Capture(viewModel);
+        var changes = Capture(viewModel);
 
         viewModel.DateTimeCompact = true;
 
@@ -338,7 +335,7 @@ public class SettingsViewModelTests
     public void Changing_clock_alignment_raises_a_clock_alignment_change()
     {
         var viewModel = new SettingsViewModel(new Settings());
-        List<SettingChange> changes = Capture(viewModel);
+        var changes = Capture(viewModel);
 
         viewModel.ClockAlignment = ClockAlignment.Center;
 
@@ -364,18 +361,16 @@ public class SettingsViewModelTests
         // directly; a neutral one falls back to a specific culture in the list.
         Assert.IsTrue(viewModel.Locales.Contains(viewModel.SelectedLocale));
 
-        var current = System.Globalization.CultureInfo.CurrentCulture;
+        var current = CultureInfo.CurrentCulture;
         if (viewModel.Locales.Any(culture => culture.Name == current.Name))
-        {
             Assert.AreEqual(current.Name, viewModel.SelectedLocale.Name);
-        }
     }
 
     [TestMethod]
     public void Changing_a_clock_format_raises_a_clock_formats_change()
     {
         var viewModel = new SettingsViewModel(new Settings());
-        List<SettingChange> changes = Capture(viewModel);
+        var changes = Capture(viewModel);
 
         viewModel.ClockDateFormat = "yyyy-MM-dd";
 
@@ -387,7 +382,7 @@ public class SettingsViewModelTests
     public void Changing_locale_raises_a_clock_locale_change()
     {
         var viewModel = new SettingsViewModel(new Settings { ClockLocaleId = "en-US" });
-        List<SettingChange> changes = Capture(viewModel);
+        var changes = Capture(viewModel);
 
         viewModel.SelectedLocale = viewModel.Locales.First(culture => culture.Name == "fr-FR");
 
@@ -401,7 +396,7 @@ public class SettingsViewModelTests
         // The locale AutoCompleteBox clears its selection to null while the user types a filter; that
         // must not raise the change event (the host handles it by dereferencing the locale).
         var viewModel = new SettingsViewModel(new Settings { ClockLocaleId = "en-US" });
-        List<SettingChange> changes = Capture(viewModel);
+        var changes = Capture(viewModel);
 
         viewModel.SelectedLocale = null!;
 

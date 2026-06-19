@@ -1,6 +1,3 @@
-using System;
-using System.IO;
-using System.Threading.Tasks;
 using MiniMetrics.Models;
 using MiniMetrics.Services;
 
@@ -15,7 +12,8 @@ public class UpdateServiceTests
         IReleaseSource source, Settings? settings = null)
     {
         string path = Path.Combine(Path.GetTempPath(), "dm-tests", Path.GetRandomFileName(), "settings.json");
-        var controller = new SettingsController(settings ?? new Settings(), new SettingsStore(path), new FakeSaveScheduler());
+        var controller =
+            new SettingsController(settings ?? new Settings(), new SettingsStore(path), new FakeSaveScheduler());
         var service = new UpdateService(source, new Version(1, 2, 0), controller, () => Now);
         return (service, controller);
     }
@@ -26,7 +24,7 @@ public class UpdateServiceTests
         var source = new FakeReleaseSource { Release = new ReleaseInfo("v1.3.0", "https://example/r") };
         var (service, controller) = NewService(source);
 
-        UpdateCheckResult result = await service.CheckAsync(manual: false);
+        var result = await service.CheckAsync(false);
 
         Assert.AreEqual(UpdateOutcome.UpdateAvailable, result.Outcome);
         Assert.AreEqual("1.3.0", result.Version);
@@ -40,7 +38,7 @@ public class UpdateServiceTests
         var source = new FakeReleaseSource { Release = new ReleaseInfo("v1.0.0", "https://example/r") };
         var (service, controller) = NewService(source);
 
-        UpdateCheckResult result = await service.CheckAsync(manual: true);
+        var result = await service.CheckAsync(true);
 
         Assert.AreEqual(UpdateOutcome.UpToDate, result.Outcome);
         Assert.AreEqual("1.2.0", result.Version);
@@ -53,7 +51,7 @@ public class UpdateServiceTests
         var source = new FakeReleaseSource { Release = null };
         var (service, controller) = NewService(source);
 
-        UpdateCheckResult result = await service.CheckAsync(manual: true);
+        var result = await service.CheckAsync(true);
 
         Assert.AreEqual(UpdateOutcome.Failed, result.Outcome);
         Assert.IsNull(controller.Current.LastUpdateCheckUtc);
@@ -65,7 +63,7 @@ public class UpdateServiceTests
         var source = new FakeReleaseSource { Release = new ReleaseInfo("v1.3.0", "https://example/r") };
         var (service, _) = NewService(source, new Settings { SkippedUpdateVersion = "1.3.0" });
 
-        UpdateCheckResult result = await service.CheckAsync(manual: false);
+        var result = await service.CheckAsync(false);
 
         Assert.AreEqual(UpdateOutcome.UpToDate, result.Outcome);
     }
@@ -76,7 +74,7 @@ public class UpdateServiceTests
         var source = new FakeReleaseSource { Release = new ReleaseInfo("v1.3.0", "https://example/r") };
         var (service, _) = NewService(source, new Settings { SkippedUpdateVersion = "1.3.0" });
 
-        UpdateCheckResult result = await service.CheckAsync(manual: true);
+        var result = await service.CheckAsync(true);
 
         Assert.AreEqual(UpdateOutcome.UpdateAvailable, result.Outcome);
     }
@@ -87,8 +85,8 @@ public class UpdateServiceTests
         var gated = new GatedReleaseSource();
         var (service, _) = NewService(gated);
 
-        Task<UpdateCheckResult> first = service.CheckAsync(manual: false);
-        UpdateCheckResult second = await service.CheckAsync(manual: true);
+        var first = service.CheckAsync(false);
+        var second = await service.CheckAsync(true);
 
         Assert.AreEqual(UpdateOutcome.Busy, second.Outcome);
 

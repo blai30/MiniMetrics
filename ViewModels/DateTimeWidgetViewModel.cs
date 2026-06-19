@@ -18,32 +18,22 @@ public partial class DateTimeWidgetViewModel : ObservableObject, IWidgetAppearan
     private string? _timeFormatHover;
     private string? _dateFormatHover;
 
-    [ObservableProperty]
-    private string _timeText = "";
-
-    [ObservableProperty]
-    private string _dateText = "";
+    [ObservableProperty] public partial string TimeText { get; set; } = "";
+    [ObservableProperty] public partial string DateText { get; set; } = "";
 
     // Flipped by the view while the pointer hovers the widget; swaps the normal format pair for the
     // hover pair and reformats immediately.
-    [ObservableProperty]
-    private bool _isHovering;
-
-    [ObservableProperty]
-    private IBrush _cardBackground = Brushes.Transparent;
+    [ObservableProperty] public partial bool IsHovering { get; set; }
+    [ObservableProperty] public partial IBrush CardBackground { get; set; } = Brushes.Transparent;
 
     // Drives the clock window between its stacked layout and the single-line compact layout.
-    [ObservableProperty]
-    private bool _isCompact;
+    [ObservableProperty] public partial bool IsCompact { get; set; }
 
     // Drives the horizontal alignment of the clock text. TextAlignment positions the time and date
     // lines in the fixed-width full layout; BlockAlignment is applied to the compact layout's inline
     // row (a no-op while that window hugs its content, kept for consistency).
-    [ObservableProperty]
-    private TextAlignment _textAlignment = TextAlignment.Left;
-
-    [ObservableProperty]
-    private HorizontalAlignment _blockAlignment = HorizontalAlignment.Left;
+    [ObservableProperty] public partial TextAlignment TextAlignment { get; set; } = TextAlignment.Left;
+    [ObservableProperty] public partial HorizontalAlignment BlockAlignment { get; set; } = HorizontalAlignment.Left;
 
     // Recomputes the card's solid background color from a base color and opacity (shared with the
     // metrics widget's appearance logic).
@@ -85,7 +75,7 @@ public partial class DateTimeWidgetViewModel : ObservableObject, IWidgetAppearan
         {
             ClockAlignment.Center => (TextAlignment.Center, HorizontalAlignment.Center),
             ClockAlignment.Right => (TextAlignment.Right, HorizontalAlignment.Right),
-            _ => (TextAlignment.Left, HorizontalAlignment.Left),
+            _ => (TextAlignment.Left, HorizontalAlignment.Left)
         };
     }
 
@@ -101,7 +91,8 @@ public partial class DateTimeWidgetViewModel : ObservableObject, IWidgetAppearan
     private void Refresh()
     {
         (string? timeCustom, string timeDefault, string? dateCustom, string dateDefault) = IsHovering
-            ? (_timeFormatHover, ClockFormatting.DefaultTimeFormatHover, _dateFormatHover, ClockFormatting.DefaultDateFormatHover)
+            ? (_timeFormatHover, ClockFormatting.DefaultTimeFormatHover, _dateFormatHover,
+                ClockFormatting.DefaultDateFormatHover)
             : (_timeFormat, ClockFormatting.DefaultTimeFormat, _dateFormat, ClockFormatting.DefaultDateFormat);
 
         TimeText = ClockFormatting.Render(_instant, _zone, timeCustom, timeDefault, _culture);

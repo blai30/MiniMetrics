@@ -18,8 +18,8 @@ public sealed class WindowsDriverProbe : IDriverProbe
 
     private static bool KeyExists(RegistryView view)
     {
-        using RegistryKey hklm = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, view);
-        using RegistryKey? key = hklm.OpenSubKey(UninstallKey);
+        using var hklm = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, view);
+        using var key = hklm.OpenSubKey(UninstallKey);
         return key is not null;
     }
 }

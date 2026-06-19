@@ -47,10 +47,7 @@ public class OverlayWindow : Window
     {
         base.OnPointerPressed(e);
 
-        if (IsLocked || !e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
-        {
-            return;
-        }
+        if (IsLocked || !e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) return;
 
         // Off Windows, hand the move to the OS (no snapping); GetCursorPos is Windows-only.
         if (!OperatingSystem.IsWindows())
@@ -59,7 +56,7 @@ public class OverlayWindow : Window
             return;
         }
 
-        if (TryGetCursorPos(out PixelPoint cursor))
+        if (TryGetCursorPos(out var cursor))
         {
             _dragging = true;
             _cursorStart = cursor;
@@ -72,12 +69,9 @@ public class OverlayWindow : Window
     {
         base.OnPointerMoved(e);
 
-        if (!_dragging || !TryGetCursorPos(out PixelPoint cursor))
-        {
-            return;
-        }
+        if (!_dragging || !TryGetCursorPos(out var cursor)) return;
 
-        PixelPoint desired = _windowStart + (cursor - _cursorStart);
+        var desired = _windowStart + (cursor - _cursorStart);
         Position = SnapEnabled ? ApplySnap(desired) : desired;
     }
 
@@ -103,10 +97,7 @@ public class OverlayWindow : Window
     private PixelPoint ApplySnap(PixelPoint desired)
     {
         var screen = Screens.ScreenFromPoint(desired);
-        if (screen is null)
-        {
-            return desired;
-        }
+        if (screen is null) return desired;
 
         double scale = RenderScaling;
         var widget = new EdgeSnap.Rect(
@@ -115,10 +106,10 @@ public class OverlayWindow : Window
             (int)Math.Round(Width * scale),
             (int)Math.Round(Height * scale));
 
-        PixelRect area = screen.WorkingArea;
+        var area = screen.WorkingArea;
         var workArea = new EdgeSnap.Rect(area.X, area.Y, area.Width, area.Height);
 
-        IReadOnlyList<EdgeSnap.Rect> peers = PeerRects?.Invoke() ?? Array.Empty<EdgeSnap.Rect>();
+        var peers = PeerRects?.Invoke() ?? Array.Empty<EdgeSnap.Rect>();
 
         (int x, int y) = EdgeSnap.Snap(widget, workArea, peers, SnapThreshold);
         return new PixelPoint(x, y);
@@ -129,7 +120,7 @@ public class OverlayWindow : Window
 
     private static bool TryGetCursorPos(out PixelPoint point)
     {
-        if (OperatingSystem.IsWindows() && GetCursorPos(out POINT native))
+        if (OperatingSystem.IsWindows() && GetCursorPos(out var native))
         {
             point = new PixelPoint(native.X, native.Y);
             return true;
@@ -140,12 +131,12 @@ public class OverlayWindow : Window
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    private struct POINT
+    private struct Point
     {
         public int X;
         public int Y;
     }
 
     [DllImport("user32.dll")]
-    private static extern bool GetCursorPos(out POINT point);
+    private static extern bool GetCursorPos(out Point point);
 }

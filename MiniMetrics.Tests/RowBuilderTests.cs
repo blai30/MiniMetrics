@@ -1,7 +1,5 @@
-using System.Linq;
 using MiniMetrics.Lib;
 using MiniMetrics.Models;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace MiniMetrics.Tests;
 

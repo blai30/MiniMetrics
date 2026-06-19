@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using MiniMetrics.Lib;
 using MiniMetrics.Models;
 
@@ -29,12 +28,47 @@ public sealed class SettingsController
 
     // Each toggle flips its flag, persists immediately, and returns the new value so the caller can
     // project it onto the affected windows and tray checkmark.
-    public bool ToggleCpuHidden() { _settings.Hidden = !_settings.Hidden; Persist(); return _settings.Hidden; }
-    public bool ToggleGpuHidden() { _settings.GpuHidden = !_settings.GpuHidden; Persist(); return _settings.GpuHidden; }
-    public bool ToggleDateTimeHidden() { _settings.DateTimeHidden = !_settings.DateTimeHidden; Persist(); return _settings.DateTimeHidden; }
-    public bool ToggleLocked() { _settings.Locked = !_settings.Locked; Persist(); return _settings.Locked; }
-    public bool ToggleAlwaysOnTop() { _settings.AlwaysOnTop = !_settings.AlwaysOnTop; Persist(); return _settings.AlwaysOnTop; }
-    public bool ToggleSnapToEdges() { _settings.SnapToEdges = !_settings.SnapToEdges; Persist(); return _settings.SnapToEdges; }
+    public bool ToggleCpuHidden()
+    {
+        _settings.Hidden = !_settings.Hidden;
+        Persist();
+        return _settings.Hidden;
+    }
+
+    public bool ToggleGpuHidden()
+    {
+        _settings.GpuHidden = !_settings.GpuHidden;
+        Persist();
+        return _settings.GpuHidden;
+    }
+
+    public bool ToggleDateTimeHidden()
+    {
+        _settings.DateTimeHidden = !_settings.DateTimeHidden;
+        Persist();
+        return _settings.DateTimeHidden;
+    }
+
+    public bool ToggleLocked()
+    {
+        _settings.Locked = !_settings.Locked;
+        Persist();
+        return _settings.Locked;
+    }
+
+    public bool ToggleAlwaysOnTop()
+    {
+        _settings.AlwaysOnTop = !_settings.AlwaysOnTop;
+        Persist();
+        return _settings.AlwaysOnTop;
+    }
+
+    public bool ToggleSnapToEdges()
+    {
+        _settings.SnapToEdges = !_settings.SnapToEdges;
+        Persist();
+        return _settings.SnapToEdges;
+    }
 
     // Sets one per-metric visibility flag and persists immediately.
     public void SetMetricVisibility(string key, bool visible)
@@ -48,13 +82,9 @@ public sealed class SettingsController
     public void SetAppearance(bool targetIsDark, string backgroundColor, int opacity)
     {
         if (targetIsDark)
-        {
             _settings.BackgroundColor = backgroundColor;
-        }
         else
-        {
             _settings.LightBackgroundColor = backgroundColor;
-        }
 
         _settings.Opacity = opacity;
         ScheduleSave();
@@ -69,13 +99,31 @@ public sealed class SettingsController
 
     // Each compact toggle flips one widget's layout flag and persists immediately, matching the other
     // discrete display toggles.
-    public void SetCpuCompact(bool compact) { _settings.CpuCompact = compact; Persist(); }
-    public void SetGpuCompact(bool compact) { _settings.GpuCompact = compact; Persist(); }
-    public void SetDateTimeCompact(bool compact) { _settings.DateTimeCompact = compact; Persist(); }
+    public void SetCpuCompact(bool compact)
+    {
+        _settings.CpuCompact = compact;
+        Persist();
+    }
+
+    public void SetGpuCompact(bool compact)
+    {
+        _settings.GpuCompact = compact;
+        Persist();
+    }
+
+    public void SetDateTimeCompact(bool compact)
+    {
+        _settings.DateTimeCompact = compact;
+        Persist();
+    }
 
     // Records the chosen clock text alignment, writing through immediately like the other discrete
     // display toggles.
-    public void SetClockAlignment(ClockAlignment alignment) { _settings.ClockAlignment = alignment; Persist(); }
+    public void SetClockAlignment(ClockAlignment alignment)
+    {
+        _settings.ClockAlignment = alignment;
+        Persist();
+    }
 
     // Records the chosen time zone id, persisting on the debounce.
     public void SetTimeZone(string? timeZoneId)
@@ -102,9 +150,26 @@ public sealed class SettingsController
         ScheduleSave();
     }
 
-    public void SetCpuPosition(int x, int y) { _settings.X = x; _settings.Y = y; ScheduleSave(); }
-    public void SetGpuPosition(int x, int y) { _settings.GpuX = x; _settings.GpuY = y; ScheduleSave(); }
-    public void SetDateTimePosition(int x, int y) { _settings.DateTimeX = x; _settings.DateTimeY = y; ScheduleSave(); }
+    public void SetCpuPosition(int x, int y)
+    {
+        _settings.X = x;
+        _settings.Y = y;
+        ScheduleSave();
+    }
+
+    public void SetGpuPosition(int x, int y)
+    {
+        _settings.GpuX = x;
+        _settings.GpuY = y;
+        ScheduleSave();
+    }
+
+    public void SetDateTimePosition(int x, int y)
+    {
+        _settings.DateTimeX = x;
+        _settings.DateTimeY = y;
+        ScheduleSave();
+    }
 
     // Records whether the launch-time update check runs and how often, persisting on the debounce so a
     // burst of settings toggles writes once.
@@ -144,23 +209,12 @@ public sealed class SettingsController
     // keys and their metrics come from the registry.
     private void MigrateVisibility()
     {
-        Dictionary<string, bool> visibility = _settings.Visibility;
+        var visibility = _settings.Visibility;
 
         foreach (string card in MetricRegistry.Cards)
         {
-            if (!visibility.TryGetValue(card, out bool value))
-            {
-                continue;
-            }
-
-            foreach (MetricEntry entry in MetricRegistry.ForCard(card))
-            {
-                if (!visibility.ContainsKey(entry.Key))
-                {
-                    visibility[entry.Key] = value;
-                }
-            }
-
+            if (!visibility.TryGetValue(card, out bool value)) continue;
+            foreach (var entry in MetricRegistry.ForCard(card)) visibility.TryAdd(entry.Key, value);
             visibility.Remove(card);
         }
     }
@@ -169,12 +223,8 @@ public sealed class SettingsController
     // the user opts in. Only seed when the key is absent, so a saved or migrated value always wins.
     private void SeedElevationDefaults()
     {
-        foreach (MetricEntry entry in MetricRegistry.All)
-        {
-            if (entry.RequiresElevation && !_settings.Visibility.ContainsKey(entry.Key))
-            {
-                _settings.Visibility[entry.Key] = false;
-            }
-        }
+        foreach (var entry in MetricRegistry.All)
+            if (entry.RequiresElevation)
+                _settings.Visibility.TryAdd(entry.Key, false);
     }
 }

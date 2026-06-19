@@ -21,7 +21,7 @@ public enum MetricActivationOutcome
     Relaunching,
 
     // The relaunch UAC prompt was declined: put the metric back to off.
-    RelaunchDeclined,
+    RelaunchDeclined
 }
 
 // The outcome of applying one metric visibility change, plus whether startup registration was
@@ -52,43 +52,25 @@ public readonly record struct MetricActivationResult(
 // its follow-through (relaunch, driver prompt, or reconciling the elevated startup task). App used to
 // run this inline across four collaborators; concentrating it here gives the sequence one place to live
 // and one interface to test, and leaves App only to render the returned outcome.
-public sealed class MetricActivator
+public sealed class MetricActivator(
+    WidgetCoordinator widgets,
+    ElevationCoordinator elevation,
+    SettingsController settings,
+    Func<StartupManager?> startupManager,
+    string exePath)
 {
-    private readonly WidgetCoordinator _widgets;
-    private readonly ElevationCoordinator _elevation;
-    private readonly SettingsController _settings;
-    private readonly Func<StartupManager?> _startupManager;
-    private readonly string _exePath;
-
-    public MetricActivator(
-        WidgetCoordinator widgets,
-        ElevationCoordinator elevation,
-        SettingsController settings,
-        Func<StartupManager?> startupManager,
-        string exePath)
-    {
-        _widgets = widgets;
-        _elevation = elevation;
-        _settings = settings;
-        _startupManager = startupManager;
-        _exePath = exePath;
-    }
-
     // Applies a metric visibility change and returns what the app must render. Persisting, re-rendering,
     // and reconciling polled devices always happen first, as one step, so render, polling, and saved
     // state cannot drift apart.
     public MetricActivationResult Apply(string key, bool visible)
     {
-        _widgets.SetMetricVisibility(key, visible);
+        widgets.SetMetricVisibility(key, visible);
 
         bool isElevationMetric = MetricRegistry.All
             .Any(entry => entry.Key == key && entry.RequiresElevation);
-        if (!isElevationMetric)
-        {
-            return MetricActivationResult.None;
-        }
+        if (!isElevationMetric) return MetricActivationResult.None;
 
-        switch (_elevation.DecideMetricEnable(key, visible))
+        switch (elevation.DecideMetricEnable(key, visible))
         {
             case MetricEnableAction.DriverInstallPrompt:
                 return MetricActivationResult.DriverInstallPrompt;
@@ -96,23 +78,23 @@ public sealed class MetricActivator
             case MetricEnableAction.Relaunch:
                 // Settings were just persisted, so the elevated instance reads the enabled state from
                 // disk and reconciles startup registration itself, keeping it to one UAC prompt total.
-                _settings.Flush();
-                return _elevation.RelaunchElevated(_exePath)
+                settings.Flush();
+                return elevation.RelaunchElevated(exePath)
                     ? MetricActivationResult.Relaunching
                     : MetricActivationResult.RelaunchDeclined;
+            case MetricEnableAction.None:
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
         }
 
         // None: an elevation metric was turned off, or turned on while already elevated. Turning one on
         // while unelevated takes the relaunch path above and never reaches here, so this only ever keeps
         // or reduces the elevation requirement. A scheduled task that is no longer needed is removed even
         // while unelevated (StartupManager.Sync tries a non-elevated delete first).
-        StartupManager? startup = _startupManager();
-        if (startup is not null && startup.IsEnabled())
-        {
-            startup.Sync(true, _elevation.RequiresElevation(_settings.Current.Visibility));
-            return MetricActivationResult.Resynced(startup.IsEnabled());
-        }
-
-        return MetricActivationResult.None;
+        var startup = startupManager();
+        if (startup is null || !startup.IsEnabled()) return MetricActivationResult.None;
+        startup.Sync(true, elevation.RequiresElevation(settings.Current.Visibility));
+        return MetricActivationResult.Resynced(startup.IsEnabled());
     }
 }

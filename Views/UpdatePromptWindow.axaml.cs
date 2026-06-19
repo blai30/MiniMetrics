@@ -23,15 +23,11 @@ public partial class UpdatePromptWindow : Window
         InitializeComponent();
     }
 
-    public UpdatePromptWindow(UpdatePromptViewModel viewModel) : this()
-    {
-        DataContext = viewModel;
-    }
+    public UpdatePromptWindow(UpdatePromptViewModel viewModel) : this() => DataContext = viewModel;
 
     private void OnViewRelease(object? sender, RoutedEventArgs e)
     {
         if (DataContext is UpdatePromptViewModel { Url: { } url })
-        {
             // Opening the browser is best effort; a broken shell association must not crash the prompt.
             try
             {
@@ -40,7 +36,6 @@ public partial class UpdatePromptWindow : Window
             catch (Exception ex) when (ex is Win32Exception or InvalidOperationException)
             {
             }
-        }
 
         Close();
     }

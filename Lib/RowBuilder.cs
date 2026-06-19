@@ -8,7 +8,7 @@ public enum RowColor
     Cyan,
     Green,
     Amber,
-    Violet,
+    Violet
 }
 
 // Health band for a temperature reading, used to color-code the temperature text.
@@ -20,7 +20,7 @@ public enum TempLevel
     Cool,
     Warm,
     Hot,
-    Critical,
+    Critical
 }
 
 // A single display row. Value is the bold primary number. Temp is an optional color-coded
@@ -42,8 +42,7 @@ public static class RowBuilder
         var rows = new List<MetricRow>();
 
         if (snapshot.Cpu is { } cpu)
-        {
-            rows.Add(new(
+            rows.Add(new MetricRow(
                 "cpu",
                 "CPU",
                 MetricFormatting.FormatPercent(cpu.UsagePercent),
@@ -56,11 +55,9 @@ public static class RowBuilder
                 cpu.PowerWatts is { } cpuPower ? MetricFormatting.FormatPower(cpuPower) : "—",
                 cpu.UsagePercent,
                 RowColor.Cyan));
-        }
 
         if (snapshot.Memory is { } memory)
-        {
-            rows.Add(new(
+            rows.Add(new MetricRow(
                 "ram",
                 "RAM",
                 MetricFormatting.FormatGiB(memory.UsedBytes),
@@ -69,10 +66,9 @@ public static class RowBuilder
                 $"/ {MetricFormatting.FormatGiB(memory.TotalBytes, 0)} GB",
                 Percent(memory.UsedBytes, memory.TotalBytes),
                 RowColor.Green));
-        }
 
         if (snapshot.Gpu is not { } gpu) return rows;
-        rows.Add(new(
+        rows.Add(new MetricRow(
             "gpu",
             "GPU",
             MetricFormatting.FormatPercent(gpu.UsagePercent),
@@ -81,7 +77,7 @@ public static class RowBuilder
             MetricFormatting.FormatPower(gpu.PowerWatts),
             gpu.UsagePercent,
             RowColor.Amber));
-        rows.Add(new(
+        rows.Add(new MetricRow(
             "vram",
             "VRAM",
             MetricFormatting.FormatGiB(gpu.VramUsedBytes),

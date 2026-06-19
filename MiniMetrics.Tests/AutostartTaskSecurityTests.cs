@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Runtime.Versioning;
 using System.Security.AccessControl;
 using System.Security.Principal;
@@ -20,8 +19,8 @@ public class AutostartTaskSecurityTests
     {
         string result = AutostartTaskSecurity.GrantUserDelete(BaseDacl, User);
 
-        RawAcl dacl = new RawSecurityDescriptor(result).DiscretionaryAcl!;
-        CommonAce ace = dacl.OfType<CommonAce>().Single(candidate => candidate.SecurityIdentifier.Equals(User));
+        var dacl = new RawSecurityDescriptor(result).DiscretionaryAcl!;
+        var ace = dacl.OfType<CommonAce>().Single(candidate => candidate.SecurityIdentifier.Equals(User));
         Assert.AreEqual(AceQualifier.AccessAllowed, ace.AceQualifier);
         Assert.AreEqual(DeleteAndReadControl, ace.AccessMask & DeleteAndReadControl);
     }
@@ -31,7 +30,7 @@ public class AutostartTaskSecurityTests
     {
         string result = AutostartTaskSecurity.GrantUserDelete(BaseDacl, User);
 
-        RawAcl dacl = new RawSecurityDescriptor(result).DiscretionaryAcl!;
+        var dacl = new RawSecurityDescriptor(result).DiscretionaryAcl!;
         Assert.AreEqual(3, dacl.Count);
     }
 

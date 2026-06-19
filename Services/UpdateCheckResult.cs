@@ -8,7 +8,7 @@ public enum UpdateOutcome
     UpToDate,
     UpdateAvailable,
     Failed,
-    Busy,
+    Busy
 }
 
 // The result of an update check. Version is the display string (no leading v); ReleaseUrl is set only
@@ -27,7 +27,10 @@ public sealed class UpdateCheckResult
     public string? ReleaseUrl { get; }
 
     public static UpdateCheckResult UpToDate(string version) => new(UpdateOutcome.UpToDate, version, null);
-    public static UpdateCheckResult UpdateAvailable(string version, string url) => new(UpdateOutcome.UpdateAvailable, version, url);
+
+    public static UpdateCheckResult UpdateAvailable(string version, string url) =>
+        new(UpdateOutcome.UpdateAvailable, version, url);
+
     public static UpdateCheckResult Failed() => new(UpdateOutcome.Failed, null, null);
     public static UpdateCheckResult Busy() => new(UpdateOutcome.Busy, null, null);
 }
@@ -49,19 +52,13 @@ public static class UpdateCheckDecision
         string releaseUrl,
         string currentVersionDisplay)
     {
-        UpdateDecision decision = UpdatePolicy.Evaluate(currentVersion, latestTag, skippedVersion);
+        var decision = UpdatePolicy.Evaluate(currentVersion, latestTag, skippedVersion);
 
-        if (!decision.UpdateAvailable)
-        {
-            return UpdateCheckResult.UpToDate(currentVersionDisplay);
-        }
+        if (!decision.UpdateAvailable) return UpdateCheckResult.UpToDate(currentVersionDisplay);
 
         // Auto-checks honor the skip; a manual check shows the update regardless, since the user
         // explicitly asked.
-        if (!manual && !decision.ShouldNotify)
-        {
-            return UpdateCheckResult.UpToDate(currentVersionDisplay);
-        }
+        if (!manual && !decision.ShouldNotify) return UpdateCheckResult.UpToDate(currentVersionDisplay);
 
         return UpdateCheckResult.UpdateAvailable(decision.LatestVersion!.ToString(), releaseUrl);
     }

@@ -1,8 +1,5 @@
-using System;
-using System.Collections.Generic;
 using LibreHardwareMonitor.Hardware;
 using MiniMetrics.Services;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace MiniMetrics.Tests;
 
@@ -33,7 +30,7 @@ public class UpdateVisitorTests
         var root = new FakeHardware
         {
             Sensors = new ISensor[] { rootSensor },
-            SubHardware = new IHardware[] { sub },
+            SubHardware = new IHardware[] { sub }
         };
 
         root.Accept(new UpdateVisitor());
@@ -50,7 +47,10 @@ public class UpdateVisitorTests
 
         public void Update() => UpdateCount++;
         public void Accept(IVisitor visitor) => visitor.VisitHardware(this);
-        public void Traverse(IVisitor visitor) { }
+
+        public void Traverse(IVisitor visitor)
+        {
+        }
 
         public HardwareType HardwareType => default;
         public Identifier Identifier => null!;
@@ -72,10 +72,22 @@ public class UpdateVisitorTests
         public TimeSpan ValuesTimeWindow { get; set; } = TimeSpan.FromDays(1);
 
         public void Accept(IVisitor visitor) => visitor.VisitSensor(this);
-        public void Traverse(IVisitor visitor) { }
-        public void ResetMin() { }
-        public void ResetMax() { }
-        public void ClearValues() { }
+
+        public void Traverse(IVisitor visitor)
+        {
+        }
+
+        public void ResetMin()
+        {
+        }
+
+        public void ResetMax()
+        {
+        }
+
+        public void ClearValues()
+        {
+        }
 
         public IControl Control => null!;
         public IHardware Hardware => null!;

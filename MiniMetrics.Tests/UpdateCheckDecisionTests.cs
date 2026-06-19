@@ -1,4 +1,3 @@
-using System;
 using MiniMetrics.Services;
 
 namespace MiniMetrics.Tests;
@@ -14,7 +13,7 @@ public class UpdateCheckDecisionTests
     [TestMethod]
     public void Reports_an_available_update()
     {
-        UpdateCheckResult result = Evaluate("v1.3.0", skippedVersion: null, manual: false);
+        var result = Evaluate("v1.3.0", null, false);
 
         Assert.AreEqual(UpdateOutcome.UpdateAvailable, result.Outcome);
         Assert.AreEqual("1.3.0", result.Version);
@@ -24,7 +23,7 @@ public class UpdateCheckDecisionTests
     [TestMethod]
     public void Reports_up_to_date_when_not_newer()
     {
-        UpdateCheckResult result = Evaluate("v1.2.0", skippedVersion: null, manual: true);
+        var result = Evaluate("v1.2.0", null, true);
 
         Assert.AreEqual(UpdateOutcome.UpToDate, result.Outcome);
         Assert.AreEqual("1.2.0", result.Version);
@@ -34,7 +33,7 @@ public class UpdateCheckDecisionTests
     [TestMethod]
     public void Auto_check_suppresses_a_skipped_version()
     {
-        UpdateCheckResult result = Evaluate("v1.3.0", skippedVersion: "1.3.0", manual: false);
+        var result = Evaluate("v1.3.0", "1.3.0", false);
 
         Assert.AreEqual(UpdateOutcome.UpToDate, result.Outcome);
     }
@@ -42,7 +41,7 @@ public class UpdateCheckDecisionTests
     [TestMethod]
     public void Manual_check_shows_a_skipped_version_anyway()
     {
-        UpdateCheckResult result = Evaluate("v1.3.0", skippedVersion: "1.3.0", manual: true);
+        var result = Evaluate("v1.3.0", "1.3.0", true);
 
         Assert.AreEqual(UpdateOutcome.UpdateAvailable, result.Outcome);
         Assert.AreEqual("1.3.0", result.Version);
@@ -51,7 +50,7 @@ public class UpdateCheckDecisionTests
     [TestMethod]
     public void Unparseable_tag_is_treated_as_up_to_date()
     {
-        UpdateCheckResult result = Evaluate("nightly-build", skippedVersion: null, manual: true);
+        var result = Evaluate("nightly-build", null, true);
 
         Assert.AreEqual(UpdateOutcome.UpToDate, result.Outcome);
         Assert.AreEqual("1.2.0", result.Version);

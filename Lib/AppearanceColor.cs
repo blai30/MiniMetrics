@@ -25,28 +25,17 @@ public static class AppearanceColor
 
     private static (byte Red, byte Green, byte Blue)? ParseRgb(string hex)
     {
-        if (string.IsNullOrWhiteSpace(hex))
-        {
-            return null;
-        }
+        if (string.IsNullOrWhiteSpace(hex)) return null;
 
         string trimmed = hex.Trim();
-        if (trimmed.StartsWith('#'))
-        {
-            trimmed = trimmed[1..];
-        }
+        if (trimmed.StartsWith('#')) trimmed = trimmed[1..];
 
-        if (trimmed.Length != 6)
-        {
-            return null;
-        }
+        if (trimmed.Length != 6) return null;
 
         if (byte.TryParse(trimmed.AsSpan(0, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out byte red)
             && byte.TryParse(trimmed.AsSpan(2, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out byte green)
             && byte.TryParse(trimmed.AsSpan(4, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out byte blue))
-        {
             return (red, green, blue);
-        }
 
         return null;
     }

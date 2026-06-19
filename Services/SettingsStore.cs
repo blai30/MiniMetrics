@@ -5,13 +5,9 @@ using MiniMetrics.Models;
 
 namespace MiniMetrics.Services;
 
-public sealed class SettingsStore
+public sealed class SettingsStore(string path)
 {
     private static readonly JsonSerializerOptions Options = new() { WriteIndented = true };
-
-    private readonly string _path;
-
-    public SettingsStore(string path) => _path = path;
 
     // %APPDATA%\MiniMetrics\settings.json
     public static string DefaultPath => Path.Combine(
@@ -23,12 +19,9 @@ public sealed class SettingsStore
     {
         try
         {
-            if (!File.Exists(_path))
-            {
-                return new Settings();
-            }
+            if (!File.Exists(path)) return new Settings();
 
-            return JsonSerializer.Deserialize<Settings>(File.ReadAllText(_path)) ?? new Settings();
+            return JsonSerializer.Deserialize<Settings>(File.ReadAllText(path)) ?? new Settings();
         }
         catch
         {
@@ -40,8 +33,8 @@ public sealed class SettingsStore
     {
         try
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(_path)!);
-            File.WriteAllText(_path, JsonSerializer.Serialize(settings, Options));
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            File.WriteAllText(path, JsonSerializer.Serialize(settings, Options));
         }
         catch
         {

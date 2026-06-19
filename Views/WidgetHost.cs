@@ -9,103 +9,73 @@ namespace MiniMetrics.Views;
 
 // One widget window's saved position. Save debounces through the settings controller; SaveNow forces
 // an immediate write, used after an on-screen correction or the GPU's first placement.
-public sealed class PositionSlot
+public sealed class PositionSlot(Func<(int X, int Y)?> read, Action<int, int> save, Action flush)
 {
-    private readonly Func<(int X, int Y)?> _read;
-    private readonly Action<int, int> _save;
-    private readonly Action _flush;
+    public (int X, int Y)? Saved => read();
 
-    public PositionSlot(Func<(int X, int Y)?> read, Action<int, int> save, Action flush)
-    {
-        _read = read;
-        _save = save;
-        _flush = flush;
-    }
-
-    public (int X, int Y)? Saved => _read();
-
-    public void Save(int x, int y) => _save(x, y);
+    public void Save(int x, int y) => save(x, y);
 
     public void SaveNow(int x, int y)
     {
-        _save(x, y);
-        _flush();
+        save(x, y);
+        flush();
     }
 }
 
 // Bundles one desktop widget: its overlay window, the Win32 desktop integration, position
 // persistence, edge snapping against peers, and on-screen recovery. App holds one host per widget
 // and drives them uniformly through this interface instead of repeating the wiring three times.
-public sealed class WidgetHost
+public sealed class WidgetHost(OverlayWindow window, PositionSlot position)
 {
-    private readonly OverlayWindow _window;
-    private readonly DesktopWindow _desktop;
-    private readonly PositionSlot _position;
+    private readonly DesktopWindow _desktop = new(window);
     private bool _alwaysOnTop;
-
-    public WidgetHost(OverlayWindow window, PositionSlot position)
-    {
-        _window = window;
-        _desktop = new DesktopWindow(window);
-        _position = position;
-    }
 
     // Runs the first time the window opens, before on-screen recovery, only when no position has been
     // saved yet. Lets the GPU widget seat itself beside the CPU widget on first appearance.
     public Action? OnFirstPlacement { get; set; }
 
-    public bool IsVisible => _window.IsVisible;
+    public bool IsVisible => window.IsVisible;
 
     // The underlying window, needed only to nominate the desktop lifetime's MainWindow.
-    public Window Window => _window;
+    public Window Window => window;
 
     // Physical-pixel rectangle for edge snapping and peer placement.
-    public EdgeSnap.Rect Rect => RectOf(_window);
+    public EdgeSnap.Rect Rect => RectOf(window);
 
     // Registers the desktop hook, restores the saved position, applies the current chrome flags, and
     // wires position persistence and on-screen recovery. Call once before the first Show.
     public void Initialize(bool locked, bool snapEnabled, bool alwaysOnTop)
     {
         _alwaysOnTop = alwaysOnTop;
-        _window.IsLocked = locked;
-        _window.SnapEnabled = snapEnabled;
+        window.IsLocked = locked;
+        window.SnapEnabled = snapEnabled;
 
         _desktop.Attach();
         _desktop.SetAlwaysOnTop(alwaysOnTop);
 
-        if (_position.Saved is { } saved)
-        {
-            _window.Position = new PixelPoint(saved.X, saved.Y);
-        }
+        if (position.Saved is { } saved) window.Position = new PixelPoint(saved.X, saved.Y);
 
-        _window.PositionChanged += (_, _) => _position.Save(_window.Position.X, _window.Position.Y);
+        window.PositionChanged += (_, _) => position.Save(window.Position.X, window.Position.Y);
 
-        _window.Opened += (_, _) =>
+        window.Opened += (_, _) =>
         {
-            if (_position.Saved is null)
-            {
-                OnFirstPlacement?.Invoke();
-            }
+            if (position.Saved is null) OnFirstPlacement?.Invoke();
 
             EnsureOnScreen();
             _desktop.SetAlwaysOnTop(_alwaysOnTop);
-            _desktop.SetClickThrough(_window.IsLocked);
+            _desktop.SetClickThrough(window.IsLocked);
         };
     }
 
     // Snaps this widget against the given peers during a drag, but only those currently shown.
     public void SnapAgainst(params WidgetHost[] peers)
     {
-        _window.PeerRects = () =>
+        window.PeerRects = () =>
         {
             var rects = new List<EdgeSnap.Rect>(peers.Length);
-            foreach (WidgetHost peer in peers)
-            {
+            foreach (var peer in peers)
                 if (peer.IsVisible)
-                {
                     rects.Add(peer.Rect);
-                }
-            }
 
             return rects;
         };
@@ -114,15 +84,15 @@ public sealed class WidgetHost
     // Shows the widget and reasserts its z-order band, which a fresh Show can otherwise reset.
     public void Show()
     {
-        _window.Show();
+        window.Show();
         _desktop.SetAlwaysOnTop(_alwaysOnTop);
     }
 
-    public void Hide() => _window.Hide();
+    public void Hide() => window.Hide();
 
     public void SetLocked(bool locked)
     {
-        _window.IsLocked = locked;
+        window.IsLocked = locked;
         _desktop.SetClickThrough(locked);
     }
 
@@ -132,31 +102,26 @@ public sealed class WidgetHost
         _desktop.SetAlwaysOnTop(onTop);
     }
 
-    public void SetSnapEnabled(bool enabled) => _window.SnapEnabled = enabled;
+    public void SetSnapEnabled(bool enabled) => window.SnapEnabled = enabled;
 
     // Moves the widget to an absolute position and persists it immediately.
     public void MoveTo(int x, int y)
     {
-        _window.Position = new PixelPoint(x, y);
-        _position.SaveNow(_window.Position.X, _window.Position.Y);
+        window.Position = new PixelPoint(x, y);
+        position.SaveNow(window.Position.X, window.Position.Y);
     }
 
     // If the restored position lands off every monitor, pull it onto the primary screen and persist.
     private void EnsureOnScreen()
     {
-        var screens = _window.Screens;
-        if (screens is null || screens.All.Count == 0)
-        {
-            return;
-        }
+        var screens = window.Screens;
+        if (screens.All.Count == 0) return;
 
-        if (screens.ScreenFromPoint(_window.Position) is null)
-        {
-            var primary = screens.Primary ?? screens.All[0];
-            PixelRect area = primary.WorkingArea;
-            _window.Position = new PixelPoint(area.X + 48, area.Y + 48);
-            _position.SaveNow(_window.Position.X, _window.Position.Y);
-        }
+        if (screens.ScreenFromPoint(window.Position) is not null) return;
+        var primary = screens.Primary ?? screens.All[0];
+        var area = primary.WorkingArea;
+        window.Position = new PixelPoint(area.X + 48, area.Y + 48);
+        position.SaveNow(window.Position.X, window.Position.Y);
     }
 
     private static EdgeSnap.Rect RectOf(Window window)

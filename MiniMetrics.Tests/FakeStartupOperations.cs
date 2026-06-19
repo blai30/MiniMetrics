@@ -34,10 +34,7 @@ internal sealed class FakeStartupOperations : IStartupOperations
     public bool CreateTask(string exePath)
     {
         CreateTaskCalls++;
-        if (!CreateTaskSucceeds)
-        {
-            return false;
-        }
+        if (!CreateTaskSucceeds) return false;
 
         TaskPresent = true;
         return true;
@@ -46,10 +43,7 @@ internal sealed class FakeStartupOperations : IStartupOperations
     public bool RemoveTask()
     {
         RemoveTaskCalls++;
-        if (!RemoveTaskSucceeds)
-        {
-            return false;
-        }
+        if (!RemoveTaskSucceeds) return false;
 
         TaskPresent = false;
         return true;

@@ -5,20 +5,12 @@ using MiniMetrics.Models;
 
 namespace MiniMetrics.Services;
 
-public sealed class MetricsPoller : IDisposable
+public sealed class MetricsPoller(ISensorSource source, TimeSpan interval) : IDisposable
 {
-    private readonly ISensorSource _source;
-    private readonly TimeSpan _interval;
     private CancellationTokenSource? _cts;
     private Task? _loop;
 
     public event Action<MetricsSnapshot>? SnapshotReady;
-
-    public MetricsPoller(ISensorSource source, TimeSpan interval)
-    {
-        _source = source;
-        _interval = interval;
-    }
 
     public void Start()
     {
@@ -32,14 +24,13 @@ public sealed class MetricsPoller : IDisposable
 
     private async Task RunAsync(CancellationToken token)
     {
-        using var timer = new PeriodicTimer(_interval);
+        using var timer = new PeriodicTimer(interval);
         try
         {
             do
             {
                 Emit();
-            }
-            while (await timer.WaitForNextTickAsync(token));
+            } while (await timer.WaitForNextTickAsync(token));
         }
         catch (OperationCanceledException)
         {
@@ -51,7 +42,7 @@ public sealed class MetricsPoller : IDisposable
     {
         try
         {
-            MetricsSnapshot snapshot = _source.Read();
+            var snapshot = source.Read();
             SnapshotReady?.Invoke(snapshot);
         }
         catch

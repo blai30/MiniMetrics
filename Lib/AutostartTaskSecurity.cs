@@ -16,21 +16,16 @@ public static class AutostartTaskSecurity
     public static string GrantUserDelete(string existingSddl, SecurityIdentifier user)
     {
         var descriptor = new RawSecurityDescriptor(existingSddl);
-        RawAcl dacl = descriptor.DiscretionaryAcl ?? new RawAcl(GenericAcl.AclRevision, 1);
+        var dacl = descriptor.DiscretionaryAcl ?? new RawAcl(GenericAcl.AclRevision, 1);
 
-        foreach (GenericAce entry in dacl)
-        {
-            if (entry is CommonAce existing
-                && existing.AceType == AceType.AccessAllowed
+        foreach (var entry in dacl)
+            if (entry is CommonAce { AceType: AceType.AccessAllowed } existing
                 && existing.SecurityIdentifier.Equals(user)
                 && (existing.AccessMask & DeleteAndReadControl) == DeleteAndReadControl)
-            {
                 return existingSddl;
-            }
-        }
 
         dacl.InsertAce(dacl.Count, new CommonAce(
-            AceFlags.None, AceQualifier.AccessAllowed, DeleteAndReadControl, user, isCallback: false, opaque: null));
+            AceFlags.None, AceQualifier.AccessAllowed, DeleteAndReadControl, user, false, null));
         descriptor.DiscretionaryAcl = dacl;
         return descriptor.GetSddlForm(AccessControlSections.Access);
     }

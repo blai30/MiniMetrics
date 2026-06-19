@@ -1,9 +1,6 @@
-using System;
-using System.IO;
 using MiniMetrics.Models;
 using MiniMetrics.Services;
 using MiniMetrics.ViewModels;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace MiniMetrics.Tests;
 
@@ -73,7 +70,8 @@ public class MetricActivatorTests
         var widgets = new WidgetCoordinator(controller, cpu, gpu, source);
 
         var elevation = new FakeElevation { Elevated = elevated, RelaunchSucceeds = relaunchSucceeds };
-        var elevationCoordinator = new ElevationCoordinator(elevation, new FakeDriverProbe { Installed = driverInstalled });
+        var elevationCoordinator =
+            new ElevationCoordinator(elevation, new FakeDriverProbe { Installed = driverInstalled });
 
         var startupOps = new FakeStartupOperations { TaskPresent = taskPresent, RunKeyPath = runKeyPath };
         var startup = new StartupManager(startupOps, ExePath);
@@ -88,16 +86,16 @@ public class MetricActivatorTests
             Scheduler = scheduler,
             Elevation = elevation,
             Startup = startupOps,
-            Source = source,
+            Source = source
         };
     }
 
     [TestMethod]
     public void Apply_persists_visibility_and_reconciles_devices_for_a_non_elevation_metric()
     {
-        Harness harness = NewHarness();
+        var harness = NewHarness();
 
-        MetricActivationResult result = harness.Activator.Apply("cpu.usage", false);
+        var result = harness.Activator.Apply("cpu.usage", false);
 
         Assert.AreEqual(MetricActivationOutcome.None, result.Outcome);
         Assert.IsFalse(harness.Controller.Current.Visibility["cpu.usage"]);
@@ -107,7 +105,7 @@ public class MetricActivatorTests
     [TestMethod]
     public void Apply_non_elevation_metric_never_relaunches_even_with_driver()
     {
-        Harness harness = NewHarness(elevated: false, driverInstalled: true);
+        var harness = NewHarness(false, true);
 
         harness.Activator.Apply("cpu.usage", true);
 
@@ -117,9 +115,9 @@ public class MetricActivatorTests
     [TestMethod]
     public void Apply_relaunches_when_elevation_metric_enabled_unelevated_with_driver()
     {
-        Harness harness = NewHarness(elevated: false, driverInstalled: true);
+        var harness = NewHarness(false, true);
 
-        MetricActivationResult result = harness.Activator.Apply("cpu.temp", true);
+        var result = harness.Activator.Apply("cpu.temp", true);
 
         Assert.AreEqual(MetricActivationOutcome.Relaunching, result.Outcome);
         Assert.AreEqual(ExePath, harness.Elevation.RelaunchedWith);
@@ -130,7 +128,7 @@ public class MetricActivatorTests
     [TestMethod]
     public void Apply_flushes_settings_before_relaunch()
     {
-        Harness harness = NewHarness(elevated: false, driverInstalled: true);
+        var harness = NewHarness(false, true);
 
         harness.Activator.Apply("cpu.temp", true);
 
@@ -140,9 +138,9 @@ public class MetricActivatorTests
     [TestMethod]
     public void Apply_shows_driver_install_prompt_when_driver_missing()
     {
-        Harness harness = NewHarness(elevated: false, driverInstalled: false);
+        var harness = NewHarness(false, false);
 
-        MetricActivationResult result = harness.Activator.Apply("cpu.temp", true);
+        var result = harness.Activator.Apply("cpu.temp", true);
 
         Assert.AreEqual(MetricActivationOutcome.ShowDriverInstallPrompt, result.Outcome);
         Assert.AreEqual(0, harness.Elevation.RelaunchCalls);
@@ -151,9 +149,9 @@ public class MetricActivatorTests
     [TestMethod]
     public void Apply_reports_declined_when_the_uac_prompt_is_refused()
     {
-        Harness harness = NewHarness(elevated: false, driverInstalled: true, relaunchSucceeds: false);
+        var harness = NewHarness(false, true, false);
 
-        MetricActivationResult result = harness.Activator.Apply("cpu.temp", true);
+        var result = harness.Activator.Apply("cpu.temp", true);
 
         Assert.AreEqual(MetricActivationOutcome.RelaunchDeclined, result.Outcome);
     }
@@ -161,9 +159,9 @@ public class MetricActivatorTests
     [TestMethod]
     public void Apply_does_nothing_elevation_related_when_already_elevated()
     {
-        Harness harness = NewHarness(elevated: true, driverInstalled: true);
+        var harness = NewHarness(true, true);
 
-        MetricActivationResult result = harness.Activator.Apply("cpu.temp", true);
+        var result = harness.Activator.Apply("cpu.temp", true);
 
         Assert.AreEqual(MetricActivationOutcome.None, result.Outcome);
         Assert.AreEqual(0, harness.Elevation.RelaunchCalls);
@@ -174,10 +172,10 @@ public class MetricActivatorTests
     public void Apply_migrates_the_elevated_task_to_a_run_key_when_the_last_elevation_metric_is_turned_off()
     {
         // Startup is on via the elevated task because an elevation metric was enabled.
-        Harness harness = NewHarness(elevated: false, driverInstalled: true, hasStartupManager: true, taskPresent: true);
+        var harness = NewHarness(false, true, hasStartupManager: true, taskPresent: true);
         harness.Controller.SetMetricVisibility("cpu.temp", true);
 
-        MetricActivationResult result = harness.Activator.Apply("cpu.temp", false);
+        var result = harness.Activator.Apply("cpu.temp", false);
 
         Assert.AreEqual(MetricActivationOutcome.None, result.Outcome);
         Assert.IsTrue(result.StartupResynced);
@@ -191,10 +189,10 @@ public class MetricActivatorTests
     [TestMethod]
     public void Apply_keeps_the_elevated_task_when_a_second_elevation_metric_is_enabled_while_elevated()
     {
-        Harness harness = NewHarness(elevated: true, driverInstalled: true, hasStartupManager: true, taskPresent: true);
+        var harness = NewHarness(true, true, hasStartupManager: true, taskPresent: true);
         harness.Controller.SetMetricVisibility("cpu.temp", true);
 
-        MetricActivationResult result = harness.Activator.Apply("cpu.power", true);
+        var result = harness.Activator.Apply("cpu.power", true);
 
         Assert.AreEqual(MetricActivationOutcome.None, result.Outcome);
         Assert.IsTrue(result.StartupResynced);
@@ -206,10 +204,10 @@ public class MetricActivatorTests
     [TestMethod]
     public void Apply_does_not_touch_startup_when_no_startup_manager_is_present()
     {
-        Harness harness = NewHarness(elevated: true, driverInstalled: true, hasStartupManager: false);
+        var harness = NewHarness(true, true, hasStartupManager: false);
         harness.Controller.SetMetricVisibility("cpu.temp", true);
 
-        MetricActivationResult result = harness.Activator.Apply("cpu.power", true);
+        var result = harness.Activator.Apply("cpu.power", true);
 
         Assert.IsFalse(result.StartupResynced);
     }
@@ -217,9 +215,9 @@ public class MetricActivatorTests
     [TestMethod]
     public void Apply_does_not_resync_startup_when_startup_is_disabled()
     {
-        Harness harness = NewHarness(elevated: true, driverInstalled: true, hasStartupManager: true, taskPresent: false);
+        var harness = NewHarness(true, true, hasStartupManager: true, taskPresent: false);
 
-        MetricActivationResult result = harness.Activator.Apply("cpu.temp", false);
+        var result = harness.Activator.Apply("cpu.temp", false);
 
         Assert.IsFalse(result.StartupResynced);
         Assert.AreEqual(0, harness.Startup.RemoveTaskCalls);

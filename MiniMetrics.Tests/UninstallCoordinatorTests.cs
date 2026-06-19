@@ -12,7 +12,7 @@ public class UninstallCoordinatorTests
         int launches = 0;
         var coordinator = new UninstallCoordinator(ops, () => launches++);
 
-        UninstallOutcome outcome = coordinator.Run();
+        var outcome = coordinator.Run();
 
         Assert.AreEqual(UninstallOutcome.Aborted, outcome);
         Assert.IsTrue(ops.TaskPresent);
@@ -28,7 +28,7 @@ public class UninstallCoordinatorTests
         int launches = 0;
         var coordinator = new UninstallCoordinator(ops, () => launches++);
 
-        UninstallOutcome outcome = coordinator.Run();
+        var outcome = coordinator.Run();
 
         Assert.AreEqual(UninstallOutcome.Completed, outcome);
         Assert.IsFalse(ops.TaskPresent);
@@ -43,7 +43,7 @@ public class UninstallCoordinatorTests
         int launches = 0;
         var coordinator = new UninstallCoordinator(ops, () => launches++);
 
-        UninstallOutcome outcome = coordinator.Run();
+        var outcome = coordinator.Run();
 
         Assert.AreEqual(UninstallOutcome.Completed, outcome);
         Assert.AreEqual(0, ops.RemoveTaskCalls);

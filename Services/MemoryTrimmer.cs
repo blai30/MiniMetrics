@@ -10,10 +10,7 @@ public static class MemoryTrimmer
 {
     public static void Trim()
     {
-        if (!OperatingSystem.IsWindows())
-        {
-            return;
-        }
+        if (!OperatingSystem.IsWindows()) return;
 
         // A failure here is purely cosmetic (memory stays where it is), so it is ignored.
         EmptyWorkingSet(GetCurrentProcess());

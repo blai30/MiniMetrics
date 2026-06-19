@@ -7,7 +7,7 @@ public enum HardwareKind
 {
     Cpu,
     Memory,
-    Gpu,
+    Gpu
 }
 
 // The sensor categories the widget reads, decoupled from LibreHardwareMonitor's own SensorType.
@@ -17,7 +17,7 @@ public enum SensorKind
     Temperature,
     Power,
     Data,
-    SmallData,
+    SmallData
 }
 
 // A port over the physical hardware tree. It hides LibreHardwareMonitor entirely so the sensor

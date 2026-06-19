@@ -1,4 +1,3 @@
-using System;
 using MiniMetrics.Services;
 
 namespace MiniMetrics.Tests;
@@ -22,7 +21,7 @@ public sealed class FakeSaveScheduler : ISaveScheduler
     public void Flush()
     {
         FlushCount++;
-        Action? pending = _pending;
+        var pending = _pending;
         _pending = null;
         pending?.Invoke();
     }

@@ -15,14 +15,9 @@ internal static class PhysicalMemory
     // which the caller treats as "unknown" and falls back to the OS-usable total.
     public static ulong InstalledBytes()
     {
-        if (!OperatingSystem.IsWindows())
-        {
-            return 0;
-        }
+        if (!OperatingSystem.IsWindows()) return 0;
 
-        return GetPhysicallyInstalledSystemMemory(out ulong totalKilobytes)
-            ? totalKilobytes * 1024UL
-            : 0;
+        return GetPhysicallyInstalledSystemMemory(out ulong totalKilobytes) ? totalKilobytes * 1024UL : 0;
     }
 
     [DllImport("kernel32.dll", SetLastError = true)]

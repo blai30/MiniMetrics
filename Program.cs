@@ -1,13 +1,12 @@
 using Avalonia;
 using System;
 using System.Runtime.Versioning;
-using MiniMetrics.Lib;
 using MiniMetrics.Services;
 using Velopack;
 
 namespace MiniMetrics;
 
-sealed class Program
+internal sealed class Program
 {
     // Initialization code. Don't use any Avalonia, third-party APIs or any
     // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
@@ -23,7 +22,6 @@ sealed class Program
         // the user delete rights on it). The elevated scheduled-task fallback lives in the in-app Uninstall.
         var velopackApp = VelopackApp.Build();
         if (OperatingSystem.IsWindows())
-        {
             velopackApp = velopackApp.OnBeforeUninstallFastCallback(_ =>
             {
                 if (OperatingSystem.IsWindows())
@@ -34,32 +32,22 @@ sealed class Program
                     // Non-elevated only: this FastCallback must not show UI (so no UAC) and is killed after
                     // 30 seconds. Tasks created by this version are user-deletable and removed silently;
                     // tasks left by older versions are admin-only and remain (documented manual cleanup).
-                    if (operations.TaskExists())
-                    {
-                        operations.RemoveTaskNonElevated();
-                    }
+                    if (operations.TaskExists()) operations.RemoveTaskNonElevated();
                 }
             });
-        }
         velopackApp.Run();
 
         // CPU temperature and power are read through the PawnIO kernel driver, whose device only an
         // elevated process can open. If one of those metrics is enabled, the driver is installed, and we
         // are not elevated, relaunch elevated and let this instance exit before any window appears. A
         // declined prompt falls through and runs normally.
-        if (OperatingSystem.IsWindows() && RelaunchedElevated())
-        {
-            return;
-        }
+        if (OperatingSystem.IsWindows() && RelaunchedElevated()) return;
 
         // Only one instance may run at a time. Acquire the guard after the elevation gate above so the
         // non-elevated instance that relaunches itself elevated never holds the mutex: the elevated child
         // claims it cleanly. A second launch finds the mutex taken and exits before any window appears.
         using var instance = SingleInstance.Acquire();
-        if (!instance.IsOnlyInstance)
-        {
-            return;
-        }
+        if (!instance.IsOnlyInstance) return;
 
         BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
     }
@@ -69,10 +57,7 @@ sealed class Program
     {
         var settings = new SettingsStore(SettingsStore.DefaultPath).Load();
         var coordinator = new ElevationCoordinator(new WindowsElevation(), new WindowsDriverProbe());
-        if (!coordinator.ShouldRelaunch(settings.Visibility))
-        {
-            return false;
-        }
+        if (!coordinator.ShouldRelaunch(settings.Visibility)) return false;
 
         return coordinator.RelaunchElevated(Environment.ProcessPath!);
     }

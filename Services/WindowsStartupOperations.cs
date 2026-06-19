@@ -22,36 +22,31 @@ public sealed class WindowsStartupOperations : IStartupOperations
 
     public string? ReadRunKeyPath()
     {
-        using RegistryKey? key = Registry.CurrentUser.OpenSubKey(RunKeySubKey);
+        using var key = Registry.CurrentUser.OpenSubKey(RunKeySubKey);
         return key?.GetValue(ValueName) as string;
     }
 
     public void WriteRunKey(string value)
     {
-        using RegistryKey key = Registry.CurrentUser.CreateSubKey(RunKeySubKey);
+        using var key = Registry.CurrentUser.CreateSubKey(RunKeySubKey);
         key.SetValue(ValueName, value, RegistryValueKind.String);
     }
 
     public void RemoveRunKey()
     {
-        using RegistryKey? key = Registry.CurrentUser.OpenSubKey(RunKeySubKey, writable: true);
-        key?.DeleteValue(ValueName, throwOnMissingValue: false);
+        using var key = Registry.CurrentUser.OpenSubKey(RunKeySubKey, true);
+        key?.DeleteValue(ValueName, false);
     }
 
-    public bool TaskExists()
-    {
+    public bool TaskExists() =>
         // schtasks /Query exits 0 when the task exists, non-zero when it does not.
-        return RunSchtasks($"/Query /TN \"{TaskName}\"", elevated: false) == 0;
-    }
+        RunSchtasks($"/Query /TN \"{TaskName}\"", false) == 0;
 
     public bool CreateTask(string exePath)
     {
         string arguments =
             $"/Create /TN \"{TaskName}\" /TR \"\\\"{exePath}\\\"\" /SC ONLOGON /RL HIGHEST /F";
-        if (RunSchtasks(arguments, elevated: true) != 0)
-        {
-            return false;
-        }
+        if (RunSchtasks(arguments, true) != 0) return false;
 
         GrantCurrentUserDelete();
         return true;
@@ -61,16 +56,10 @@ public sealed class WindowsStartupOperations : IStartupOperations
     // created by older versions are admin-only, so fall back to the elevated path (one UAC prompt).
     public bool RemoveTask()
     {
-        if (RemoveTaskNonElevated())
-        {
-            return true;
-        }
+        if (RemoveTaskNonElevated()) return true;
 
-        bool removed = RunSchtasks($"/Delete /TN \"{TaskName}\" /F", elevated: true) == 0;
-        if (removed)
-        {
-            TryRemoveTaskFolder();
-        }
+        bool removed = RunSchtasks($"/Delete /TN \"{TaskName}\" /F", true) == 0;
+        if (removed) TryRemoveTaskFolder();
         return removed;
     }
 
@@ -78,11 +67,7 @@ public sealed class WindowsStartupOperations : IStartupOperations
     // show a UAC prompt and is terminated after 30 seconds.
     public bool RemoveTaskNonElevated()
     {
-        if (RunSchtasks($"/Delete /TN \"{TaskName}\" /F", elevated: false) != 0)
-        {
-            return false;
-        }
-
+        if (RunSchtasks($"/Delete /TN \"{TaskName}\" /F", false) != 0) return false;
         TryRemoveTaskFolder();
         return true;
     }
@@ -118,10 +103,7 @@ public sealed class WindowsStartupOperations : IStartupOperations
         const int daclSecurityInformation = 0x4;
         string existing = securable.GetSecurityDescriptor(daclSecurityInformation);
         string updated = AutostartTaskSecurity.GrantUserDelete(existing, user);
-        if (updated != existing)
-        {
-            securable.SetSecurityDescriptor(updated, 0);
-        }
+        if (updated != existing) securable.SetSecurityDescriptor(updated, 0);
     }
 
     // Removes the task's containing folder once the task itself is gone. schtasks deletes the task but leaves
@@ -153,7 +135,7 @@ public sealed class WindowsStartupOperations : IStartupOperations
             Arguments = arguments,
             UseShellExecute = elevated,
             CreateNoWindow = true,
-            WindowStyle = ProcessWindowStyle.Hidden,
+            WindowStyle = ProcessWindowStyle.Hidden
         };
 
         if (elevated)
@@ -168,11 +150,8 @@ public sealed class WindowsStartupOperations : IStartupOperations
 
         try
         {
-            using Process? process = Process.Start(info);
-            if (process is null)
-            {
-                return -1;
-            }
+            using var process = Process.Start(info);
+            if (process is null) return -1;
 
             process.WaitForExit();
             return process.ExitCode;

@@ -14,7 +14,7 @@ public enum SettingKind
     TimeZone,
     ClockFormats,
     ClockLocale,
-    UpdatePreferences,
+    UpdatePreferences
 }
 
 // One settings change. For the per-key facets (metric visibility, compact toggles, clock alignment) it
@@ -28,11 +28,9 @@ public readonly record struct SettingChange(
 {
     public static SettingChange Of(SettingKind kind) => new(kind);
 
-    public static SettingChange Metric(string key, bool visible) =>
-        new(SettingKind.MetricVisibility, Key: key, Flag: visible);
+    public static SettingChange Metric(string key, bool visible) => new(SettingKind.MetricVisibility, key, visible);
 
-    public static SettingChange Compact(string widget, bool compact) =>
-        new(SettingKind.Compact, Key: widget, Flag: compact);
+    public static SettingChange Compact(string widget, bool compact) => new(SettingKind.Compact, widget, compact);
 
     public static SettingChange ForAlignment(ClockAlignment alignment) =>
         new(SettingKind.ClockAlignment, Alignment: alignment);

@@ -1,5 +1,4 @@
 using MiniMetrics.Services;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace MiniMetrics.Tests;
 

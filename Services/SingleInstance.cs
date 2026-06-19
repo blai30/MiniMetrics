@@ -14,10 +14,7 @@ public sealed class SingleInstance : IDisposable
 
     private readonly Mutex? _mutex;
 
-    private SingleInstance(Mutex? ownedMutex)
-    {
-        _mutex = ownedMutex;
-    }
+    private SingleInstance(Mutex? ownedMutex) => _mutex = ownedMutex;
 
     // True when this process created the mutex and is therefore the only running instance.
     public bool IsOnlyInstance => _mutex is not null;
@@ -27,11 +24,8 @@ public sealed class SingleInstance : IDisposable
     // Overload taking an explicit name so tests can isolate from the live app's mutex.
     public static SingleInstance Acquire(string name)
     {
-        var mutex = new Mutex(initiallyOwned: true, name, out bool createdNew);
-        if (createdNew)
-        {
-            return new SingleInstance(mutex);
-        }
+        var mutex = new Mutex(true, name, out bool createdNew);
+        if (createdNew) return new SingleInstance(mutex);
 
         // The mutex already existed: another instance owns it. Release our handle to it and report that
         // we are not the only instance.
@@ -41,10 +35,7 @@ public sealed class SingleInstance : IDisposable
 
     public void Dispose()
     {
-        if (_mutex is null)
-        {
-            return;
-        }
+        if (_mutex is null) return;
 
         _mutex.ReleaseMutex();
         _mutex.Dispose();

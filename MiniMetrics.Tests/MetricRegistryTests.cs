@@ -1,7 +1,4 @@
-using System.Collections.Generic;
-using System.Linq;
 using MiniMetrics.Lib;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace MiniMetrics.Tests;
 
@@ -43,7 +40,7 @@ public class MetricRegistryTests
         {
             ["cpu.usage"] = false,
             ["cpu.temp"] = false,
-            ["cpu.power"] = false,
+            ["cpu.power"] = false
         };
         Assert.IsFalse(MetricRegistry.AnyVisible("cpu", visibility));
     }
@@ -56,7 +53,7 @@ public class MetricRegistryTests
             ["gpu.usage"] = false,
             ["gpu.temp"] = false,
             ["gpu.power"] = false,
-            ["vram.usage"] = true,
+            ["vram.usage"] = true
         };
         Assert.IsTrue(MetricRegistry.AnyVisible("vram", visibility));
     }

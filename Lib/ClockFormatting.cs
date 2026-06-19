@@ -25,18 +25,16 @@ public static class ClockFormatting
         DateTimeOffset instant, TimeZoneInfo zone,
         string? customFormat, string defaultFormat, CultureInfo culture)
     {
-        DateTimeOffset local = TimeZoneInfo.ConvertTime(instant, zone);
-        if (!string.IsNullOrWhiteSpace(customFormat))
+        var local = TimeZoneInfo.ConvertTime(instant, zone);
+        if (string.IsNullOrWhiteSpace(customFormat)) return local.ToString(defaultFormat, culture);
+        try
         {
-            try
-            {
-                return local.ToString(customFormat, culture);
-            }
-            catch (Exception ex) when (ex is FormatException or ArgumentOutOfRangeException)
-            {
-                // A malformed pattern throws FormatException; one that expands past the formatter's
-                // length cap throws ArgumentOutOfRangeException. Either way, fall back to the default.
-            }
+            return local.ToString(customFormat, culture);
+        }
+        catch (Exception ex) when (ex is FormatException or ArgumentOutOfRangeException)
+        {
+            // A malformed pattern throws FormatException; one that expands past the formatter's
+            // length cap throws ArgumentOutOfRangeException. Either way, fall back to the default.
         }
 
         return local.ToString(defaultFormat, culture);
@@ -45,10 +43,7 @@ public static class ClockFormatting
     // True when format is blank (meaning "use the default") or renders without throwing.
     public static bool IsValidFormat(string? format, CultureInfo culture)
     {
-        if (string.IsNullOrWhiteSpace(format))
-        {
-            return true;
-        }
+        if (string.IsNullOrWhiteSpace(format)) return true;
 
         try
         {

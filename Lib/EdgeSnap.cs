@@ -13,8 +13,8 @@ public static class EdgeSnap
 
     public static (int X, int Y) Snap(Rect widget, Rect area, IReadOnlyList<Rect> peers, int threshold)
     {
-        int x = SnapAxis(widget.X, widget.Width, area.X, area.Width, peers, xAxis: true, threshold);
-        int y = SnapAxis(widget.Y, widget.Height, area.Y, area.Height, peers, xAxis: false, threshold);
+        int x = SnapAxis(widget.X, widget.Width, area.X, area.Width, peers, true, threshold);
+        int y = SnapAxis(widget.Y, widget.Height, area.Y, area.Height, peers, false, threshold);
         return (x, y);
     }
 
@@ -28,31 +28,29 @@ public static class EdgeSnap
         int best = position;
         int bestDistance = threshold + 1;
 
-        void Consider(int target)
-        {
-            int distance = Math.Abs(target - position);
-            if (distance <= threshold && distance < bestDistance)
-            {
-                bestDistance = distance;
-                best = target;
-            }
-        }
-
         // Screen edges: leading then trailing.
         Consider(areaStart);
         Consider(areaEnd - size);
 
-        foreach (Rect peer in peers)
+        foreach (var peer in peers)
         {
             int peerStart = xAxis ? peer.X : peer.Y;
             int peerSize = xAxis ? peer.Width : peer.Height;
             int peerEnd = peerStart + peerSize;
-            Consider(peerEnd);            // widget sits flush after the peer
-            Consider(peerStart - size);   // widget sits flush before the peer
-            Consider(peerStart);          // widget leading edge aligns with peer leading edge
-            Consider(peerEnd - size);     // widget trailing edge aligns with peer trailing edge
+            Consider(peerEnd); // widget sits flush after the peer
+            Consider(peerStart - size); // widget sits flush before the peer
+            Consider(peerStart); // widget leading edge aligns with peer leading edge
+            Consider(peerEnd - size); // widget trailing edge aligns with peer trailing edge
         }
 
         return best;
+
+        void Consider(int target)
+        {
+            int distance = Math.Abs(target - position);
+            if (distance > threshold || distance >= bestDistance) return;
+            bestDistance = distance;
+            best = target;
+        }
     }
 }

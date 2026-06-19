@@ -1,5 +1,4 @@
 using MiniMetrics.Lib;
-using MiniMetrics.Models;
 using MiniMetrics.Services;
 
 namespace MiniMetrics.ViewModels;
@@ -8,32 +7,19 @@ namespace MiniMetrics.ViewModels;
 // visibility change has to persist, re-render the owning widget, and release any device whose metrics
 // are now all hidden; running that sequence in one place is what stops a call site from doing a partial
 // update that leaves the render, the polling, and the saved state out of sync.
-public sealed class WidgetCoordinator
+public sealed class WidgetCoordinator(
+    SettingsController controller,
+    MetricWidgetViewModel cpu,
+    MetricWidgetViewModel gpu,
+    ISensorSource source)
 {
-    private readonly SettingsController _controller;
-    private readonly MetricWidgetViewModel _cpu;
-    private readonly MetricWidgetViewModel _gpu;
-    private readonly ISensorSource _source;
-
-    public WidgetCoordinator(
-        SettingsController controller,
-        MetricWidgetViewModel cpu,
-        MetricWidgetViewModel gpu,
-        ISensorSource source)
-    {
-        _controller = controller;
-        _cpu = cpu;
-        _gpu = gpu;
-        _source = source;
-    }
-
     // Applies a per-metric visibility change: persist it, re-render the owning widget, and reconcile
     // which devices stay polled.
     public void SetMetricVisibility(string key, bool visible)
     {
-        _controller.SetMetricVisibility(key, visible);
-        _cpu.RefreshVisibility(key);
-        _gpu.RefreshVisibility(key);
+        controller.SetMetricVisibility(key, visible);
+        cpu.RefreshVisibility(key);
+        gpu.RefreshVisibility(key);
         ApplyActiveDevices();
     }
 
@@ -41,12 +27,12 @@ public sealed class WidgetCoordinator
     // polled. Safe to call after a widget show/hide as well as after a metric change.
     public void ApplyActiveDevices()
     {
-        Settings settings = _controller.Current;
-        DeviceActivation.Result result = DeviceActivation.Compute(
+        var settings = controller.Current;
+        var result = DeviceActivation.Compute(
             settings.Visibility,
-            cpuWidgetShown: !settings.Hidden,
-            gpuWidgetShown: !settings.GpuHidden);
+            !settings.Hidden,
+            !settings.GpuHidden);
 
-        _source.SetActiveDevices(result.Cpu, result.Memory, result.Gpu);
+        source.SetActiveDevices(result.Cpu, result.Memory, result.Gpu);
     }
 }

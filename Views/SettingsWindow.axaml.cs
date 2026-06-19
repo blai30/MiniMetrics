@@ -40,35 +40,25 @@ public partial class SettingsWindow : Window
 
         box.ItemFilter = (search, item) =>
         {
-            if (parts(item) is not { } part)
-            {
-                return false;
-            }
+            if (parts(item) is not { } part) return false;
 
             string query = (search ?? "").Trim();
             return string.Equals(query, selectionText, StringComparison.CurrentCultureIgnoreCase)
-                || FuzzySearch.Matches(part.Display, part.Key, query);
+                   || FuzzySearch.Matches(part.Display, part.Key, query);
         };
 
         // Pressing anywhere in the field (not just the chevron) drops the list open like a dropdown.
-        box.AddHandler(InputElement.PointerPressedEvent, (_, _) =>
+        box.AddHandler(PointerPressedEvent, (_, _) =>
         {
-            if (!box.IsDropDownOpen)
-            {
-                OpenDropDown(box);
-            }
+            if (!box.IsDropDownOpen) OpenDropDown(box);
         }, RoutingStrategies.Tunnel);
 
         chevron.Click += (_, _) =>
         {
             if (box.IsDropDownOpen)
-            {
                 box.IsDropDownOpen = false;
-            }
             else
-            {
                 OpenDropDown(box);
-            }
         };
 
         // The Fluent dropdown scrollbar auto-hides and a style selector cannot reach it (it lives in the
@@ -79,12 +69,9 @@ public partial class SettingsWindow : Window
 
     private static void DisableScrollbarAutoHide(AutoCompleteBox box)
     {
-        Popup? popup = box.GetVisualDescendants().OfType<Popup>().FirstOrDefault();
-        ScrollViewer? scrollViewer = popup?.Child?.GetVisualDescendants().OfType<ScrollViewer>().FirstOrDefault();
-        if (scrollViewer is not null)
-        {
-            scrollViewer.AllowAutoHide = false;
-        }
+        var popup = box.GetVisualDescendants().OfType<Popup>().FirstOrDefault();
+        var scrollViewer = popup?.Child?.GetVisualDescendants().OfType<ScrollViewer>().FirstOrDefault();
+        scrollViewer?.AllowAutoHide = false;
     }
 
     // Focus the field, open the full list, and highlight the current text so the first keystroke starts
@@ -102,10 +89,7 @@ public partial class SettingsWindow : Window
     // caret and selection clear and any open dropdown closes.
     private void OnSettingsPointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (e.Source is Visual hit && hit.GetSelfAndVisualAncestors().Any(IsField))
-        {
-            return;
-        }
+        if (e.Source is Visual hit && hit.GetSelfAndVisualAncestors().Any(IsField)) return;
 
         RootArea.Focus();
     }

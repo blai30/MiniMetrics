@@ -1,6 +1,3 @@
-using System;
-using System.IO;
-using System.Threading.Tasks;
 using MiniMetrics.Models;
 using MiniMetrics.Services;
 
@@ -20,7 +17,7 @@ public class NotifyUpdateFlowTests
     [TestMethod]
     public void Cannot_apply_in_app()
     {
-        NotifyUpdateFlow flow = NewFlow(new FakeReleaseSource { Release = null });
+        var flow = NewFlow(new FakeReleaseSource { Release = null });
 
         Assert.IsFalse(flow.CanApplyInApp);
     }
@@ -28,7 +25,7 @@ public class NotifyUpdateFlowTests
     [TestMethod]
     public async Task ApplyAndRestart_throws_because_a_loose_exe_cannot_self_replace()
     {
-        NotifyUpdateFlow flow = NewFlow(new FakeReleaseSource { Release = null });
+        var flow = NewFlow(new FakeReleaseSource { Release = null });
 
         await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => flow.ApplyAndRestartAsync());
     }
@@ -37,9 +34,9 @@ public class NotifyUpdateFlowTests
     public async Task Check_forwards_to_the_underlying_service()
     {
         var source = new FakeReleaseSource { Release = new ReleaseInfo("v1.3.0", "https://example/r") };
-        NotifyUpdateFlow flow = NewFlow(source);
+        var flow = NewFlow(source);
 
-        UpdateCheckResult result = await flow.CheckAsync(manual: false);
+        var result = await flow.CheckAsync(false);
 
         Assert.AreEqual(UpdateOutcome.UpdateAvailable, result.Outcome);
         Assert.AreEqual("1.3.0", result.Version);

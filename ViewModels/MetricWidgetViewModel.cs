@@ -11,38 +11,27 @@ namespace MiniMetrics.ViewModels;
 // One standalone metrics widget: a compute card stacked over its memory card. Constructed with the
 // two keys it owns (the CPU widget owns "cpu"+"ram", the GPU widget owns "gpu"+"vram") and ignores
 // every other row the builder produces.
-public partial class MetricWidgetViewModel : ObservableObject, IWidgetAppearance
+public partial class MetricWidgetViewModel(string computeKey, string memoryKey) : ObservableObject, IWidgetAppearance
 {
-    private readonly string _computeKey;
-    private readonly string _memoryKey;
-
     // A read-only view onto the single visibility map (Settings.Visibility); the widget never owns a
     // copy, so what it renders cannot drift from what drives device polling.
     private IReadOnlyDictionary<string, bool> _visibility = new Dictionary<string, bool>();
 
-    public MetricWidgetViewModel(string computeKey, string memoryKey)
-    {
-        _computeKey = computeKey;
-        _memoryKey = memoryKey;
-    }
-
-    public ObservableCollection<MetricRowViewModel> Rows { get; } = new();
+    public ObservableCollection<MetricRowViewModel> Rows { get; } = [];
 
     // Named slots the single-column layout binds: the compute card and the memory card. They read
     // from Rows, so they re-notify only when membership changes.
-    public MetricRowViewModel? Compute => Rows.FirstOrDefault(r => r.Key == _computeKey);
-    public MetricRowViewModel? Memory => Rows.FirstOrDefault(r => r.Key == _memoryKey);
+    public MetricRowViewModel? Compute => Rows.FirstOrDefault(r => r.Key == computeKey);
+    public MetricRowViewModel? Memory => Rows.FirstOrDefault(r => r.Key == memoryKey);
 
     // True while this widget has any row to show. The GPU widget reports false when no GPU is
     // present, which the app uses to keep that window hidden.
     public bool HasContent => Rows.Count > 0;
 
-    [ObservableProperty]
-    private IBrush _cardBackground = Brushes.Transparent;
+    [ObservableProperty] public partial IBrush CardBackground { get; set; } = Brushes.Transparent;
 
     // Drives the widget window between its full two-card layout and the single-line compact layout.
-    [ObservableProperty]
-    private bool _isCompact;
+    [ObservableProperty] public partial bool IsCompact { get; set; }
 
     // Recomputes the card's solid background color from a base color and opacity.
     public void ApplyAppearance(string backgroundColor, int opacity)
@@ -55,36 +44,31 @@ public partial class MetricWidgetViewModel : ObservableObject, IWidgetAppearance
     // change. Called by App when the resolved variant changes.
     public void RefreshThemeColors()
     {
-        foreach (MetricRowViewModel row in Rows)
-        {
-            row.NotifyThemeChanged();
-        }
+        foreach (var row in Rows) row.NotifyThemeChanged();
     }
 
     // Reconciles the bound row collection against the freshly built rows this widget owns, updating
     // existing rows in place so bindings stay alive and the UI animates smoothly.
     public void ApplySnapshot(MetricsSnapshot snapshot)
     {
-        List<MetricRow> built = RowBuilder.Build(snapshot)
-            .Where(r => r.Key == _computeKey || r.Key == _memoryKey)
+        var built = RowBuilder.Build(snapshot)
+            .Where(r => r.Key == computeKey || r.Key == memoryKey)
             .ToList();
         bool membershipChanged = false;
 
         // Remove rows that no longer exist (the GPU widget drops both rows when the GPU is gone).
         for (int i = Rows.Count - 1; i >= 0; i--)
-        {
             if (built.All(b => b.Key != Rows[i].Key))
             {
                 Rows.RemoveAt(i);
                 membershipChanged = true;
             }
-        }
 
         // Add or update rows, keeping them in the order produced by the builder.
         for (int i = 0; i < built.Count; i++)
         {
-            MetricRow row = built[i];
-            MetricRowViewModel? existing = Rows.FirstOrDefault(r => r.Key == row.Key);
+            var row = built[i];
+            var existing = Rows.FirstOrDefault(r => r.Key == row.Key);
             if (existing is null)
             {
                 existing = new MetricRowViewModel { Key = row.Key };
@@ -102,12 +86,10 @@ public partial class MetricWidgetViewModel : ObservableObject, IWidgetAppearance
             ApplyVisibility(existing);
         }
 
-        if (membershipChanged)
-        {
-            OnPropertyChanged(nameof(Compute));
-            OnPropertyChanged(nameof(Memory));
-            OnPropertyChanged(nameof(HasContent));
-        }
+        if (!membershipChanged) return;
+        OnPropertyChanged(nameof(Compute));
+        OnPropertyChanged(nameof(Memory));
+        OnPropertyChanged(nameof(HasContent));
     }
 
     // Binds the widget to the live visibility map. The widget reads from it directly rather than
@@ -116,10 +98,7 @@ public partial class MetricWidgetViewModel : ObservableObject, IWidgetAppearance
     {
         _visibility = visibility;
 
-        foreach (var row in Rows)
-        {
-            ApplyVisibility(row);
-        }
+        foreach (var row in Rows) ApplyVisibility(row);
     }
 
     // Re-applies the bound visibility to the row owning this key, if this widget owns it. Called after
@@ -128,10 +107,7 @@ public partial class MetricWidgetViewModel : ObservableObject, IWidgetAppearance
     {
         string owner = key.Split('.')[0];
         var row = Rows.FirstOrDefault(r => r.Key == owner);
-        if (row is not null)
-        {
-            ApplyVisibility(row);
-        }
+        if (row is not null) ApplyVisibility(row);
     }
 
     // Maps per-metric visibility keys onto a row's element-level flags. Compute cards (CPU, GPU)
@@ -141,7 +117,7 @@ public partial class MetricWidgetViewModel : ObservableObject, IWidgetAppearance
     {
         bool Visible(string key) => _visibility.GetValueOrDefault(key, true);
 
-        IReadOnlyList<MetricEntry> metrics = MetricRegistry.ForCard(row.Key);
+        var metrics = MetricRegistry.ForCard(row.Key);
 
         // A single-metric card (RAM, VRAM) collapses as a whole; a compute card (CPU, GPU) keeps its
         // slots in place and toggles each element by its metric key suffix.
@@ -151,7 +127,7 @@ public partial class MetricWidgetViewModel : ObservableObject, IWidgetAppearance
             return;
         }
 
-        foreach (MetricEntry metric in metrics)
+        foreach (var metric in metrics)
         {
             bool visible = Visible(metric.Key);
             switch (metric.Element)

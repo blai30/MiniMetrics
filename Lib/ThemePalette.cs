@@ -16,7 +16,7 @@ public static class ThemePalette
         (RowColor.Amber, false) => ("#D97706", "#F59E0B"),
         (RowColor.Violet, false) => ("#7C3AED", "#8B5CF6"),
         (_, true) => ("#0EA5E9", "#67E8F9"),
-        (_, false) => ("#0284C7", "#0EA5E9"),
+        (_, false) => ("#0284C7", "#0EA5E9")
     };
 
     public static string TempColor(TempLevel level, bool isDark) => (level, isDark) switch
@@ -34,6 +34,6 @@ public static class ThemePalette
         (TempLevel.Hot, false) => "#C2410C",
         (TempLevel.Critical, false) => "#DC2626",
         (_, true) => "#9AA1AC",
-        (_, false) => "#6B7280",
+        (_, false) => "#6B7280"
     };
 }

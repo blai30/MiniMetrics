@@ -19,7 +19,7 @@ public sealed class LibreHardwareTree : IHardwareTree
         {
             IsCpuEnabled = true,
             IsMemoryEnabled = true,
-            IsGpuEnabled = true,
+            IsGpuEnabled = true
         };
         _computer.Open();
     }
@@ -40,18 +40,15 @@ public sealed class LibreHardwareTree : IHardwareTree
 
     public double? Read(HardwareKind device, SensorKind sensor, string nameContains)
     {
-        IHardware? hardware = Find(device);
-        if (hardware is null)
-        {
-            return null;
-        }
+        var hardware = Find(device);
+        if (hardware is null) return null;
 
-        SensorType type = Map(sensor);
-        ISensor? match = hardware.Sensors.FirstOrDefault(s =>
+        var type = Map(sensor);
+        var match = hardware.Sensors.FirstOrDefault(s =>
             s.SensorType == type &&
             s.Name.Contains(nameContains, StringComparison.OrdinalIgnoreCase));
 
-        return match?.Value is float value ? value : null;
+        return match?.Value;
     }
 
     private IHardware? Find(HardwareKind device) => device switch
@@ -68,7 +65,7 @@ public sealed class LibreHardwareTree : IHardwareTree
 
         HardwareKind.Gpu => _computer.Hardware.FirstOrDefault(h => h.HardwareType == HardwareType.GpuNvidia),
 
-        _ => null,
+        _ => null
     };
 
     private static SensorType Map(SensorKind sensor) => sensor switch
@@ -78,7 +75,7 @@ public sealed class LibreHardwareTree : IHardwareTree
         SensorKind.Power => SensorType.Power,
         SensorKind.Data => SensorType.Data,
         SensorKind.SmallData => SensorType.SmallData,
-        _ => SensorType.Load,
+        _ => SensorType.Load
     };
 
     public void Dispose() => _computer.Close();

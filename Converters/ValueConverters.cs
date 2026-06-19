@@ -39,7 +39,7 @@ public sealed class RowColorToBrushConverter : IValueConverter
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         bool isDark = Application.Current?.ActualThemeVariant != ThemeVariant.Light;
-        RowColor color = value is RowColor rowColor ? rowColor : RowColor.Cyan;
+        var color = value is RowColor rowColor ? rowColor : RowColor.Cyan;
         (string from, string to) = ThemePalette.BarGradient(color, isDark);
 
         return new LinearGradientBrush
@@ -49,8 +49,8 @@ public sealed class RowColorToBrushConverter : IValueConverter
             GradientStops =
             {
                 new GradientStop(Color.Parse(from), 0),
-                new GradientStop(Color.Parse(to), 1),
-            },
+                new GradientStop(Color.Parse(to), 1)
+            }
         };
     }
 
@@ -63,7 +63,7 @@ public sealed class TempLevelToBrushConverter : IValueConverter
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         bool isDark = Application.Current?.ActualThemeVariant != ThemeVariant.Light;
-        TempLevel level = value is TempLevel tempLevel ? tempLevel : (TempLevel)(-1);
+        var level = value is TempLevel tempLevel ? tempLevel : (TempLevel)(-1);
         return new SolidColorBrush(Color.Parse(ThemePalette.TempColor(level, isDark)));
     }
 
@@ -80,7 +80,7 @@ public sealed class UpdateFrequencyLabelConverter : IValueConverter
         UpdateCheckFrequency.Daily => "Daily",
         UpdateCheckFrequency.Weekly => "Weekly",
         UpdateCheckFrequency.Monthly => "Monthly",
-        _ => value?.ToString() ?? string.Empty,
+        _ => value?.ToString() ?? string.Empty
     };
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>

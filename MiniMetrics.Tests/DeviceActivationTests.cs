@@ -1,6 +1,4 @@
-using System.Collections.Generic;
 using MiniMetrics.Lib;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace MiniMetrics.Tests;
 
@@ -12,7 +10,7 @@ public class DeviceActivationTests
     [TestMethod]
     public void All_visible_and_both_widgets_shown_polls_everything()
     {
-        var result = DeviceActivation.Compute(AllVisible(), cpuWidgetShown: true, gpuWidgetShown: true);
+        var result = DeviceActivation.Compute(AllVisible(), true, true);
         Assert.IsTrue(result.Cpu);
         Assert.IsTrue(result.Memory);
         Assert.IsTrue(result.Gpu);
@@ -21,7 +19,7 @@ public class DeviceActivationTests
     [TestMethod]
     public void Hiding_cpu_widget_stops_cpu_and_ram_only()
     {
-        var result = DeviceActivation.Compute(AllVisible(), cpuWidgetShown: false, gpuWidgetShown: true);
+        var result = DeviceActivation.Compute(AllVisible(), false, true);
         Assert.IsFalse(result.Cpu);
         Assert.IsFalse(result.Memory);
         Assert.IsTrue(result.Gpu);
@@ -30,7 +28,7 @@ public class DeviceActivationTests
     [TestMethod]
     public void Hiding_gpu_widget_stops_gpu_only()
     {
-        var result = DeviceActivation.Compute(AllVisible(), cpuWidgetShown: true, gpuWidgetShown: false);
+        var result = DeviceActivation.Compute(AllVisible(), true, false);
         Assert.IsTrue(result.Cpu);
         Assert.IsTrue(result.Memory);
         Assert.IsFalse(result.Gpu);
@@ -43,9 +41,9 @@ public class DeviceActivationTests
         {
             ["cpu.usage"] = false,
             ["cpu.temp"] = false,
-            ["cpu.power"] = false,
+            ["cpu.power"] = false
         };
-        var result = DeviceActivation.Compute(visibility, cpuWidgetShown: true, gpuWidgetShown: true);
+        var result = DeviceActivation.Compute(visibility, true, true);
         Assert.IsFalse(result.Cpu);
         Assert.IsTrue(result.Memory);
     }
@@ -54,7 +52,7 @@ public class DeviceActivationTests
     public void Cpu_widget_shown_with_ram_hidden_stops_memory_device()
     {
         var visibility = new Dictionary<string, bool> { ["ram.usage"] = false };
-        var result = DeviceActivation.Compute(visibility, cpuWidgetShown: true, gpuWidgetShown: true);
+        var result = DeviceActivation.Compute(visibility, true, true);
         Assert.IsFalse(result.Memory);
         Assert.IsTrue(result.Cpu);
     }
@@ -66,9 +64,9 @@ public class DeviceActivationTests
         {
             ["gpu.usage"] = false,
             ["gpu.temp"] = false,
-            ["gpu.power"] = false,
+            ["gpu.power"] = false
         };
-        var result = DeviceActivation.Compute(visibility, cpuWidgetShown: true, gpuWidgetShown: true);
+        var result = DeviceActivation.Compute(visibility, true, true);
         Assert.IsTrue(result.Gpu);
     }
 
@@ -80,9 +78,9 @@ public class DeviceActivationTests
             ["gpu.usage"] = false,
             ["gpu.temp"] = false,
             ["gpu.power"] = false,
-            ["vram.usage"] = false,
+            ["vram.usage"] = false
         };
-        var result = DeviceActivation.Compute(visibility, cpuWidgetShown: true, gpuWidgetShown: true);
+        var result = DeviceActivation.Compute(visibility, true, true);
         Assert.IsFalse(result.Gpu);
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using MiniMetrics.Models;
 
 namespace MiniMetrics.Services;
@@ -7,16 +8,16 @@ namespace MiniMetrics.Services;
 // section), the sensor-name choices, the GPU power fallback, and the unit conversions, all of which
 // are unit-testable against a fake IHardwareTree. The LibreHardwareMonitor specifics live behind the
 // tree, so this class never touches the library.
-public sealed class HardwareSensorSource : ISensorSource, IDisposable
+public sealed class HardwareSensorSource(IHardwareTree tree, Func<ulong>? installedMemoryBytes = null)
+    : ISensorSource, IDisposable
 {
-    private readonly IHardwareTree _tree;
-    private readonly ulong _installedMemoryBytes;
+    private readonly ulong _installedMemoryBytes = (installedMemoryBytes ?? PhysicalMemory.InstalledBytes)();
 
     // Serializes every touch of the underlying tree. SetActiveDevices runs on the UI thread while Read
     // runs on the poll thread, and both enumerate/mutate the same LibreHardwareMonitor hardware
     // collection; concurrent access there can fault the PawnIO driver. The lock keeps tree access
     // single-threaded without moving the read off the poll thread.
-    private readonly object _treeLock = new();
+    private readonly Lock _treeLock = new();
 
     private bool _cpuActive = true;
     private bool _memoryActive = true;
@@ -24,11 +25,6 @@ public sealed class HardwareSensorSource : ISensorSource, IDisposable
 
     // installedMemoryBytes defaults to the firmware-reported installed RAM; tests inject a fixed value.
     // It is read once because installed memory does not change while the process runs.
-    public HardwareSensorSource(IHardwareTree tree, Func<ulong>? installedMemoryBytes = null)
-    {
-        _tree = tree;
-        _installedMemoryBytes = (installedMemoryBytes ?? PhysicalMemory.InstalledBytes)();
-    }
 
     // Releases or restores devices. A released device is both unloaded from the tree and skipped when
     // building the snapshot, so the app stops reading it entirely once all its metrics are hidden.
@@ -39,7 +35,7 @@ public sealed class HardwareSensorSource : ISensorSource, IDisposable
             _cpuActive = cpu;
             _memoryActive = memory;
             _gpuActive = gpu;
-            _tree.SetEnabled(cpu, memory, gpu);
+            tree.SetEnabled(cpu, memory, gpu);
         }
     }
 
@@ -53,30 +49,30 @@ public sealed class HardwareSensorSource : ISensorSource, IDisposable
 
     private MetricsSnapshot ReadLocked()
     {
-        _tree.Refresh();
+        tree.Refresh();
 
         CpuMetrics? cpu = null;
         if (_cpuActive)
         {
-            double load = _tree.Read(HardwareKind.Cpu, SensorKind.Load, "CPU Total") ?? 0;
+            double load = tree.Read(HardwareKind.Cpu, SensorKind.Load, "CPU Total") ?? 0;
             // CPU package temperature and power are read through the PawnIO kernel driver. When that
             // driver cannot supply a value (it is not installed, or the process is not elevated to open
             // its device) the sensors still exist but report 0. A running CPU is never at 0 C or 0 W, so
             // Available maps a non-positive (or absent) reading to null and the widget shows a
             // placeholder. Intel exposes "CPU Package"; AMD surfaces "Core (Tctl/Tdie)" for temperature
             // and "Package" for power.
-            double? temp = Available(_tree.Read(HardwareKind.Cpu, SensorKind.Temperature, "CPU Package"))
-                           ?? Available(_tree.Read(HardwareKind.Cpu, SensorKind.Temperature, "Core (Tctl/Tdie)"));
-            double? power = Available(_tree.Read(HardwareKind.Cpu, SensorKind.Power, "CPU Package"))
-                            ?? Available(_tree.Read(HardwareKind.Cpu, SensorKind.Power, "Package"));
+            double? temp = Available(tree.Read(HardwareKind.Cpu, SensorKind.Temperature, "CPU Package")) ??
+                           Available(tree.Read(HardwareKind.Cpu, SensorKind.Temperature, "Core (Tctl/Tdie)"));
+            double? power = Available(tree.Read(HardwareKind.Cpu, SensorKind.Power, "CPU Package")) ??
+                            Available(tree.Read(HardwareKind.Cpu, SensorKind.Power, "Package"));
             cpu = new CpuMetrics(load, temp, power);
         }
 
         MemoryMetrics? memory = null;
         if (_memoryActive)
         {
-            double usedGib = _tree.Read(HardwareKind.Memory, SensorKind.Data, "Memory Used") ?? 0;
-            double availableGib = _tree.Read(HardwareKind.Memory, SensorKind.Data, "Memory Available") ?? 0;
+            double usedGib = tree.Read(HardwareKind.Memory, SensorKind.Data, "Memory Used") ?? 0;
+            double availableGib = tree.Read(HardwareKind.Memory, SensorKind.Data, "Memory Available") ?? 0;
             ulong usedBytes = GibToBytes(usedGib);
             ulong usableTotalBytes = GibToBytes(usedGib + availableGib);
 
@@ -91,14 +87,14 @@ public sealed class HardwareSensorSource : ISensorSource, IDisposable
         }
 
         GpuMetrics? gpu = null;
-        if (_gpuActive && _tree.HasGpu)
+        if (_gpuActive && tree.HasGpu)
         {
-            double load = _tree.Read(HardwareKind.Gpu, SensorKind.Load, "GPU Core") ?? 0;
-            double temp = _tree.Read(HardwareKind.Gpu, SensorKind.Temperature, "GPU Core") ?? 0;
-            double power = _tree.Read(HardwareKind.Gpu, SensorKind.Power, "GPU Package")
-                           ?? _tree.Read(HardwareKind.Gpu, SensorKind.Power, "GPU Power") ?? 0;
-            double vramUsedMib = _tree.Read(HardwareKind.Gpu, SensorKind.SmallData, "GPU Memory Used") ?? 0;
-            double vramTotalMib = _tree.Read(HardwareKind.Gpu, SensorKind.SmallData, "GPU Memory Total") ?? 0;
+            double load = tree.Read(HardwareKind.Gpu, SensorKind.Load, "GPU Core") ?? 0;
+            double temp = tree.Read(HardwareKind.Gpu, SensorKind.Temperature, "GPU Core") ?? 0;
+            double power = tree.Read(HardwareKind.Gpu, SensorKind.Power, "GPU Package")
+                           ?? tree.Read(HardwareKind.Gpu, SensorKind.Power, "GPU Power") ?? 0;
+            double vramUsedMib = tree.Read(HardwareKind.Gpu, SensorKind.SmallData, "GPU Memory Used") ?? 0;
+            double vramTotalMib = tree.Read(HardwareKind.Gpu, SensorKind.SmallData, "GPU Memory Total") ?? 0;
 
             gpu = new GpuMetrics(
                 load,
@@ -119,5 +115,5 @@ public sealed class HardwareSensorSource : ISensorSource, IDisposable
 
     private static ulong MibToBytes(double mib) => (ulong)(mib * 1024d * 1024d);
 
-    public void Dispose() => _tree.Dispose();
+    public void Dispose() => tree.Dispose();
 }

@@ -1,5 +1,4 @@
 using MiniMetrics.Services;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace MiniMetrics.Tests;
 
@@ -19,7 +18,7 @@ public class StartupManagerTests
     public void Enable_without_elevation_writes_run_key_only()
     {
         var (manager, ops) = Build();
-        bool ok = manager.Sync(enabled: true, requiresElevation: false);
+        bool ok = manager.Sync(true, false);
 
         Assert.IsTrue(ok);
         Assert.AreEqual(Value, ops.RunKeyPath);
@@ -30,7 +29,7 @@ public class StartupManagerTests
     public void Enable_with_elevation_creates_task_only()
     {
         var (manager, ops) = Build();
-        bool ok = manager.Sync(enabled: true, requiresElevation: true);
+        bool ok = manager.Sync(true, true);
 
         Assert.IsTrue(ok);
         Assert.IsTrue(ops.TaskPresent);
@@ -43,7 +42,7 @@ public class StartupManagerTests
         var (manager, ops) = Build();
         ops.RunKeyPath = Value;
 
-        manager.Sync(enabled: false, requiresElevation: false);
+        manager.Sync(false, false);
 
         Assert.IsNull(ops.RunKeyPath);
     }
@@ -54,7 +53,7 @@ public class StartupManagerTests
         var (manager, ops) = Build();
         ops.TaskPresent = true;
 
-        manager.Sync(enabled: false, requiresElevation: true);
+        manager.Sync(false, true);
 
         Assert.IsFalse(ops.TaskPresent);
     }
@@ -65,7 +64,7 @@ public class StartupManagerTests
         var (manager, ops) = Build();
         ops.RunKeyPath = Value;
 
-        bool ok = manager.Sync(enabled: true, requiresElevation: true);
+        bool ok = manager.Sync(true, true);
 
         Assert.IsTrue(ok);
         Assert.IsTrue(ops.TaskPresent);
@@ -78,7 +77,7 @@ public class StartupManagerTests
         var (manager, ops) = Build();
         ops.TaskPresent = true;
 
-        bool ok = manager.Sync(enabled: true, requiresElevation: false);
+        bool ok = manager.Sync(true, false);
 
         Assert.IsTrue(ok);
         Assert.IsFalse(ops.TaskPresent);
@@ -92,7 +91,7 @@ public class StartupManagerTests
         ops.RunKeyPath = Value;
         ops.CreateTaskSucceeds = false;
 
-        bool ok = manager.Sync(enabled: true, requiresElevation: true);
+        bool ok = manager.Sync(true, true);
 
         Assert.IsFalse(ok);
         Assert.AreEqual(Value, ops.RunKeyPath);
@@ -107,7 +106,7 @@ public class StartupManagerTests
         ops.TaskPresent = true;
         ops.RemoveTaskSucceeds = false;
 
-        bool ok = manager.Sync(enabled: true, requiresElevation: false);
+        bool ok = manager.Sync(true, false);
 
         Assert.IsFalse(ok);
         Assert.IsTrue(ops.TaskPresent);
@@ -123,7 +122,7 @@ public class StartupManagerTests
         var (manager, ops) = Build();
         ops.TaskPresent = true;
 
-        bool ok = manager.Sync(enabled: true, requiresElevation: true);
+        bool ok = manager.Sync(true, true);
 
         Assert.IsTrue(ok);
         Assert.AreEqual(0, ops.CreateTaskCalls);
@@ -136,7 +135,7 @@ public class StartupManagerTests
         var (manager, ops) = Build();
         ops.RunKeyPath = Value;
 
-        manager.Sync(enabled: true, requiresElevation: false);
+        manager.Sync(true, false);
 
         Assert.AreEqual(0, ops.WriteRunKeyCalls);
     }

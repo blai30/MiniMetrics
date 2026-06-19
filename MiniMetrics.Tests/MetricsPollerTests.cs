@@ -1,9 +1,5 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using MiniMetrics.Models;
 using MiniMetrics.Services;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace MiniMetrics.Tests;
 
@@ -32,7 +28,7 @@ public class MetricsPollerTests
         Assert.IsTrue(readEntered.Wait(TimeSpan.FromSeconds(5)), "the poll loop never entered Read");
 
         // Dispose on a background thread so the test can observe whether it returns early.
-        Task dispose = Task.Run(() => poller.Dispose());
+        var dispose = Task.Run(() => poller.Dispose());
 
         Assert.IsFalse(
             dispose.Wait(TimeSpan.FromMilliseconds(200)),
@@ -45,19 +41,15 @@ public class MetricsPollerTests
             "Dispose did not return after the read finished");
     }
 
-    private sealed class BlockingSensorSource : ISensorSource
+    private sealed class BlockingSensorSource(Action onRead) : ISensorSource
     {
-        private readonly Action _onRead;
-
-        public BlockingSensorSource(Action onRead) => _onRead = onRead;
-
         public void SetActiveDevices(bool cpu, bool memory, bool gpu)
         {
         }
 
         public MetricsSnapshot Read()
         {
-            _onRead();
+            onRead();
             return new MetricsSnapshot(null, null, null);
         }
     }

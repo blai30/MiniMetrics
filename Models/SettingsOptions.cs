@@ -7,7 +7,7 @@ public enum AppTheme
 {
     System,
     Light,
-    Dark,
+    Dark
 }
 
 // Horizontal alignment of the clock widget's text.
@@ -15,7 +15,7 @@ public enum ClockAlignment
 {
     Left,
     Center,
-    Right,
+    Right
 }
 
 // How often the launch-time update check is allowed to run. EveryLaunch always checks; the rest gate
@@ -25,5 +25,5 @@ public enum UpdateCheckFrequency
     EveryLaunch,
     Daily,
     Weekly,
-    Monthly,
+    Monthly
 }

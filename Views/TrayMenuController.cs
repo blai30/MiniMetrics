@@ -1,6 +1,5 @@
 using System;
 using Avalonia.Controls;
-using Avalonia.Platform;
 
 namespace MiniMetrics.Views;
 
@@ -56,12 +55,12 @@ public sealed class TrayMenuController
 
     public TrayMenuController(InitialState state)
     {
-        _menu = new NativeMenu();
+        _menu = [];
 
         _cpuShowHideItem = new NativeMenuItem("Show CPU widget")
         {
             ToggleType = MenuItemToggleType.CheckBox,
-            IsChecked = state.CpuChecked,
+            IsChecked = state.CpuChecked
         };
         _cpuShowHideItem.Click += (_, _) => ToggleCpuRequested?.Invoke();
         _menu.Add(_cpuShowHideItem);
@@ -69,7 +68,7 @@ public sealed class TrayMenuController
         _gpuShowHideItem = new NativeMenuItem("Show GPU widget")
         {
             ToggleType = MenuItemToggleType.CheckBox,
-            IsChecked = state.GpuChecked,
+            IsChecked = state.GpuChecked
         };
         _gpuShowHideItem.Click += (_, _) => ToggleGpuRequested?.Invoke();
         _menu.Add(_gpuShowHideItem);
@@ -77,7 +76,7 @@ public sealed class TrayMenuController
         _clockShowHideItem = new NativeMenuItem("Show clock widget")
         {
             ToggleType = MenuItemToggleType.CheckBox,
-            IsChecked = state.ClockChecked,
+            IsChecked = state.ClockChecked
         };
         _clockShowHideItem.Click += (_, _) => ToggleClockRequested?.Invoke();
         _menu.Add(_clockShowHideItem);
@@ -85,7 +84,7 @@ public sealed class TrayMenuController
         _lockItem = new NativeMenuItem("Lock position")
         {
             ToggleType = MenuItemToggleType.CheckBox,
-            IsChecked = state.LockChecked,
+            IsChecked = state.LockChecked
         };
         _lockItem.Click += (_, _) => ToggleLockRequested?.Invoke();
         _menu.Add(_lockItem);
@@ -93,7 +92,7 @@ public sealed class TrayMenuController
         _alwaysOnTopItem = new NativeMenuItem("Always on top")
         {
             ToggleType = MenuItemToggleType.CheckBox,
-            IsChecked = state.AlwaysOnTopChecked,
+            IsChecked = state.AlwaysOnTopChecked
         };
         _alwaysOnTopItem.Click += (_, _) => ToggleAlwaysOnTopRequested?.Invoke();
         _menu.Add(_alwaysOnTopItem);
@@ -101,7 +100,7 @@ public sealed class TrayMenuController
         _snapItem = new NativeMenuItem("Snap to edges")
         {
             ToggleType = MenuItemToggleType.CheckBox,
-            IsChecked = state.SnapChecked,
+            IsChecked = state.SnapChecked
         };
         _snapItem.Click += (_, _) => ToggleSnapRequested?.Invoke();
         _menu.Add(_snapItem);
@@ -111,7 +110,7 @@ public sealed class TrayMenuController
             _runAtStartupItem = new NativeMenuItem("Run at startup")
             {
                 ToggleType = MenuItemToggleType.CheckBox,
-                IsChecked = state.RunAtStartupChecked,
+                IsChecked = state.RunAtStartupChecked
             };
             _runAtStartupItem.Click += (_, _) => RunAtStartupRequested?.Invoke();
             _menu.Add(_runAtStartupItem);
@@ -149,13 +148,13 @@ public sealed class TrayMenuController
         {
             Icon = icon,
             ToolTipText = toolTip,
-            Menu = _menu,
+            Menu = _menu
         };
 
         // Left-click opens Settings; right-click still shows the context menu above.
         _trayIcon.Clicked += (_, _) => OpenSettingsRequested?.Invoke();
 
-        TrayIcon.SetIcons(application, new TrayIcons { _trayIcon });
+        TrayIcon.SetIcons(application, [_trayIcon]);
     }
 
     public void SetCpuChecked(bool value) => _cpuShowHideItem.IsChecked = value;
@@ -173,10 +172,7 @@ public sealed class TrayMenuController
     // No-op when the Run at startup item is not present (non-Windows), matching the old guarded access.
     public void SetRunAtStartupChecked(bool value)
     {
-        if (_runAtStartupItem is not null)
-        {
-            _runAtStartupItem.IsChecked = value;
-        }
+        _runAtStartupItem?.IsChecked = value;
     }
 
     // Adds the persistent "Update available" item at the top of the menu, or refreshes its header when one
@@ -194,19 +190,12 @@ public sealed class TrayMenuController
 
         _updateAvailableItem = new NativeMenuItem(UpdateItemHeader(version));
         if (canApplyInApp)
-        {
             _updateAvailableItem.Click += (_, _) => ApplyUpdateRequested?.Invoke();
-        }
         else
-        {
             _updateAvailableItem.Click += (_, _) =>
             {
-                if (_updateUrl is not null)
-                {
-                    OpenReleasePageRequested?.Invoke(_updateUrl);
-                }
+                if (_updateUrl is not null) OpenReleasePageRequested?.Invoke(_updateUrl);
             };
-        }
 
         _menu.Items.Insert(0, _updateAvailableItem);
         _menu.Items.Insert(1, new NativeMenuItemSeparator());
@@ -215,10 +204,7 @@ public sealed class TrayMenuController
     // Removes the update item and the separator inserted directly after it, if present.
     public void RemoveUpdateItem()
     {
-        if (_updateAvailableItem is null)
-        {
-            return;
-        }
+        if (_updateAvailableItem is null) return;
 
         int index = _menu.Items.IndexOf(_updateAvailableItem);
         if (index >= 0)
@@ -226,10 +212,7 @@ public sealed class TrayMenuController
             _menu.Items.RemoveAt(index);
 
             // The separator inserted right after the update item slides down into the same index.
-            if (index < _menu.Items.Count && _menu.Items[index] is NativeMenuItemSeparator)
-            {
-                _menu.Items.RemoveAt(index);
-            }
+            if (index < _menu.Items.Count && _menu.Items[index] is NativeMenuItemSeparator) _menu.Items.RemoveAt(index);
         }
 
         _updateAvailableItem = null;

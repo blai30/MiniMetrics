@@ -1,5 +1,4 @@
 using MiniMetrics.Lib;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace MiniMetrics.Tests;
 
@@ -47,8 +46,10 @@ public class FuzzySearchTests
     [TestMethod]
     public void Works_for_time_zone_display_and_id()
     {
-        Assert.IsTrue(FuzzySearch.Matches("(UTC-08:00) Pacific Time (US & Canada)", "Pacific Standard Time", "pacific"));
-        Assert.IsTrue(FuzzySearch.Matches("(UTC-08:00) Pacific Time (US & Canada)", "Pacific Standard Time", "pacific standard"));
+        Assert.IsTrue(FuzzySearch.Matches("(UTC-08:00) Pacific Time (US & Canada)", "Pacific Standard Time",
+            "pacific"));
+        Assert.IsTrue(FuzzySearch.Matches("(UTC-08:00) Pacific Time (US & Canada)", "Pacific Standard Time",
+            "pacific standard"));
     }
 
     [TestMethod]

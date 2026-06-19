@@ -11,17 +11,14 @@ public static class UpdatePolicy
     // EveryLaunch and a never-checked state are always due.
     public static bool IsDue(DateTimeOffset? lastCheckUtc, UpdateCheckFrequency frequency, DateTimeOffset nowUtc)
     {
-        if (frequency == UpdateCheckFrequency.EveryLaunch || lastCheckUtc is null)
-        {
-            return true;
-        }
+        if (frequency == UpdateCheckFrequency.EveryLaunch || lastCheckUtc is null) return true;
 
-        TimeSpan interval = frequency switch
+        var interval = frequency switch
         {
             UpdateCheckFrequency.Daily => TimeSpan.FromDays(1),
             UpdateCheckFrequency.Weekly => TimeSpan.FromDays(7),
             UpdateCheckFrequency.Monthly => TimeSpan.FromDays(30),
-            _ => TimeSpan.Zero,
+            _ => TimeSpan.Zero
         };
 
         return nowUtc - lastCheckUtc.Value >= interval;
@@ -32,15 +29,12 @@ public static class UpdatePolicy
     // (for example a prerelease label) is treated as no update.
     public static UpdateDecision Evaluate(Version currentVersion, string latestTag, string? skippedVersion)
     {
-        if (!TryParseVersion(latestTag, out Version latest))
-        {
-            return new UpdateDecision(false, false, null);
-        }
+        if (!TryParseVersion(latestTag, out var latest)) return new UpdateDecision(false, false, null);
 
         bool available = latest > Normalize(currentVersion);
         bool skipped = skippedVersion is not null
-            && TryParseVersion(skippedVersion, out Version skip)
-            && skip == latest;
+                       && TryParseVersion(skippedVersion, out var skip)
+                       && skip == latest;
 
         return new UpdateDecision(available, available && !skipped, latest);
     }
@@ -55,21 +49,12 @@ public static class UpdatePolicy
     private static bool TryParseVersion(string tag, out Version version)
     {
         version = new Version(0, 0, 0);
-        if (string.IsNullOrWhiteSpace(tag))
-        {
-            return false;
-        }
+        if (string.IsNullOrWhiteSpace(tag)) return false;
 
         string trimmed = tag.Trim();
-        if (trimmed.StartsWith("v", StringComparison.OrdinalIgnoreCase))
-        {
-            trimmed = trimmed[1..];
-        }
+        if (trimmed.StartsWith("v", StringComparison.OrdinalIgnoreCase)) trimmed = trimmed[1..];
 
-        if (!Version.TryParse(trimmed, out Version? parsed) || parsed is null)
-        {
-            return false;
-        }
+        if (!Version.TryParse(trimmed, out var parsed)) return false;
 
         version = Normalize(parsed);
         return true;

@@ -1,8 +1,5 @@
-using System;
-using System.IO;
 using MiniMetrics.Models;
 using MiniMetrics.Services;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace MiniMetrics.Tests;
 
@@ -15,7 +12,7 @@ public class SettingsStoreTests
     [TestMethod]
     public void Save_then_Load_round_trips_all_fields()
     {
-        var path = TempPath();
+        string path = TempPath();
         var store = new SettingsStore(path);
         var settings = new Settings
         {
@@ -24,7 +21,7 @@ public class SettingsStoreTests
             Locked = true,
             Hidden = false,
             AlwaysOnTop = true,
-            Visibility = { ["gpu"] = false, ["cpu"] = true },
+            Visibility = { ["gpu"] = false, ["cpu"] = true }
         };
 
         store.Save(settings);
@@ -42,12 +39,12 @@ public class SettingsStoreTests
     [TestMethod]
     public void Save_then_Load_round_trips_appearance_fields()
     {
-        var path = TempPath();
+        string path = TempPath();
         var store = new SettingsStore(path);
         var settings = new Settings
         {
             BackgroundColor = "#1A1F2B",
-            Opacity = 73,
+            Opacity = 73
         };
 
         store.Save(settings);
@@ -60,7 +57,7 @@ public class SettingsStoreTests
     [TestMethod]
     public void Save_then_Load_round_trips_snap_to_edges()
     {
-        var path = TempPath();
+        string path = TempPath();
         var store = new SettingsStore(path);
         var settings = new Settings { SnapToEdges = false };
 
@@ -74,7 +71,7 @@ public class SettingsStoreTests
     public void Load_defaults_snap_to_edges_on_when_absent()
     {
         // A settings file written before the snap feature existed.
-        var path = TempPath();
+        string path = TempPath();
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
         File.WriteAllText(path, "{ \"X\": 10, \"Y\": 20 }");
 
@@ -87,7 +84,7 @@ public class SettingsStoreTests
     public void Load_uses_appearance_defaults_when_absent()
     {
         // A settings file written before the appearance feature existed.
-        var path = TempPath();
+        string path = TempPath();
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
         File.WriteAllText(path, "{ \"X\": 10, \"Y\": 20 }");
 
@@ -112,7 +109,7 @@ public class SettingsStoreTests
     [TestMethod]
     public void Load_returns_defaults_when_file_corrupt()
     {
-        var path = TempPath();
+        string path = TempPath();
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
         File.WriteAllText(path, "{ this is not valid json");
 
@@ -125,14 +122,14 @@ public class SettingsStoreTests
     [TestMethod]
     public void Save_then_Load_round_trips_datetime_fields()
     {
-        var path = TempPath();
+        string path = TempPath();
         var store = new SettingsStore(path);
         var settings = new Settings
         {
             DateTimeX = 200,
             DateTimeY = 760,
             DateTimeHidden = false,
-            TimeZoneId = "UTC",
+            TimeZoneId = "UTC"
         };
 
         store.Save(settings);
@@ -147,13 +144,13 @@ public class SettingsStoreTests
     [TestMethod]
     public void Save_then_Load_round_trips_gpu_widget_fields()
     {
-        var path = TempPath();
+        string path = TempPath();
         var store = new SettingsStore(path);
         var settings = new Settings
         {
             GpuX = 1234,
             GpuY = 567,
-            GpuHidden = true,
+            GpuHidden = true
         };
 
         store.Save(settings);
@@ -168,7 +165,7 @@ public class SettingsStoreTests
     public void Load_defaults_datetime_widget_hidden_when_absent()
     {
         // A settings file written before the datetime widget existed.
-        var path = TempPath();
+        string path = TempPath();
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
         File.WriteAllText(path, "{ \"X\": 10, \"Y\": 20 }");
 
@@ -202,10 +199,10 @@ public class SettingsStoreTests
             UpdateCheckEnabled = false,
             UpdateFrequency = UpdateCheckFrequency.Weekly,
             LastUpdateCheckUtc = when,
-            SkippedUpdateVersion = "1.3.0",
+            SkippedUpdateVersion = "1.3.0"
         });
 
-        Settings loaded = store.Load();
+        var loaded = store.Load();
 
         Assert.IsFalse(loaded.UpdateCheckEnabled);
         Assert.AreEqual(UpdateCheckFrequency.Weekly, loaded.UpdateFrequency);
@@ -216,7 +213,7 @@ public class SettingsStoreTests
     [TestMethod]
     public void Save_then_Load_round_trips_clock_format_and_locale_fields()
     {
-        var path = TempPath();
+        string path = TempPath();
         var store = new SettingsStore(path);
         store.Save(new Settings
         {
@@ -224,7 +221,7 @@ public class SettingsStoreTests
             ClockTimeFormat = "HH:mm",
             ClockDateFormat = "yyyy-MM-dd",
             ClockTimeFormatHover = "HH:mm:ss",
-            ClockDateFormatHover = "u",
+            ClockDateFormatHover = "u"
         });
 
         var loaded = store.Load();
@@ -240,7 +237,7 @@ public class SettingsStoreTests
     public void Load_defaults_clock_format_and_locale_to_null_when_absent()
     {
         // A settings file written before the custom-format feature existed.
-        var path = TempPath();
+        string path = TempPath();
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
         File.WriteAllText(path, "{ \"X\": 10, \"Y\": 20 }");
 

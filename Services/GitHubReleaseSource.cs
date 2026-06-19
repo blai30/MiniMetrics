@@ -19,11 +19,8 @@ public sealed class GitHubReleaseSource : IReleaseSource
     {
         try
         {
-            using HttpResponseMessage response = await Http.GetAsync(LatestUrl, ct).ConfigureAwait(false);
-            if (!response.IsSuccessStatusCode)
-            {
-                return null;
-            }
+            using var response = await Http.GetAsync(LatestUrl, ct).ConfigureAwait(false);
+            if (!response.IsSuccessStatusCode) return null;
 
             string json = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
             return ParseRelease(json);
@@ -40,25 +37,17 @@ public sealed class GitHubReleaseSource : IReleaseSource
     {
         try
         {
-            using JsonDocument document = JsonDocument.Parse(json);
-            JsonElement root = document.RootElement;
-            if (root.ValueKind != JsonValueKind.Object)
-            {
-                return null;
-            }
+            using var document = JsonDocument.Parse(json);
+            var root = document.RootElement;
+            if (root.ValueKind != JsonValueKind.Object) return null;
 
-            if (!root.TryGetProperty("tag_name", out JsonElement tag) || tag.ValueKind != JsonValueKind.String
-                || !root.TryGetProperty("html_url", out JsonElement url) || url.ValueKind != JsonValueKind.String)
-            {
+            if (!root.TryGetProperty("tag_name", out var tag) || tag.ValueKind != JsonValueKind.String ||
+                !root.TryGetProperty("html_url", out var url) || url.ValueKind != JsonValueKind.String)
                 return null;
-            }
 
             string? tagName = tag.GetString();
             string? htmlUrl = url.GetString();
-            if (string.IsNullOrEmpty(tagName) || string.IsNullOrEmpty(htmlUrl))
-            {
-                return null;
-            }
+            if (string.IsNullOrEmpty(tagName) || string.IsNullOrEmpty(htmlUrl)) return null;
 
             return new ReleaseInfo(tagName, htmlUrl);
         }

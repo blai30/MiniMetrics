@@ -1,5 +1,4 @@
 using MiniMetrics.Services;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace MiniMetrics.Tests;
 
@@ -10,7 +9,7 @@ public class SensorSourceTests
     public void Released_device_returns_a_null_section()
     {
         var source = new MockSensorSource();
-        source.SetActiveDevices(cpu: false, memory: true, gpu: true);
+        source.SetActiveDevices(false, true, true);
 
         var snapshot = source.Read();
 
@@ -23,8 +22,8 @@ public class SensorSourceTests
     public void Re_enabling_a_device_restores_its_section()
     {
         var source = new MockSensorSource();
-        source.SetActiveDevices(cpu: false, memory: false, gpu: false);
-        source.SetActiveDevices(cpu: true, memory: true, gpu: true);
+        source.SetActiveDevices(false, false, false);
+        source.SetActiveDevices(true, true, true);
 
         var snapshot = source.Read();
 

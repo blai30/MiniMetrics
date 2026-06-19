@@ -11,15 +11,9 @@ namespace MiniMetrics.ViewModels;
 
 public partial class SettingsViewModel : ObservableObject
 {
-    [ObservableProperty]
-    private string _backgroundColor;
-
-    [ObservableProperty]
-    private int _opacity;
-
-    [ObservableProperty]
-    private AppTheme _theme;
-
+    [ObservableProperty] public partial string BackgroundColor { get; set; }
+    [ObservableProperty] public partial int Opacity { get; set; }
+    [ObservableProperty] public partial AppTheme Theme { get; set; }
     public IReadOnlyList<AppTheme> Themes { get; } = new[] { AppTheme.System, AppTheme.Light, AppTheme.Dark };
 
     private static readonly string[] DarkSwatches =
@@ -28,7 +22,6 @@ public partial class SettingsViewModel : ObservableObject
     private static readonly string[] LightSwatches =
         { "#EEF1F5", "#E4E8EF", "#FFFFFF", "#EAF1F8", "#F3EEF7", "#EAF3EE" };
 
-    private bool _systemIsDark;
     private string _darkColor = "";
     private string _lightColor = "";
 
@@ -38,36 +31,21 @@ public partial class SettingsViewModel : ObservableObject
     {
         AppTheme.Light => false,
         AppTheme.Dark => true,
-        _ => _systemIsDark,
+        _ => field
     };
 
     public IReadOnlyList<string> Swatches => EditingVariantIsDark ? DarkSwatches : LightSwatches;
 
     public IReadOnlyList<TimeZoneInfo> TimeZones { get; } = TimeZoneInfo.GetSystemTimeZones();
 
-    [ObservableProperty]
-    private TimeZoneInfo _selectedTimeZone;
-
-    [ObservableProperty]
-    private bool _updateCheckEnabled;
-
-    [ObservableProperty]
-    private UpdateCheckFrequency _updateFrequency;
-
-    [ObservableProperty]
-    private bool _cpuCompact;
-
-    [ObservableProperty]
-    private bool _gpuCompact;
-
-    [ObservableProperty]
-    private bool _dateTimeCompact;
-
-    [ObservableProperty]
-    private ClockAlignment _clockAlignment;
-
-    [ObservableProperty]
-    private bool _useLocalTime;
+    [ObservableProperty] public partial TimeZoneInfo SelectedTimeZone { get; set; }
+    [ObservableProperty] public partial bool UpdateCheckEnabled { get; set; }
+    [ObservableProperty] public partial UpdateCheckFrequency UpdateFrequency { get; set; }
+    [ObservableProperty] public partial bool CpuCompact { get; set; }
+    [ObservableProperty] public partial bool GpuCompact { get; set; }
+    [ObservableProperty] public partial bool DateTimeCompact { get; set; }
+    [ObservableProperty] public partial ClockAlignment ClockAlignment { get; set; }
+    [ObservableProperty] public partial bool UseLocalTime { get; set; }
 
     // The full set of specific cultures for the locale picker, ordered by display name.
     public IReadOnlyList<CultureInfo> Locales { get; } =
@@ -75,35 +53,34 @@ public partial class SettingsViewModel : ObservableObject
             .OrderBy(culture => culture.DisplayName, StringComparer.CurrentCulture)
             .ToArray();
 
-    [ObservableProperty]
-    private CultureInfo _selectedLocale;
+    [ObservableProperty] public partial CultureInfo SelectedLocale { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(TimeSample))]
     [NotifyPropertyChangedFor(nameof(TimeFormatError))]
-    private string? _clockTimeFormat;
+    public partial string? ClockTimeFormat { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(DateSample))]
     [NotifyPropertyChangedFor(nameof(DateFormatError))]
-    private string? _clockDateFormat;
+    public partial string? ClockDateFormat { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(TimeHoverSample))]
     [NotifyPropertyChangedFor(nameof(TimeHoverFormatError))]
-    private string? _clockTimeFormatHover;
+    public partial string? ClockTimeFormatHover { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(DateHoverSample))]
     [NotifyPropertyChangedFor(nameof(DateHoverFormatError))]
-    private string? _clockDateFormatHover;
+    public partial string? ClockDateFormatHover { get; set; }
 
     // A fixed instant so the settings preview stays stable while the user edits.
     private static readonly DateTimeOffset PreviewInstant = new(2026, 6, 16, 14, 26, 42, TimeSpan.Zero);
 
     // The zone used for previews mirrors the clock's resolved zone selection. SelectedTimeZone can be
     // momentarily null while the user types in the time zone search box, so fall back to local then.
-    private TimeZoneInfo PreviewZone => UseLocalTime || SelectedTimeZone is null ? TimeZoneInfo.Local : SelectedTimeZone;
+    private TimeZoneInfo PreviewZone => UseLocalTime ? TimeZoneInfo.Local : SelectedTimeZone;
 
     public string TimeSample => ClockFormatting.Render(
         PreviewInstant, PreviewZone, ClockTimeFormat, ClockFormatting.DefaultTimeFormat, SelectedLocale);
@@ -130,7 +107,7 @@ public partial class SettingsViewModel : ObservableObject
         UpdateCheckFrequency.EveryLaunch,
         UpdateCheckFrequency.Daily,
         UpdateCheckFrequency.Weekly,
-        UpdateCheckFrequency.Monthly,
+        UpdateCheckFrequency.Monthly
     };
 
     // The metric visibility checkboxes, grouped by card, built from the registry.
@@ -140,36 +117,29 @@ public partial class SettingsViewModel : ObservableObject
 
     public SettingsViewModel(Settings settings, bool systemIsDark = true)
     {
-        // Seed each per-metric toggle, falling back to the legacy whole-card key when the granular
-        // one has not been saved yet, so an existing hidden card stays hidden after upgrading.
-        bool Seed(string key, string legacy) =>
-            settings.Visibility.TryGetValue(key, out bool value)
-                ? value
-                : settings.Visibility.GetValueOrDefault(legacy, true);
-
-        _systemIsDark = systemIsDark;
-        _theme = settings.Theme;
+        EditingVariantIsDark = systemIsDark;
+        Theme = settings.Theme;
         _darkColor = settings.BackgroundColor;
         _lightColor = settings.LightBackgroundColor;
-        _backgroundColor = EditingVariantIsDark ? _darkColor : _lightColor;
-        _opacity = settings.Opacity;
-        _updateCheckEnabled = settings.UpdateCheckEnabled;
-        _updateFrequency = settings.UpdateFrequency;
-        _cpuCompact = settings.CpuCompact;
-        _gpuCompact = settings.GpuCompact;
-        _dateTimeCompact = settings.DateTimeCompact;
-        _clockAlignment = settings.ClockAlignment;
-        _useLocalTime = settings.TimeZoneId is null;
-        _clockTimeFormat = settings.ClockTimeFormat;
-        _clockDateFormat = settings.ClockDateFormat;
-        _clockTimeFormatHover = settings.ClockTimeFormatHover;
-        _clockDateFormatHover = settings.ClockDateFormatHover;
+        BackgroundColor = EditingVariantIsDark ? _darkColor : _lightColor;
+        Opacity = settings.Opacity;
+        UpdateCheckEnabled = settings.UpdateCheckEnabled;
+        UpdateFrequency = settings.UpdateFrequency;
+        CpuCompact = settings.CpuCompact;
+        GpuCompact = settings.GpuCompact;
+        DateTimeCompact = settings.DateTimeCompact;
+        ClockAlignment = settings.ClockAlignment;
+        UseLocalTime = settings.TimeZoneId is null;
+        ClockTimeFormat = settings.ClockTimeFormat;
+        ClockDateFormat = settings.ClockDateFormat;
+        ClockTimeFormatHover = settings.ClockTimeFormatHover;
+        ClockDateFormatHover = settings.ClockDateFormatHover;
 
         var groups = new List<MetricGroupViewModel>();
         foreach (string card in MetricRegistry.Cards)
         {
             var toggles = new List<MetricToggleViewModel>();
-            foreach (MetricEntry entry in MetricRegistry.ForCard(card))
+            foreach (var entry in MetricRegistry.ForCard(card))
             {
                 var toggle = new MetricToggleViewModel(
                     entry.Key,
@@ -184,8 +154,16 @@ public partial class SettingsViewModel : ObservableObject
         }
 
         MetricGroups = groups;
-        _selectedTimeZone = ResolveZone(settings.TimeZoneId, TimeZones);
-        _selectedLocale = ResolveLocale(settings.ClockLocaleId, Locales);
+        SelectedTimeZone = ResolveZone(settings.TimeZoneId, TimeZones);
+        SelectedLocale = ResolveLocale(settings.ClockLocaleId, Locales);
+        return;
+
+        // Seed each per-metric toggle, falling back to the legacy whole-card key when the granular
+        // one has not been saved yet, so an existing hidden card stays hidden after upgrading.
+        bool Seed(string key, string legacy) =>
+            settings.Visibility.TryGetValue(key, out bool value)
+                ? value
+                : settings.Visibility.GetValueOrDefault(legacy, true);
     }
 
     // Raised whenever any setting changes, carrying which facet changed and, for the per-key facets
@@ -202,13 +180,9 @@ public partial class SettingsViewModel : ObservableObject
     partial void OnBackgroundColorChanged(string value)
     {
         if (EditingVariantIsDark)
-        {
             _darkColor = value;
-        }
         else
-        {
             _lightColor = value;
-        }
 
         SettingChanged?.Invoke(SettingChange.Of(SettingKind.Appearance));
     }
@@ -228,32 +202,30 @@ public partial class SettingsViewModel : ObservableObject
     {
         // The time zone search box clears its selection to null while the user types a filter; ignore
         // that so we never persist or dereference a null zone.
-        if (value is null)
-        {
-            return;
-        }
+        if (value is null) return;
 
         SettingChanged?.Invoke(SettingChange.Of(SettingKind.TimeZone));
     }
 
     partial void OnUseLocalTimeChanged(bool value) => SettingChanged?.Invoke(SettingChange.Of(SettingKind.TimeZone));
 
-    partial void OnClockTimeFormatChanged(string? value) => SettingChanged?.Invoke(SettingChange.Of(SettingKind.ClockFormats));
+    partial void OnClockTimeFormatChanged(string? value) =>
+        SettingChanged?.Invoke(SettingChange.Of(SettingKind.ClockFormats));
 
-    partial void OnClockDateFormatChanged(string? value) => SettingChanged?.Invoke(SettingChange.Of(SettingKind.ClockFormats));
+    partial void OnClockDateFormatChanged(string? value) =>
+        SettingChanged?.Invoke(SettingChange.Of(SettingKind.ClockFormats));
 
-    partial void OnClockTimeFormatHoverChanged(string? value) => SettingChanged?.Invoke(SettingChange.Of(SettingKind.ClockFormats));
+    partial void OnClockTimeFormatHoverChanged(string? value) =>
+        SettingChanged?.Invoke(SettingChange.Of(SettingKind.ClockFormats));
 
-    partial void OnClockDateFormatHoverChanged(string? value) => SettingChanged?.Invoke(SettingChange.Of(SettingKind.ClockFormats));
+    partial void OnClockDateFormatHoverChanged(string? value) =>
+        SettingChanged?.Invoke(SettingChange.Of(SettingKind.ClockFormats));
 
     partial void OnSelectedLocaleChanged(CultureInfo value)
     {
         // The locale box clears its selection to null while the user types a filter; ignore that so we
         // never persist a null locale or dereference it downstream.
-        if (value is null)
-        {
-            return;
-        }
+        if (value is null) return;
 
         // The samples and errors all depend on the locale, so refresh every one, then notify the host.
         OnPropertyChanged(nameof(TimeSample));
@@ -267,9 +239,11 @@ public partial class SettingsViewModel : ObservableObject
         SettingChanged?.Invoke(SettingChange.Of(SettingKind.ClockLocale));
     }
 
-    partial void OnUpdateCheckEnabledChanged(bool value) => SettingChanged?.Invoke(SettingChange.Of(SettingKind.UpdatePreferences));
+    partial void OnUpdateCheckEnabledChanged(bool value) =>
+        SettingChanged?.Invoke(SettingChange.Of(SettingKind.UpdatePreferences));
 
-    partial void OnUpdateFrequencyChanged(UpdateCheckFrequency value) => SettingChanged?.Invoke(SettingChange.Of(SettingKind.UpdatePreferences));
+    partial void OnUpdateFrequencyChanged(UpdateCheckFrequency value) =>
+        SettingChanged?.Invoke(SettingChange.Of(SettingKind.UpdatePreferences));
 
     partial void OnCpuCompactChanged(bool value) => SettingChanged?.Invoke(SettingChange.Compact("cpu", value));
 
@@ -277,28 +251,21 @@ public partial class SettingsViewModel : ObservableObject
 
     partial void OnDateTimeCompactChanged(bool value) => SettingChanged?.Invoke(SettingChange.Compact("clock", value));
 
-    partial void OnClockAlignmentChanged(ClockAlignment value) => SettingChanged?.Invoke(SettingChange.ForAlignment(value));
+    partial void OnClockAlignmentChanged(ClockAlignment value) =>
+        SettingChanged?.Invoke(SettingChange.ForAlignment(value));
 
     // Picks the saved zone by id, else the machine's local zone (matched from the list so the
     // dropdown highlights it), else local as a last resort.
     private static TimeZoneInfo ResolveZone(string? id, IReadOnlyList<TimeZoneInfo> zones)
     {
         string targetId = id ?? TimeZoneInfo.Local.Id;
-        foreach (TimeZoneInfo zone in zones)
-        {
+        foreach (var zone in zones)
             if (zone.Id == targetId)
-            {
                 return zone;
-            }
-        }
 
-        foreach (TimeZoneInfo zone in zones)
-        {
+        foreach (var zone in zones)
             if (zone.Id == TimeZoneInfo.Local.Id)
-            {
                 return zone;
-            }
-        }
 
         // Last resort if the system list somehow lacks the local zone; the dropdown shows no
         // selection in that case.
@@ -312,29 +279,17 @@ public partial class SettingsViewModel : ObservableObject
     private static CultureInfo ResolveLocale(string? id, IReadOnlyList<CultureInfo> locales)
     {
         string targetName = id ?? CultureInfo.CurrentCulture.Name;
-        foreach (CultureInfo culture in locales)
-        {
+        foreach (var culture in locales)
             if (culture.Name == targetName)
-            {
                 return culture;
-            }
-        }
 
-        foreach (CultureInfo culture in locales)
-        {
+        foreach (var culture in locales)
             if (culture.Name == CultureInfo.CurrentCulture.Name)
-            {
                 return culture;
-            }
-        }
 
-        foreach (CultureInfo culture in locales)
-        {
+        foreach (var culture in locales)
             if (culture.Parent.Name == CultureInfo.CurrentCulture.Name)
-            {
                 return culture;
-            }
-        }
 
         return locales.Count > 0 ? locales[0] : CultureInfo.CurrentCulture;
     }

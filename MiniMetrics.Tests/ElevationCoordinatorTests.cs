@@ -1,6 +1,4 @@
-using System.Collections.Generic;
 using MiniMetrics.Services;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace MiniMetrics.Tests;
 
@@ -38,37 +36,37 @@ public class ElevationCoordinatorTests
 
     [TestMethod]
     public void ShouldRelaunch_when_required_not_elevated_and_driver_installed()
-        => Assert.IsTrue(Build(elevated: false, driverInstalled: true).ShouldRelaunch(Enabled()));
+        => Assert.IsTrue(Build(false, true).ShouldRelaunch(Enabled()));
 
     [TestMethod]
     public void No_relaunch_when_required_and_not_elevated_but_driver_missing()
-        => Assert.IsFalse(Build(elevated: false, driverInstalled: false).ShouldRelaunch(Enabled()));
+        => Assert.IsFalse(Build(false, false).ShouldRelaunch(Enabled()));
 
     [TestMethod]
     public void No_relaunch_when_required_but_already_elevated()
-        => Assert.IsFalse(Build(elevated: true, driverInstalled: true).ShouldRelaunch(Enabled()));
+        => Assert.IsFalse(Build(true, true).ShouldRelaunch(Enabled()));
 
     [TestMethod]
     public void No_relaunch_when_not_required_and_not_elevated()
-        => Assert.IsFalse(Build(elevated: false, driverInstalled: true).ShouldRelaunch(Disabled()));
+        => Assert.IsFalse(Build(false, true).ShouldRelaunch(Disabled()));
 
     [TestMethod]
     public void No_relaunch_when_not_required_and_elevated()
-        => Assert.IsFalse(Build(elevated: true, driverInstalled: true).ShouldRelaunch(Disabled()));
+        => Assert.IsFalse(Build(true, true).ShouldRelaunch(Disabled()));
 
     // NeedsDriverInstallPrompt: required and driver missing.
 
     [TestMethod]
     public void NeedsDriverInstallPrompt_when_required_and_driver_missing()
-        => Assert.IsTrue(Build(elevated: false, driverInstalled: false).NeedsDriverInstallPrompt(Enabled()));
+        => Assert.IsTrue(Build(false, false).NeedsDriverInstallPrompt(Enabled()));
 
     [TestMethod]
     public void No_driver_prompt_when_required_and_driver_installed()
-        => Assert.IsFalse(Build(elevated: false, driverInstalled: true).NeedsDriverInstallPrompt(Enabled()));
+        => Assert.IsFalse(Build(false, true).NeedsDriverInstallPrompt(Enabled()));
 
     [TestMethod]
     public void No_driver_prompt_when_not_required()
-        => Assert.IsFalse(Build(elevated: false, driverInstalled: false).NeedsDriverInstallPrompt(Disabled()));
+        => Assert.IsFalse(Build(false, false).NeedsDriverInstallPrompt(Disabled()));
 
     // DecideMetricEnable: only an elevation-flagged metric turned on while not elevated triggers an
     // action, and the action depends on whether the driver is present.
@@ -77,36 +75,36 @@ public class ElevationCoordinatorTests
     public void DecideMetricEnable_relaunch_when_elevation_metric_on_unelevated_driver_installed()
         => Assert.AreEqual(
             MetricEnableAction.Relaunch,
-            Build(elevated: false, driverInstalled: true).DecideMetricEnable("cpu.temp", visible: true));
+            Build(false, true).DecideMetricEnable("cpu.temp", true));
 
     [TestMethod]
     public void DecideMetricEnable_driver_prompt_when_elevation_metric_on_unelevated_driver_missing()
         => Assert.AreEqual(
             MetricEnableAction.DriverInstallPrompt,
-            Build(elevated: false, driverInstalled: false).DecideMetricEnable("cpu.temp", visible: true));
+            Build(false, false).DecideMetricEnable("cpu.temp", true));
 
     [TestMethod]
     public void DecideMetricEnable_none_when_elevation_metric_on_but_already_elevated()
         => Assert.AreEqual(
             MetricEnableAction.None,
-            Build(elevated: true, driverInstalled: true).DecideMetricEnable("cpu.temp", visible: true));
+            Build(true, true).DecideMetricEnable("cpu.temp", true));
 
     [TestMethod]
     public void DecideMetricEnable_none_when_elevation_metric_turned_off()
         => Assert.AreEqual(
             MetricEnableAction.None,
-            Build(elevated: false, driverInstalled: true).DecideMetricEnable("cpu.temp", visible: false));
+            Build(false, true).DecideMetricEnable("cpu.temp", false));
 
     [TestMethod]
     public void DecideMetricEnable_none_for_non_elevation_metric()
         => Assert.AreEqual(
             MetricEnableAction.None,
-            Build(elevated: false, driverInstalled: true).DecideMetricEnable("cpu.usage", visible: true));
+            Build(false, true).DecideMetricEnable("cpu.usage", true));
 
     [TestMethod]
     public void RequiresElevation_reflects_visibility()
     {
-        var coordinator = Build(elevated: false, driverInstalled: true);
+        var coordinator = Build(false, true);
         Assert.IsTrue(coordinator.RequiresElevation(Enabled()));
         Assert.IsFalse(coordinator.RequiresElevation(Disabled()));
     }

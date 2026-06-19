@@ -1,7 +1,5 @@
 using System.Globalization;
-using System.Threading;
 using MiniMetrics.Lib;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace MiniMetrics.Tests;
 
@@ -13,7 +11,7 @@ public class MetricFormattingTests
     {
         // The unit label is hardcoded English, so the number must not pick up the machine's comma
         // decimal separator (de-DE would otherwise render "11,2").
-        CultureInfo original = Thread.CurrentThread.CurrentCulture;
+        var original = Thread.CurrentThread.CurrentCulture;
         Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo("de-DE");
         try
         {

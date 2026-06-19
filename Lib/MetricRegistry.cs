@@ -21,14 +21,14 @@ public static class MetricRegistry
 {
     public static IReadOnlyList<MetricEntry> All { get; } = new MetricEntry[]
     {
-        new("cpu.usage",  "cpu",  "Usage",       false),
-        new("cpu.temp",   "cpu",  "Temperature", true),
-        new("cpu.power",  "cpu",  "Power",       true),
-        new("ram.usage",  "ram",  "Usage",       false),
-        new("gpu.usage",  "gpu",  "Usage",       false),
-        new("gpu.temp",   "gpu",  "Temperature", false),
-        new("gpu.power",  "gpu",  "Power",       false),
-        new("vram.usage", "vram", "Usage",       false),
+        new("cpu.usage", "cpu", "Usage", false),
+        new("cpu.temp", "cpu", "Temperature", true),
+        new("cpu.power", "cpu", "Power", true),
+        new("ram.usage", "ram", "Usage", false),
+        new("gpu.usage", "gpu", "Usage", false),
+        new("gpu.temp", "gpu", "Temperature", false),
+        new("gpu.power", "gpu", "Power", false),
+        new("vram.usage", "vram", "Usage", false)
     };
 
     // The distinct card keys, in declaration order. These double as the legacy whole-card keys that
@@ -43,7 +43,7 @@ public static class MetricRegistry
 
     // The metrics that belong to a card, in declaration order.
     public static IReadOnlyList<MetricEntry> ForCard(string card) =>
-        MetricsByCard.TryGetValue(card, out MetricEntry[]? metrics) ? metrics : Array.Empty<MetricEntry>();
+        MetricsByCard.TryGetValue(card, out var metrics) ? metrics : Array.Empty<MetricEntry>();
 
     // True when at least one of the card's metrics is visible. Absent keys default to visible, matching
     // the render path: a fresh install with an empty visibility map shows every metric.
@@ -55,5 +55,5 @@ public static class MetricRegistry
     // and never prompts at first launch.
     public static bool RequiresElevation(IReadOnlyDictionary<string, bool> visibility) =>
         All.Where(entry => entry.RequiresElevation)
-           .Any(entry => visibility.GetValueOrDefault(entry.Key, false));
+            .Any(entry => visibility.GetValueOrDefault(entry.Key, false));
 }

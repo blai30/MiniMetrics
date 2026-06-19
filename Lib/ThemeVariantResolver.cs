@@ -11,6 +11,6 @@ public static class ThemeVariantResolver
     {
         AppTheme.Light => false,
         AppTheme.Dark => true,
-        _ => systemIsDark,
+        _ => systemIsDark
     };
 }

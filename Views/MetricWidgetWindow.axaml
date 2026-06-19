@@ -1,24 +1,24 @@
 <views:OverlayWindow xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="using:MiniMetrics.ViewModels"
-        xmlns:conv="using:MiniMetrics.Converters"
-        xmlns:views="using:MiniMetrics.Views"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d"
-        x:Class="MiniMetrics.Views.MetricWidgetWindow"
-        x:DataType="vm:MetricWidgetViewModel"
-        Title="MiniMetrics"
-        WindowDecorations="None"
-        Background="Transparent"
-        TransparencyLevelHint="Transparent"
-        ShowInTaskbar="False"
-        Topmost="False"
-        CanResize="False"
-        Width="210"
-        Height="176"
-        TextOptions.TextRenderingMode="Antialias"
-        FontFamily="avares://Avalonia.Fonts.Inter/Assets#Inter">
+                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                     xmlns:vm="using:MiniMetrics.ViewModels"
+                     xmlns:conv="using:MiniMetrics.Converters"
+                     xmlns:views="using:MiniMetrics.Views"
+                     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                     mc:Ignorable="d"
+                     x:Class="MiniMetrics.Views.MetricWidgetWindow"
+                     x:DataType="vm:MetricWidgetViewModel"
+                     Title="MiniMetrics"
+                     WindowDecorations="None"
+                     Background="Transparent"
+                     TransparencyLevelHint="Transparent"
+                     ShowInTaskbar="False"
+                     Topmost="False"
+                     CanResize="False"
+                     Width="210"
+                     Height="176"
+                     TextOptions.TextRenderingMode="Antialias"
+                     FontFamily="avares://Avalonia.Fonts.Inter/Assets#Inter">
 
     <Window.Resources>
         <conv:RowColorToBrushConverter x:Key="RowColorToBrush" />
@@ -61,7 +61,9 @@
                                    Margin="2,8,0,0"
                                    FontSize="19"
                                    FontWeight="SemiBold"
-                                   Foreground="{Binding TempLevel, Converter={StaticResource TempLevelToBrush}}"><Run Text="°" FontSize="13" BaselineAlignment="Superscript" /><Run Text="C" /></TextBlock>
+                                   Foreground="{Binding TempLevel, Converter={StaticResource TempLevelToBrush}}">
+                            <Run Text="°" FontSize="13" BaselineAlignment="Superscript" /><Run Text="C" />
+                        </TextBlock>
                     </StackPanel>
 
                     <!-- Usage: strong but secondary; sits on the temperature's baseline. -->
@@ -69,7 +71,10 @@
                                VerticalAlignment="Bottom"
                                Margin="0,0,0,4"
                                Opacity="{Binding UsageVisible, Converter={StaticResource BoolToOpacity}}"
-                               Foreground="{DynamicResource Widget.Text.Primary}"><Run Text="{Binding Value}" FontSize="24" FontWeight="Bold" /><Run Text=" " FontSize="8" /><Run Text="%" FontSize="14" FontWeight="SemiBold" /></TextBlock>
+                               Foreground="{DynamicResource Widget.Text.Primary}">
+                        <Run Text="{Binding Value}" FontSize="24" FontWeight="Bold" /><Run Text=" " FontSize="8" />
+                        <Run Text="%" FontSize="14" FontWeight="SemiBold" />
+                    </TextBlock>
                 </Grid>
 
                 <ProgressBar Classes="metric"
@@ -95,12 +100,18 @@
                            VerticalAlignment="Center"
                            MinWidth="72"
                            TextAlignment="Right"
-                           Foreground="{Binding TempLevel, Converter={StaticResource TempLevelToBrush}}"><Run Text="{Binding Temp}" FontSize="26" FontWeight="Bold" /><Run Text="°C" FontSize="16" FontWeight="SemiBold" /></TextBlock>
+                           Foreground="{Binding TempLevel, Converter={StaticResource TempLevelToBrush}}">
+                    <Run Text="{Binding Temp}" FontSize="26" FontWeight="Bold" />
+                    <Run Text="°C" FontSize="16" FontWeight="SemiBold" />
+                </TextBlock>
                 <TextBlock IsVisible="{Binding UsageVisible}"
                            VerticalAlignment="Center"
                            MinWidth="64"
                            TextAlignment="Right"
-                           Foreground="{DynamicResource Widget.Text.Primary}"><Run Text="{Binding Value}" FontSize="26" FontWeight="Bold" /><Run Text="%" FontSize="16" FontWeight="SemiBold" /></TextBlock>
+                           Foreground="{DynamicResource Widget.Text.Primary}">
+                    <Run Text="{Binding Value}" FontSize="26" FontWeight="Bold" />
+                    <Run Text="%" FontSize="16" FontWeight="SemiBold" />
+                </TextBlock>
                 <TextBlock IsVisible="{Binding PowerVisible}"
                            Text="{Binding Detail}"
                            VerticalAlignment="Center"
@@ -120,7 +131,13 @@
                            FontWeight="Bold"
                            Foreground="{DynamicResource Widget.Text.Label}"
                            VerticalAlignment="Center" />
-                <TextBlock VerticalAlignment="Center"><Run Text="{Binding Value}" FontSize="26" FontWeight="Bold" Foreground="{DynamicResource Widget.Text.Primary}" /><Run Text=" " /><Run Text="{Binding Detail}" FontSize="17" FontWeight="SemiBold" Foreground="{DynamicResource Widget.Text.Secondary}" /></TextBlock>
+                <TextBlock VerticalAlignment="Center">
+                    <Run Text="{Binding Value}" FontSize="26" FontWeight="Bold"
+                         Foreground="{DynamicResource Widget.Text.Primary}" />
+                    <Run Text=" " />
+                    <Run Text="{Binding Detail}" FontSize="17" FontWeight="SemiBold"
+                         Foreground="{DynamicResource Widget.Text.Secondary}" />
+                </TextBlock>
             </StackPanel>
         </DataTemplate>
 
@@ -135,7 +152,13 @@
                                Foreground="{DynamicResource Widget.Text.Label}"
                                VerticalAlignment="Center" />
                     <TextBlock Grid.Column="1"
-                               VerticalAlignment="Center"><Run Text="{Binding Value}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource Widget.Text.Primary}" /><Run Text=" " /><Run Text="{Binding Detail}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Widget.Text.Secondary}" /></TextBlock>
+                               VerticalAlignment="Center">
+                        <Run Text="{Binding Value}" FontSize="16" FontWeight="Bold"
+                             Foreground="{DynamicResource Widget.Text.Primary}" />
+                        <Run Text=" " />
+                        <Run Text="{Binding Detail}" FontSize="13" FontWeight="SemiBold"
+                             Foreground="{DynamicResource Widget.Text.Secondary}" />
+                    </TextBlock>
                 </Grid>
 
                 <ProgressBar Classes="metric"

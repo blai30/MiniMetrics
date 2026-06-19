@@ -6,38 +6,25 @@ namespace MiniMetrics.ViewModels;
 
 // One metric's visibility checkbox in the settings window. Reports its key and the new value when
 // toggled; the seeded value is set through the field so seeding does not fire the change.
-public sealed partial class MetricToggleViewModel : ObservableObject
+public sealed partial class MetricToggleViewModel(
+    string key,
+    string label,
+    bool isVisible,
+    Action<string, bool> onChanged)
+    : ObservableObject
 {
-    private readonly Action<string, bool> _onChanged;
+    public string Key { get; } = key;
+    public string Label { get; } = label;
 
-    public MetricToggleViewModel(string key, string label, bool isVisible, Action<string, bool> onChanged)
-    {
-        Key = key;
-        Label = label;
-        _isVisible = isVisible;
-        _onChanged = onChanged;
-    }
+    [ObservableProperty] public partial bool IsVisible { get; set; } = isVisible;
 
-    public string Key { get; }
-
-    public string Label { get; }
-
-    [ObservableProperty]
-    private bool _isVisible;
-
-    partial void OnIsVisibleChanged(bool value) => _onChanged(Key, value);
+    partial void OnIsVisibleChanged(bool value) => onChanged(Key, value);
 }
 
 // A labeled group of metric toggles (one card's worth) for the settings list.
-public sealed class MetricGroupViewModel
+public sealed class MetricGroupViewModel(string header, IReadOnlyList<MetricToggleViewModel> toggles)
 {
-    public MetricGroupViewModel(string header, IReadOnlyList<MetricToggleViewModel> toggles)
-    {
-        Header = header;
-        Toggles = toggles;
-    }
+    public string Header { get; } = header;
 
-    public string Header { get; }
-
-    public IReadOnlyList<MetricToggleViewModel> Toggles { get; }
+    public IReadOnlyList<MetricToggleViewModel> Toggles { get; } = toggles;
 }

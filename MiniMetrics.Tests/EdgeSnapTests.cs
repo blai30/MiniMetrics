@@ -1,5 +1,4 @@
 using MiniMetrics.Lib;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace MiniMetrics.Tests;
 
@@ -12,7 +11,7 @@ public class EdgeSnapTests
     private const int Height = 176;
     private const int Threshold = 20;
 
-    private static readonly EdgeSnap.Rect[] NoPeers = System.Array.Empty<EdgeSnap.Rect>();
+    private static readonly EdgeSnap.Rect[] NoPeers = Array.Empty<EdgeSnap.Rect>();
 
     private static (int X, int Y) Snap(int x, int y) =>
         EdgeSnap.Snap(new EdgeSnap.Rect(x, y, Width, Height), Area, NoPeers, Threshold);
