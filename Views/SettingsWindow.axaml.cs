@@ -9,6 +9,7 @@ using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using MiniMetrics.Lib;
+using MiniMetrics.ViewModels;
 
 namespace MiniMetrics.Views;
 
@@ -95,5 +96,51 @@ public partial class SettingsWindow : Window
     }
 
     private static bool IsField(Visual element) =>
-        element is TextBox or AutoCompleteBox or ComboBox or Button or CheckBox or Slider or ToggleSwitch;
+        element is TextBox or AutoCompleteBox or ComboBox or Button or CheckBox or Slider or ToggleSwitch
+            or NumericUpDown;
+
+    // The percentage fields apply to the view model only when editing finishes (Enter or losing focus),
+    // not on every keystroke, so the widget is not re-rendered mid-typing.
+    private void OnPercentInputKeyDown(object? sender, KeyEventArgs e)
+    {
+        // Commit on Enter by dropping focus, which runs the same path as a normal blur. NumericUpDown only
+        // refreshes the displayed text to the clamped value when it loses focus, not from its own Enter
+        // handling, so committing through blur keeps an out-of-range entry from lingering on screen.
+        if (e.Key == Key.Enter) RootArea.Focus();
+    }
+
+    private void OnPercentInputLostFocus(object? sender, RoutedEventArgs e)
+    {
+        if (sender is NumericUpDown input) CommitPercentInput(input);
+    }
+
+    // Writes the field's value back to the view model. An empty or unparsed field has a null value; rather
+    // than push null into the int-backed setting (which throws), restore the display to the current value.
+    private void CommitPercentInput(NumericUpDown input)
+    {
+        if (DataContext is not SettingsViewModel viewModel) return;
+
+        if (input.Value is { } value)
+        {
+            int committed = (int)Math.Clamp(value, input.Minimum, input.Maximum);
+            switch (input.Name)
+            {
+                case nameof(OpacityInput):
+                    viewModel.Opacity = committed;
+                    break;
+                case nameof(WidgetScaleInput):
+                    viewModel.WidgetScale = committed;
+                    break;
+            }
+        }
+        else
+        {
+            input.Value = input.Name switch
+            {
+                nameof(OpacityInput) => viewModel.Opacity,
+                nameof(WidgetScaleInput) => viewModel.WidgetScale,
+                _ => input.Value
+            };
+        }
+    }
 }
