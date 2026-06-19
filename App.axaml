@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="MiniMetrics.App"
              xmlns:local="using:MiniMetrics"
+             xmlns:fa="using:FluentAvalonia.Styling"
              RequestedThemeVariant="Default">
 
     <Application.DataTemplates>
@@ -28,6 +29,6 @@
     </Application.Resources>
 
     <Application.Styles>
-        <FluentTheme />
+        <fa:FluentAvaloniaTheme PreferSystemTheme="True" PreferUserAccentColor="True" />
     </Application.Styles>
 </Application>
