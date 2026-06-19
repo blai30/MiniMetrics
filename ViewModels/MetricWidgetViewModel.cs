@@ -38,7 +38,7 @@ public partial class MetricWidgetViewModel(string computeKey, string memoryKey) 
     private const double BaseWidth = 210;
     private const double BaseHeight = 176;
 
-    [ObservableProperty] public partial string FontFamily { get; set; } = WidgetFontProfile.BundledInter;
+    [ObservableProperty] public partial FontFamily FontFamily { get; set; } = new(WidgetFontProfile.BundledInter);
     [ObservableProperty] public partial double FontScale { get; set; } = 1.0;
     [ObservableProperty] public partial double ScaledWidth { get; set; } = BaseWidth;
     [ObservableProperty] public partial double ScaledHeight { get; set; } = BaseHeight;
@@ -63,7 +63,7 @@ public partial class MetricWidgetViewModel(string computeKey, string memoryKey) 
     // whose DataContext is a row, can bind the scale and weights too.
     public void ApplyFont(WidgetFontProfile profile)
     {
-        FontFamily = profile.FontFamily;
+        FontFamily = new(profile.FontFamily);
         FontScale = profile.Scale;
         ScaledWidth = BaseWidth * profile.Scale;
         ScaledHeight = BaseHeight * profile.Scale;

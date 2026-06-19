@@ -156,7 +156,7 @@ public class MetricWidgetViewModelTests
 
         viewModel.ApplyFont(WidgetFontProfile.Resolve("Arial", 120, WidgetFontWeight.Light));
 
-        Assert.AreEqual("Arial", viewModel.FontFamily);
+        Assert.AreEqual("Arial", viewModel.FontFamily.Name);
         Assert.AreEqual(1.2, viewModel.FontScale, 1e-9);
         Assert.AreEqual(FontWeight.SemiBold, viewModel.StrongWeight); // Light preset strong = 600
         Assert.AreEqual(FontWeight.Medium, viewModel.UnitWeight);     // Light preset unit = 500

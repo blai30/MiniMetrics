@@ -135,7 +135,7 @@ public class DateTimeWidgetViewModelTests
 
         viewModel.ApplyFont(WidgetFontProfile.Resolve("Cascadia Code", 150, WidgetFontWeight.Bold));
 
-        Assert.AreEqual("Cascadia Code", viewModel.FontFamily);
+        Assert.AreEqual("Cascadia Code", viewModel.FontFamily.Name);
         Assert.AreEqual(1.5, viewModel.FontScale, 1e-9);
         Assert.AreEqual(FontWeight.SemiBold, viewModel.ClockWeight); // Bold preset clock = 600
         Assert.AreEqual(640 * 1.5, viewModel.ScaledWidth, 1e-9);
@@ -147,7 +147,7 @@ public class DateTimeWidgetViewModelTests
     {
         var viewModel = new DateTimeWidgetViewModel();
 
-        Assert.AreEqual(WidgetFontProfile.BundledInter, viewModel.FontFamily);
+        Assert.AreEqual("Inter", viewModel.FontFamily.Name);
         Assert.AreEqual(1.0, viewModel.FontScale, 1e-9);
         Assert.AreEqual(FontWeight.Medium, viewModel.ClockWeight);
         Assert.AreEqual(640.0, viewModel.ScaledWidth, 1e-9);
