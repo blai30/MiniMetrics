@@ -33,11 +33,11 @@ public partial class App : Application
     private WidgetCoordinator _widgetCoordinator = null!;
     private MetricActivator _metricActivator = null!;
     private DateTimeWidgetViewModel _dateTimeViewModel = null!;
-    private IWidgetAppearance[] _appearances = Array.Empty<IWidgetAppearance>();
+    private IWidgetAppearance[] _appearances = [];
     private WidgetHost _cpuHost = null!;
     private WidgetHost _gpuHost = null!;
     private WidgetHost _dateTimeHost = null!;
-    private WidgetHost[] _hosts = Array.Empty<WidgetHost>();
+    private WidgetHost[] _hosts = [];
     private DispatcherTimer? _clockTimer;
     private DispatcherTimer? _trimTimer;
 
@@ -107,7 +107,7 @@ public partial class App : Application
             _dateTimeViewModel.IsCompact = _settings.DateTimeCompact;
             _dateTimeViewModel.SetAlignment(_settings.ClockAlignment);
 
-            _appearances = new IWidgetAppearance[] { _cpuViewModel, _gpuViewModel, _dateTimeViewModel };
+            _appearances = [_cpuViewModel, _gpuViewModel, _dateTimeViewModel];
             ApplyAppearanceToWidgets();
 
             _source = OperatingSystem.IsWindows()

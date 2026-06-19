@@ -29,14 +29,14 @@ public static class UpdatePolicy
     // (for example a prerelease label) is treated as no update.
     public static UpdateDecision Evaluate(Version currentVersion, string latestTag, string? skippedVersion)
     {
-        if (!TryParseVersion(latestTag, out var latest)) return new UpdateDecision(false, false, null);
+        if (!TryParseVersion(latestTag, out var latest)) return new(false, false, null);
 
         bool available = latest > Normalize(currentVersion);
         bool skipped = skippedVersion is not null
                        && TryParseVersion(skippedVersion, out var skip)
                        && skip == latest;
 
-        return new UpdateDecision(available, available && !skipped, latest);
+        return new(available, available && !skipped, latest);
     }
 
     // Collapses a Version to major.minor.patch so a 4-part assembly version (1.2.0.0) compares cleanly
@@ -48,7 +48,7 @@ public static class UpdatePolicy
     // anything System.Version cannot parse.
     private static bool TryParseVersion(string tag, out Version version)
     {
-        version = new Version(0, 0, 0);
+        version = new(0, 0, 0);
         if (string.IsNullOrWhiteSpace(tag)) return false;
 
         string trimmed = tag.Trim();

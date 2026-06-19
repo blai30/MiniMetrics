@@ -31,7 +31,7 @@ public sealed class Settings
     public string? ClockDateFormat { get; set; }
     public string? ClockTimeFormatHover { get; set; }
     public string? ClockDateFormatHover { get; set; }
-    public Dictionary<string, bool> Visibility { get; set; } = new();
+    public Dictionary<string, bool> Visibility { get; set; } = [];
     public bool UpdateCheckEnabled { get; set; } = true;
     public UpdateCheckFrequency UpdateFrequency { get; set; } = UpdateCheckFrequency.Daily;
     public DateTimeOffset? LastUpdateCheckUtc { get; set; }

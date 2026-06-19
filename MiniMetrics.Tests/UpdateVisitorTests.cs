@@ -10,7 +10,7 @@ public class UpdateVisitorTests
     public void Updates_every_device_and_its_subdevices()
     {
         var sub = new FakeHardware();
-        var root = new FakeHardware { SubHardware = new IHardware[] { sub } };
+        var root = new FakeHardware { SubHardware = [sub] };
 
         root.Accept(new UpdateVisitor());
 
@@ -26,11 +26,11 @@ public class UpdateVisitorTests
         // history grows unbounded for a day across every sensor. The visitor must switch it off.
         var rootSensor = new FakeSensor();
         var subSensor = new FakeSensor();
-        var sub = new FakeHardware { Sensors = new ISensor[] { subSensor } };
+        var sub = new FakeHardware { Sensors = [subSensor] };
         var root = new FakeHardware
         {
-            Sensors = new ISensor[] { rootSensor },
-            SubHardware = new IHardware[] { sub }
+            Sensors = [rootSensor],
+            SubHardware = [sub]
         };
 
         root.Accept(new UpdateVisitor());
@@ -42,8 +42,8 @@ public class UpdateVisitorTests
     private sealed class FakeHardware : IHardware
     {
         public int UpdateCount { get; private set; }
-        public ISensor[] Sensors { get; set; } = Array.Empty<ISensor>();
-        public IHardware[] SubHardware { get; set; } = Array.Empty<IHardware>();
+        public ISensor[] Sensors { get; set; } = [];
+        public IHardware[] SubHardware { get; set; } = [];
 
         public void Update() => UpdateCount++;
         public void Accept(IVisitor visitor) => visitor.VisitHardware(this);
@@ -97,9 +97,9 @@ public class UpdateVisitorTests
         public float? Max => null;
         public float? Min => null;
         public string Name { get; set; } = "fake";
-        public IReadOnlyList<IParameter> Parameters => Array.Empty<IParameter>();
+        public IReadOnlyList<IParameter> Parameters => [];
         public SensorType SensorType => default;
         public float? Value => null;
-        public IEnumerable<SensorValue> Values => Array.Empty<SensorValue>();
+        public IEnumerable<SensorValue> Values => [];
     }
 }

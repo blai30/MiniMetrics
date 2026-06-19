@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -19,8 +18,8 @@ public sealed record MetricEntry(string Key, string Card, string Label, bool Req
 // (RowBuilder, MetricRowViewModel, the row template) stays per-metric.
 public static class MetricRegistry
 {
-    public static IReadOnlyList<MetricEntry> All { get; } = new MetricEntry[]
-    {
+    public static IReadOnlyList<MetricEntry> All { get; } =
+    [
         new("cpu.usage", "cpu", "Usage", false),
         new("cpu.temp", "cpu", "Temperature", true),
         new("cpu.power", "cpu", "Power", true),
@@ -29,7 +28,7 @@ public static class MetricRegistry
         new("gpu.temp", "gpu", "Temperature", false),
         new("gpu.power", "gpu", "Power", false),
         new("vram.usage", "vram", "Usage", false)
-    };
+    ];
 
     // The distinct card keys, in declaration order. These double as the legacy whole-card keys that
     // predate per-metric visibility.
@@ -43,7 +42,7 @@ public static class MetricRegistry
 
     // The metrics that belong to a card, in declaration order.
     public static IReadOnlyList<MetricEntry> ForCard(string card) =>
-        MetricsByCard.TryGetValue(card, out var metrics) ? metrics : Array.Empty<MetricEntry>();
+        MetricsByCard.TryGetValue(card, out var metrics) ? metrics : [];
 
     // True when at least one of the card's metrics is visible. Absent keys default to visible, matching
     // the render path: a fresh install with an empty visibility map shows every metric.

@@ -14,13 +14,13 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] public partial string BackgroundColor { get; set; }
     [ObservableProperty] public partial int Opacity { get; set; }
     [ObservableProperty] public partial AppTheme Theme { get; set; }
-    public IReadOnlyList<AppTheme> Themes { get; } = new[] { AppTheme.System, AppTheme.Light, AppTheme.Dark };
+    public IReadOnlyList<AppTheme> Themes { get; } = [AppTheme.System, AppTheme.Light, AppTheme.Dark];
 
     private static readonly string[] DarkSwatches =
-        { "#0F121D", "#1A1F2B", "#18181B", "#0C1A2B", "#1E1726", "#11231C" };
+        ["#0F121D", "#1A1F2B", "#18181B", "#0C1A2B", "#1E1726", "#11231C"];
 
     private static readonly string[] LightSwatches =
-        { "#EEF1F5", "#E4E8EF", "#FFFFFF", "#EAF1F8", "#F3EEF7", "#EAF3EE" };
+        ["#EEF1F5", "#E4E8EF", "#FFFFFF", "#EAF1F8", "#F3EEF7", "#EAF3EE"];
 
     private string _darkColor = "";
     private string _lightColor = "";
@@ -102,13 +102,13 @@ public partial class SettingsViewModel : ObservableObject
     private string FormatError(string? format) =>
         ClockFormatting.IsValidFormat(format, SelectedLocale) ? "" : "Invalid format";
 
-    public IReadOnlyList<UpdateCheckFrequency> UpdateFrequencies { get; } = new[]
-    {
+    public IReadOnlyList<UpdateCheckFrequency> UpdateFrequencies { get; } =
+    [
         UpdateCheckFrequency.EveryLaunch,
         UpdateCheckFrequency.Daily,
         UpdateCheckFrequency.Weekly,
         UpdateCheckFrequency.Monthly
-    };
+    ];
 
     // The metric visibility checkboxes, grouped by card, built from the registry.
     public IReadOnlyList<MetricGroupViewModel> MetricGroups { get; }

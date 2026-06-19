@@ -19,13 +19,13 @@ public sealed class SettingsStore(string path)
     {
         try
         {
-            if (!File.Exists(path)) return new Settings();
+            if (!File.Exists(path)) return new();
 
-            return JsonSerializer.Deserialize<Settings>(File.ReadAllText(path)) ?? new Settings();
+            return JsonSerializer.Deserialize<Settings>(File.ReadAllText(path)) ?? new();
         }
         catch
         {
-            return new Settings();
+            return new();
         }
     }
 

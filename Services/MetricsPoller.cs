@@ -14,7 +14,7 @@ public sealed class MetricsPoller(ISensorSource source, TimeSpan interval) : IDi
 
     public void Start()
     {
-        _cts = new CancellationTokenSource();
+        _cts = new();
 
         // Start the loop is invoked from the UI thread, which carries Avalonia's SynchronizationContext.
         // Task.Run hops to the thread pool so the loop (and every sensor read) runs off the UI thread;

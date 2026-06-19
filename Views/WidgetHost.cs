@@ -53,7 +53,7 @@ public sealed class WidgetHost(OverlayWindow window, PositionSlot position)
         _desktop.Attach();
         _desktop.SetAlwaysOnTop(alwaysOnTop);
 
-        if (position.Saved is { } saved) window.Position = new PixelPoint(saved.X, saved.Y);
+        if (position.Saved is { } saved) window.Position = new(saved.X, saved.Y);
 
         window.PositionChanged += (_, _) => position.Save(window.Position.X, window.Position.Y);
 
@@ -107,7 +107,7 @@ public sealed class WidgetHost(OverlayWindow window, PositionSlot position)
     // Moves the widget to an absolute position and persists it immediately.
     public void MoveTo(int x, int y)
     {
-        window.Position = new PixelPoint(x, y);
+        window.Position = new(x, y);
         position.SaveNow(window.Position.X, window.Position.Y);
     }
 
@@ -120,7 +120,7 @@ public sealed class WidgetHost(OverlayWindow window, PositionSlot position)
         if (screens.ScreenFromPoint(window.Position) is not null) return;
         var primary = screens.Primary ?? screens.All[0];
         var area = primary.WorkingArea;
-        window.Position = new PixelPoint(area.X + 48, area.Y + 48);
+        window.Position = new(area.X + 48, area.Y + 48);
         position.SaveNow(window.Position.X, window.Position.Y);
     }
 

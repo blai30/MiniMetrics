@@ -6,7 +6,7 @@ namespace MiniMetrics.Tests;
 // enabled/unloaded, with no LibreHardwareMonitor or real hardware involved.
 public sealed class FakeHardwareTree : IHardwareTree
 {
-    private readonly Dictionary<(HardwareKind, SensorKind, string), double> _values = new();
+    private readonly Dictionary<(HardwareKind, SensorKind, string), double> _values = [];
 
     public bool HasGpu { get; set; } = true;
     public int RefreshCount { get; private set; }

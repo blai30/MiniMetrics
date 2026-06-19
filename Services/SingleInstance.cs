@@ -25,12 +25,12 @@ public sealed class SingleInstance : IDisposable
     public static SingleInstance Acquire(string name)
     {
         var mutex = new Mutex(true, name, out bool createdNew);
-        if (createdNew) return new SingleInstance(mutex);
+        if (createdNew) return new(mutex);
 
         // The mutex already existed: another instance owns it. Release our handle to it and report that
         // we are not the only instance.
         mutex.Dispose();
-        return new SingleInstance(null);
+        return new(null);
     }
 
     public void Dispose()

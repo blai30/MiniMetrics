@@ -10,7 +10,7 @@ namespace MiniMetrics.Lib;
 // the OS locale.
 public static class FuzzySearch
 {
-    private static readonly char[] Separators = { ' ', '-' };
+    private static readonly char[] Separators = [' ', '-'];
 
     public static bool Matches(string display, string key, string? query)
     {

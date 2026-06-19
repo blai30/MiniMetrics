@@ -5,7 +5,7 @@ namespace MiniMetrics.Tests;
 [TestClass]
 public class DeviceActivationTests
 {
-    private static Dictionary<string, bool> AllVisible() => new();
+    private static Dictionary<string, bool> AllVisible() => [];
 
     [TestMethod]
     public void All_visible_and_both_widgets_shown_polls_everything()

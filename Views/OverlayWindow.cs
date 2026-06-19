@@ -112,7 +112,7 @@ public class OverlayWindow : Window
         var peers = PeerRects?.Invoke() ?? Array.Empty<EdgeSnap.Rect>();
 
         (int x, int y) = EdgeSnap.Snap(widget, workArea, peers, SnapThreshold);
-        return new PixelPoint(x, y);
+        return new(x, y);
     }
 
     // Snap pull distance in physical pixels.

@@ -49,7 +49,7 @@ public sealed class GitHubReleaseSource : IReleaseSource
             string? htmlUrl = url.GetString();
             if (string.IsNullOrEmpty(tagName) || string.IsNullOrEmpty(htmlUrl)) return null;
 
-            return new ReleaseInfo(tagName, htmlUrl);
+            return new(tagName, htmlUrl);
         }
         catch (JsonException)
         {

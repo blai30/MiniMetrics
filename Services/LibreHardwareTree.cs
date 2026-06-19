@@ -15,7 +15,7 @@ public sealed class LibreHardwareTree : IHardwareTree
 
     public LibreHardwareTree()
     {
-        _computer = new Computer
+        _computer = new()
         {
             IsCpuEnabled = true,
             IsMemoryEnabled = true,

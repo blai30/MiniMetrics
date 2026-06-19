@@ -102,7 +102,7 @@
                                                  HorizontalAlignment="Stretch"
                                                  PlaceholderText="Search time zone...">
                                     <AutoCompleteBox.ValueMemberBinding>
-                                        <Binding Path="DisplayName" />
+                                        <ReflectionBinding Path="DisplayName" />
                                     </AutoCompleteBox.ValueMemberBinding>
                                     <AutoCompleteBox.ItemTemplate>
                                         <DataTemplate x:DataType="sys:TimeZoneInfo">
@@ -132,7 +132,7 @@
                                                  HorizontalAlignment="Stretch"
                                                  PlaceholderText="Search locale...">
                                     <AutoCompleteBox.ValueMemberBinding>
-                                        <Binding Path="DisplayName" />
+                                        <ReflectionBinding Path="DisplayName" />
                                     </AutoCompleteBox.ValueMemberBinding>
                                     <AutoCompleteBox.ItemTemplate>
                                         <DataTemplate x:DataType="glob:CultureInfo">
