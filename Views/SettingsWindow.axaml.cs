@@ -8,6 +8,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using FluentAvalonia.UI.Controls;
 using MiniMetrics.Lib;
 using MiniMetrics.ViewModels;
 
@@ -21,6 +22,18 @@ public partial class SettingsWindow : Window
 
         SetUpSearchableDropDown(LocaleBox, LocaleChevron, LocaleParts);
         SetUpSearchableDropDown(TimeZoneBox, TimeZoneChevron, TimeZoneParts);
+    }
+
+    // Shows the page whose name matches the selected nav item's Tag, hiding the others. Keeping all four
+    // pages in one tree (toggled by visibility) preserves every binding's DataContext without a Frame.
+    private void OnNavSelectionChanged(object? sender, FANavigationViewSelectionChangedEventArgs e)
+    {
+        if (e.SelectedItem is not FANavigationViewItem { Tag: string tag }) return;
+
+        AppearancePage.IsVisible = tag == "Appearance";
+        ClockPage.IsVisible = tag == "Clock";
+        MetricsPage.IsVisible = tag == "Metrics";
+        UpdatesPage.IsVisible = tag == "Updates";
     }
 
     private static (string Display, string Key)? LocaleParts(object? item) =>
