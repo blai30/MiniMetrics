@@ -308,6 +308,28 @@ public class SettingsViewModelTests
     }
 
     [TestMethod]
+    public void Seeds_clock_alignment_from_settings()
+    {
+        var settings = new Settings { ClockAlignment = ClockAlignment.Right };
+
+        var viewModel = new SettingsViewModel(settings);
+
+        Assert.AreEqual(ClockAlignment.Right, viewModel.ClockAlignment);
+    }
+
+    [TestMethod]
+    public void Changing_clock_alignment_raises_ClockAlignmentChanged()
+    {
+        var viewModel = new SettingsViewModel(new Settings());
+        ClockAlignment? last = null;
+        viewModel.ClockAlignmentChanged += value => last = value;
+
+        viewModel.ClockAlignment = ClockAlignment.Center;
+
+        Assert.AreEqual(ClockAlignment.Center, last);
+    }
+
+    [TestMethod]
     public void Seeds_selected_locale_from_settings_id()
     {
         var viewModel = new SettingsViewModel(new Settings { ClockLocaleId = "fr-FR" });

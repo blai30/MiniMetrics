@@ -1,8 +1,10 @@
 using System;
 using System.Globalization;
 using Avalonia.Media;
+using Avalonia.Layout;
 using CommunityToolkit.Mvvm.ComponentModel;
 using MiniMetrics.Lib;
+using MiniMetrics.Models;
 
 namespace MiniMetrics.ViewModels;
 
@@ -33,6 +35,15 @@ public partial class DateTimeWidgetViewModel : ObservableObject, IWidgetAppearan
     // Drives the clock window between its stacked layout and the single-line compact layout.
     [ObservableProperty]
     private bool _isCompact;
+
+    // Drives the horizontal alignment of the clock text. TextAlignment positions the time and date
+    // lines in the fixed-width full layout; BlockAlignment is applied to the compact layout's inline
+    // row (a no-op while that window hugs its content, kept for consistency).
+    [ObservableProperty]
+    private TextAlignment _textAlignment = TextAlignment.Left;
+
+    [ObservableProperty]
+    private HorizontalAlignment _blockAlignment = HorizontalAlignment.Left;
 
     // Recomputes the card's solid background color from a base color and opacity (shared with the
     // metrics widget's appearance logic).
@@ -65,6 +76,17 @@ public partial class DateTimeWidgetViewModel : ObservableObject, IWidgetAppearan
         _timeFormatHover = timeFormatHover;
         _dateFormatHover = dateFormatHover;
         Refresh();
+    }
+
+    // Maps the saved alignment choice onto the two layout-facing properties.
+    public void SetAlignment(ClockAlignment alignment)
+    {
+        (TextAlignment, BlockAlignment) = alignment switch
+        {
+            ClockAlignment.Center => (TextAlignment.Center, HorizontalAlignment.Center),
+            ClockAlignment.Right => (TextAlignment.Right, HorizontalAlignment.Right),
+            _ => (TextAlignment.Left, HorizontalAlignment.Left),
+        };
     }
 
     // Advances the clock to a new instant (called once per second by App) and reformats.

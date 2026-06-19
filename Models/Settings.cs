@@ -18,6 +18,7 @@ public sealed class Settings
     public bool CpuCompact { get; set; }
     public bool GpuCompact { get; set; }
     public bool DateTimeCompact { get; set; }
+    public ClockAlignment ClockAlignment { get; set; } = ClockAlignment.Left;
     public int? DateTimeX { get; set; }
     public int? DateTimeY { get; set; }
     public bool DateTimeHidden { get; set; } = true;

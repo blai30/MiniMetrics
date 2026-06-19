@@ -143,6 +143,26 @@ public class SettingsControllerTests
     }
 
     [TestMethod]
+    public void ClockAlignment_defaults_to_Left()
+    {
+        var (controller, _, _) = NewController();
+
+        Assert.AreEqual(ClockAlignment.Left, controller.Current.ClockAlignment);
+    }
+
+    [TestMethod]
+    public void SetClockAlignment_persists_immediately()
+    {
+        var (controller, store, scheduler) = NewController();
+
+        controller.SetClockAlignment(ClockAlignment.Right);
+
+        Assert.AreEqual(ClockAlignment.Right, controller.Current.ClockAlignment);
+        Assert.AreEqual(ClockAlignment.Right, store.Load().ClockAlignment);
+        Assert.AreEqual(0, scheduler.ScheduleCount);
+    }
+
+    [TestMethod]
     public void A_burst_of_debounced_edits_coalesces_into_one_write()
     {
         var (controller, store, scheduler) = NewController();

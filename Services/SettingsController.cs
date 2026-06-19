@@ -73,6 +73,10 @@ public sealed class SettingsController
     public void SetGpuCompact(bool compact) { _settings.GpuCompact = compact; Persist(); }
     public void SetDateTimeCompact(bool compact) { _settings.DateTimeCompact = compact; Persist(); }
 
+    // Records the chosen clock text alignment, writing through immediately like the other discrete
+    // display toggles.
+    public void SetClockAlignment(ClockAlignment alignment) { _settings.ClockAlignment = alignment; Persist(); }
+
     // Records the chosen time zone id, persisting on the debounce.
     public void SetTimeZone(string? timeZoneId)
     {

@@ -106,6 +106,7 @@ public partial class App : Application
                 _settings.ClockTimeFormat, _settings.ClockDateFormat,
                 _settings.ClockTimeFormatHover, _settings.ClockDateFormatHover);
             _dateTimeViewModel.IsCompact = _settings.DateTimeCompact;
+            _dateTimeViewModel.SetAlignment(_settings.ClockAlignment);
 
             _appearances = new IWidgetAppearance[] { _cpuViewModel, _gpuViewModel, _dateTimeViewModel };
             ApplyAppearanceToWidgets();
@@ -373,6 +374,7 @@ public partial class App : Application
         viewModel.ThemeChanged += () => OnThemeChanged(viewModel);
         viewModel.MetricVisibilityChanged += OnMetricVisibilityChanged;
         viewModel.CompactChanged += OnCompactChanged;
+        viewModel.ClockAlignmentChanged += OnClockAlignmentChanged;
         viewModel.TimeZoneChanged += () => OnTimeZoneChanged(viewModel);
         viewModel.ClockFormatsChanged += () => OnClockFormatsChanged(viewModel);
         viewModel.ClockLocaleChanged += () => OnClockLocaleChanged(viewModel);
@@ -485,6 +487,13 @@ public partial class App : Application
                 _dateTimeViewModel.IsCompact = value;
                 break;
         }
+    }
+
+    // Persists the clock text alignment and pushes it onto the live clock so it realigns immediately.
+    private void OnClockAlignmentChanged(ClockAlignment value)
+    {
+        _settingsController.SetClockAlignment(value);
+        _dateTimeViewModel.SetAlignment(value);
     }
 
     // Re-entrancy guard: RevertMetricToggle flips a toggle back, which re-raises this event; the guard
