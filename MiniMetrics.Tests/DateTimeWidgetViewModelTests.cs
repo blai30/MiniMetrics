@@ -129,11 +129,11 @@ public class DateTimeWidgetViewModelTests
     }
 
     [TestMethod]
-    public void ApplyFont_sets_family_scale_weight_and_scaled_size()
+    public void ApplyStyle_sets_family_scale_weight_and_scaled_size()
     {
         var viewModel = new DateTimeWidgetViewModel();
 
-        viewModel.ApplyFont(WidgetFontProfile.Resolve("Cascadia Code", 150, WidgetFontWeight.Bold));
+        viewModel.ApplyStyle(WidgetStyleProfile.Resolve("Cascadia Code", 150, WidgetFontWeight.Bold));
 
         Assert.AreEqual("Cascadia Code", viewModel.FontFamily.Name);
         Assert.AreEqual(1.5, viewModel.Scale, 1e-9);

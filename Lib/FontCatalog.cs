@@ -13,10 +13,10 @@ public static class FontCatalog
     {
         var rest = systemFamilies
             .Where(name => !string.IsNullOrWhiteSpace(name))
-            .Where(name => !string.Equals(name, WidgetFontProfile.DefaultFamilyName, StringComparison.OrdinalIgnoreCase))
+            .Where(name => !string.Equals(name, WidgetStyleProfile.DefaultFamilyName, StringComparison.OrdinalIgnoreCase))
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(name => name, StringComparer.OrdinalIgnoreCase);
 
-        return [WidgetFontProfile.DefaultFamilyName, .. rest];
+        return [WidgetStyleProfile.DefaultFamilyName, .. rest];
     }
 }

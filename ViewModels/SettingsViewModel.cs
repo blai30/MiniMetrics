@@ -137,8 +137,8 @@ public partial class SettingsViewModel : ObservableObject
         CpuCompact = settings.CpuCompact;
         GpuCompact = settings.GpuCompact;
         DateTimeCompact = settings.DateTimeCompact;
-        AvailableFonts = fonts?.AvailableFamilies() ?? [WidgetFontProfile.DefaultFamilyName];
-        WidgetFontFamily = settings.WidgetFontFamily ?? WidgetFontProfile.DefaultFamilyName;
+        AvailableFonts = fonts?.AvailableFamilies() ?? [WidgetStyleProfile.DefaultFamilyName];
+        WidgetFontFamily = settings.WidgetFontFamily ?? WidgetStyleProfile.DefaultFamilyName;
         WidgetScale = settings.WidgetScale;
         WidgetFontWeight = settings.WidgetFontWeight;
         ClockAlignment = settings.ClockAlignment;

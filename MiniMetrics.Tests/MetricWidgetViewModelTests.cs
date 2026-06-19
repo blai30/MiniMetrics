@@ -150,11 +150,11 @@ public class MetricWidgetViewModelTests
     }
 
     [TestMethod]
-    public void ApplyFont_sets_family_scaled_size_and_weights()
+    public void ApplyStyle_sets_family_scaled_size_and_weights()
     {
         var viewModel = new MetricWidgetViewModel("cpu", "ram");
 
-        viewModel.ApplyFont(WidgetFontProfile.Resolve("Arial", 120, WidgetFontWeight.Light));
+        viewModel.ApplyStyle(WidgetStyleProfile.Resolve("Arial", 120, WidgetFontWeight.Light));
 
         Assert.AreEqual("Arial", viewModel.FontFamily.Name);
         Assert.AreEqual(1.2, viewModel.Scale, 1e-9);
@@ -165,14 +165,14 @@ public class MetricWidgetViewModelTests
     }
 
     [TestMethod]
-    public void ApplyFont_stamps_the_scale_and_weights_onto_existing_rows()
+    public void ApplyStyle_stamps_the_scale_and_weights_onto_existing_rows()
     {
         var viewModel = new MetricWidgetViewModel("cpu", "ram");
         // MetricsSnapshot uses positional constructor args: (CpuMetrics? Cpu, MemoryMetrics? Memory, GpuMetrics? Gpu)
         var snapshot = new MetricsSnapshot(new CpuMetrics(40, null, null), null, null);
         viewModel.ApplySnapshot(snapshot);
 
-        viewModel.ApplyFont(WidgetFontProfile.Resolve(null, 140, WidgetFontWeight.Bold));
+        viewModel.ApplyStyle(WidgetStyleProfile.Resolve(null, 140, WidgetFontWeight.Bold));
 
         var row = viewModel.Compute!;
         Assert.AreEqual(1.4, row.Scale, 1e-9);
@@ -181,10 +181,10 @@ public class MetricWidgetViewModelTests
     }
 
     [TestMethod]
-    public void New_rows_inherit_the_current_font_after_apply_font()
+    public void New_rows_inherit_the_current_style_after_apply_style()
     {
         var viewModel = new MetricWidgetViewModel("cpu", "ram");
-        viewModel.ApplyFont(WidgetFontProfile.Resolve(null, 130, WidgetFontWeight.Regular));
+        viewModel.ApplyStyle(WidgetStyleProfile.Resolve(null, 130, WidgetFontWeight.Regular));
 
         viewModel.ApplySnapshot(new MetricsSnapshot(new CpuMetrics(50, null, null), null, null));
 

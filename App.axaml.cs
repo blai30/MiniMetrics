@@ -34,7 +34,7 @@ public partial class App : Application
     private MetricActivator _metricActivator = null!;
     private DateTimeWidgetViewModel _dateTimeViewModel = null!;
     private IWidgetAppearance[] _appearances = [];
-    private IWidgetFont[] _fonts = [];
+    private IWidgetStyle[] _styledWidgets = [];
     private IFontCatalog _fontCatalog = null!;
     private WidgetHost _cpuHost = null!;
     private WidgetHost _gpuHost = null!;
@@ -113,7 +113,7 @@ public partial class App : Application
             ApplyAppearanceToWidgets();
 
             _fontCatalog = new SystemFontCatalog();
-            _fonts = [_cpuViewModel, _gpuViewModel, _dateTimeViewModel];
+            _styledWidgets = [_cpuViewModel, _gpuViewModel, _dateTimeViewModel];
             ApplyWidgetStyle();
 
             _source = OperatingSystem.IsWindows()
@@ -437,9 +437,9 @@ public partial class App : Application
     // shared font seam.
     private void ApplyWidgetStyle()
     {
-        var profile = WidgetFontProfile.Resolve(
+        var profile = WidgetStyleProfile.Resolve(
             _settings.WidgetFontFamily, _settings.WidgetScale, _settings.WidgetFontWeight);
-        foreach (var widget in _fonts) widget.ApplyFont(profile);
+        foreach (var widget in _styledWidgets) widget.ApplyStyle(profile);
     }
 
     // The effective variant resolved by Avalonia (Default resolves to Light or Dark). Dark is the
