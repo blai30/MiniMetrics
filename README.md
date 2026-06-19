@@ -48,12 +48,12 @@ updates itself in place; the choice is just two preferences:
   (they are smaller). If you do not have it, or are unsure, use a `selfcontained` build; it bundles the runtime and
   needs nothing else.
 
-| Download                                 | Runs without installing | Needs .NET 10 Runtime |
-|------------------------------------------|-------------------------|-----------------------|
-| `MiniMetrics-Setup.exe`                  | No (installs)           | Yes                   |
-| `MiniMetrics-Portable.zip`               | Yes                     | Yes                   |
-| `MiniMetrics-Setup-selfcontained.exe`    | No (installs)           | No (bundled)          |
-| `MiniMetrics-Portable-selfcontained.zip` | Yes                     | No (bundled)          |
+| Download                                 | Needs .NET 10 Runtime |
+|------------------------------------------|-----------------------|
+| `MiniMetrics-Setup.exe`                  | ✅                    |
+| `MiniMetrics-Portable.zip`               | ✅                    |
+| `MiniMetrics-Setup-selfcontained.exe`    | ❌ (bundled)          |
+| `MiniMetrics-Portable-selfcontained.zip` | ❌ (bundled)          |
 
 If you pick a default build without the .NET 10 Runtime installed, Windows tells you on first launch and links you to
 the download; install it and reopen MiniMetrics. The `selfcontained` builds never need this.
