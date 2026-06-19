@@ -1,6 +1,7 @@
 <views:OverlayWindow xmlns="https://github.com/avaloniaui"
                      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                      xmlns:vm="using:MiniMetrics.ViewModels"
+                     xmlns:conv="using:MiniMetrics.Converters"
                      xmlns:views="using:MiniMetrics.Views"
                      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -14,25 +15,32 @@
                      ShowInTaskbar="False"
                      Topmost="False"
                      CanResize="False"
-                     Width="640"
-                     Height="176"
+                     Width="{Binding ScaledWidth}"
+                     Height="{Binding ScaledHeight}"
                      TextOptions.TextRenderingMode="Antialias"
-                     FontFamily="avares://Avalonia.Fonts.Inter/Assets#Inter">
+                     FontFamily="{Binding FontFamily}">
+
+    <Window.Resources>
+        <conv:FontScaleConverter x:Key="FontScale" />
+        <conv:ThicknessScaleConverter x:Key="ThicknessScale" />
+    </Window.Resources>
 
     <Border BorderThickness="0"
             CornerRadius="0"
             Background="{Binding CardBackground}">
         <Panel>
             <!-- Full layout: time over date. -->
-            <StackPanel VerticalAlignment="Center" Margin="28,0,28,0" IsVisible="{Binding !IsCompact}">
+            <StackPanel VerticalAlignment="Center"
+                        Margin="{Binding FontScale, Converter={StaticResource ThicknessScale}, ConverterParameter='28,0,28,0'}"
+                        IsVisible="{Binding !IsCompact}">
                 <TextBlock Text="{Binding TimeText}"
-                           FontSize="80"
-                           FontWeight="Medium"
+                           FontSize="{Binding FontScale, Converter={StaticResource FontScale}, ConverterParameter=80}"
+                           FontWeight="{Binding ClockWeight}"
                            TextAlignment="{Binding TextAlignment}"
                            Foreground="{DynamicResource Widget.Text.Primary}" />
                 <TextBlock Text="{Binding DateText}"
-                           FontSize="28"
-                           FontWeight="Medium"
+                           FontSize="{Binding FontScale, Converter={StaticResource FontScale}, ConverterParameter=28}"
+                           FontWeight="{Binding ClockWeight}"
                            TextAlignment="{Binding TextAlignment}"
                            Foreground="{DynamicResource Widget.Text.Label}" />
             </StackPanel>
@@ -41,17 +49,17 @@
             <StackPanel Orientation="Horizontal"
                         VerticalAlignment="Center"
                         HorizontalAlignment="{Binding BlockAlignment}"
-                        Margin="20,0"
-                        Spacing="16"
+                        Margin="{Binding FontScale, Converter={StaticResource ThicknessScale}, ConverterParameter='20,0'}"
+                        Spacing="{Binding FontScale, Converter={StaticResource FontScale}, ConverterParameter=16}"
                         IsVisible="{Binding IsCompact}">
                 <TextBlock Text="{Binding TimeText}"
-                           FontSize="46"
-                           FontWeight="Medium"
+                           FontSize="{Binding FontScale, Converter={StaticResource FontScale}, ConverterParameter=46}"
+                           FontWeight="{Binding ClockWeight}"
                            VerticalAlignment="Center"
                            Foreground="{DynamicResource Widget.Text.Primary}" />
                 <TextBlock Text="{Binding DateText}"
-                           FontSize="28"
-                           FontWeight="Medium"
+                           FontSize="{Binding FontScale, Converter={StaticResource FontScale}, ConverterParameter=28}"
+                           FontWeight="{Binding ClockWeight}"
                            VerticalAlignment="Center"
                            Foreground="{DynamicResource Widget.Text.Label}" />
             </StackPanel>
