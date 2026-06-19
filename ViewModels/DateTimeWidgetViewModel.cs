@@ -8,7 +8,7 @@ using MiniMetrics.Models;
 
 namespace MiniMetrics.ViewModels;
 
-public partial class DateTimeWidgetViewModel : ObservableObject, IWidgetAppearance
+public partial class DateTimeWidgetViewModel : ObservableObject, IWidgetAppearance, IWidgetFont
 {
     private DateTimeOffset _instant;
     private TimeZoneInfo _zone = TimeZoneInfo.Local;
@@ -35,12 +35,30 @@ public partial class DateTimeWidgetViewModel : ObservableObject, IWidgetAppearan
     [ObservableProperty] public partial TextAlignment TextAlignment { get; set; } = TextAlignment.Left;
     [ObservableProperty] public partial HorizontalAlignment BlockAlignment { get; set; } = HorizontalAlignment.Left;
 
+    private const double BaseWidth = 640;
+    private const double BaseHeight = 176;
+
+    [ObservableProperty] public partial string FontFamily { get; set; } = WidgetFontProfile.BundledInter;
+    [ObservableProperty] public partial double FontScale { get; set; } = 1.0;
+    [ObservableProperty] public partial double ScaledWidth { get; set; } = BaseWidth;
+    [ObservableProperty] public partial double ScaledHeight { get; set; } = BaseHeight;
+    [ObservableProperty] public partial FontWeight ClockWeight { get; set; } = FontWeight.Medium;
+
     // Recomputes the card's solid background color from a base color and opacity (shared with the
     // metrics widget's appearance logic).
     public void ApplyAppearance(string backgroundColor, int opacity)
     {
         string color = AppearanceColor.Derive(backgroundColor, opacity);
         CardBackground = new SolidColorBrush(Color.Parse(color));
+    }
+
+    public void ApplyFont(WidgetFontProfile profile)
+    {
+        FontFamily = profile.FontFamily;
+        FontScale = profile.Scale;
+        ScaledWidth = BaseWidth * profile.Scale;
+        ScaledHeight = BaseHeight * profile.Scale;
+        ClockWeight = (FontWeight)profile.ClockWeight;
     }
 
     // Updates the active time zone and reformats the last known instant.

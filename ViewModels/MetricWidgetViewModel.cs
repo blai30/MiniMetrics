@@ -11,7 +11,7 @@ namespace MiniMetrics.ViewModels;
 // One standalone metrics widget: a compute card stacked over its memory card. Constructed with the
 // two keys it owns (the CPU widget owns "cpu"+"ram", the GPU widget owns "gpu"+"vram") and ignores
 // every other row the builder produces.
-public partial class MetricWidgetViewModel(string computeKey, string memoryKey) : ObservableObject, IWidgetAppearance
+public partial class MetricWidgetViewModel(string computeKey, string memoryKey) : ObservableObject, IWidgetAppearance, IWidgetFont
 {
     // A read-only view onto the single visibility map (Settings.Visibility); the widget never owns a
     // copy, so what it renders cannot drift from what drives device polling.
@@ -33,6 +33,18 @@ public partial class MetricWidgetViewModel(string computeKey, string memoryKey) 
     // Drives the widget window between its full two-card layout and the single-line compact layout.
     [ObservableProperty] public partial bool IsCompact { get; set; }
 
+    // The widget's natural size at 100% scale; the window binds ScaledWidth/ScaledHeight so it grows
+    // and shrinks with the font.
+    private const double BaseWidth = 210;
+    private const double BaseHeight = 176;
+
+    [ObservableProperty] public partial string FontFamily { get; set; } = WidgetFontProfile.BundledInter;
+    [ObservableProperty] public partial double FontScale { get; set; } = 1.0;
+    [ObservableProperty] public partial double ScaledWidth { get; set; } = BaseWidth;
+    [ObservableProperty] public partial double ScaledHeight { get; set; } = BaseHeight;
+    [ObservableProperty] public partial FontWeight StrongWeight { get; set; } = FontWeight.Bold;
+    [ObservableProperty] public partial FontWeight UnitWeight { get; set; } = FontWeight.SemiBold;
+
     // Recomputes the card's solid background color from a base color and opacity.
     public void ApplyAppearance(string backgroundColor, int opacity)
     {
@@ -45,6 +57,27 @@ public partial class MetricWidgetViewModel(string computeKey, string memoryKey) 
     public void RefreshThemeColors()
     {
         foreach (var row in Rows) row.NotifyThemeChanged();
+    }
+
+    // Applies the resolved font to the window-level bindings and stamps each row so the templates,
+    // whose DataContext is a row, can bind the scale and weights too.
+    public void ApplyFont(WidgetFontProfile profile)
+    {
+        FontFamily = profile.FontFamily;
+        FontScale = profile.Scale;
+        ScaledWidth = BaseWidth * profile.Scale;
+        ScaledHeight = BaseHeight * profile.Scale;
+        StrongWeight = (FontWeight)profile.StrongWeight;
+        UnitWeight = (FontWeight)profile.UnitWeight;
+
+        foreach (var row in Rows) StampFont(row);
+    }
+
+    private void StampFont(MetricRowViewModel row)
+    {
+        row.FontScale = FontScale;
+        row.StrongWeight = StrongWeight;
+        row.UnitWeight = UnitWeight;
     }
 
     // Reconciles the bound row collection against the freshly built rows this widget owns, updating
@@ -73,6 +106,7 @@ public partial class MetricWidgetViewModel(string computeKey, string memoryKey) 
             {
                 existing = new() { Key = row.Key };
                 Rows.Insert(i < Rows.Count ? i : Rows.Count, existing);
+                StampFont(existing);
                 membershipChanged = true;
             }
 

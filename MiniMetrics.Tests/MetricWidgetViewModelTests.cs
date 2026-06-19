@@ -1,3 +1,5 @@
+using Avalonia.Media;
+using MiniMetrics.Lib;
 using MiniMetrics.Models;
 using MiniMetrics.ViewModels;
 
@@ -145,5 +147,48 @@ public class MetricWidgetViewModelTests
 
         var brush = Assert.IsInstanceOfType<Avalonia.Media.SolidColorBrush>(vm.CardBackground);
         Assert.AreEqual(Avalonia.Media.Color.Parse("#FF0F121D"), brush.Color);
+    }
+
+    [TestMethod]
+    public void ApplyFont_sets_family_scaled_size_and_weights()
+    {
+        var viewModel = new MetricWidgetViewModel("cpu", "ram");
+
+        viewModel.ApplyFont(WidgetFontProfile.Resolve("Arial", 120, WidgetFontWeight.Light));
+
+        Assert.AreEqual("Arial", viewModel.FontFamily);
+        Assert.AreEqual(1.2, viewModel.FontScale, 1e-9);
+        Assert.AreEqual(FontWeight.SemiBold, viewModel.StrongWeight); // Light preset strong = 600
+        Assert.AreEqual(FontWeight.Medium, viewModel.UnitWeight);     // Light preset unit = 500
+        Assert.AreEqual(210 * 1.2, viewModel.ScaledWidth, 1e-9);
+        Assert.AreEqual(176 * 1.2, viewModel.ScaledHeight, 1e-9);
+    }
+
+    [TestMethod]
+    public void ApplyFont_stamps_the_scale_and_weights_onto_existing_rows()
+    {
+        var viewModel = new MetricWidgetViewModel("cpu", "ram");
+        // MetricsSnapshot uses positional constructor args: (CpuMetrics? Cpu, MemoryMetrics? Memory, GpuMetrics? Gpu)
+        var snapshot = new MetricsSnapshot(new CpuMetrics(40, null, null), null, null);
+        viewModel.ApplySnapshot(snapshot);
+
+        viewModel.ApplyFont(WidgetFontProfile.Resolve(null, 140, WidgetFontWeight.Bold));
+
+        var row = viewModel.Compute!;
+        Assert.AreEqual(1.4, row.FontScale, 1e-9);
+        Assert.AreEqual(FontWeight.ExtraBold, row.StrongWeight); // Bold preset strong = 800
+        Assert.AreEqual(FontWeight.Bold, row.UnitWeight);        // Bold preset unit = 700
+    }
+
+    [TestMethod]
+    public void New_rows_inherit_the_current_font_after_apply_font()
+    {
+        var viewModel = new MetricWidgetViewModel("cpu", "ram");
+        viewModel.ApplyFont(WidgetFontProfile.Resolve(null, 130, WidgetFontWeight.Regular));
+
+        viewModel.ApplySnapshot(new MetricsSnapshot(new CpuMetrics(50, null, null), null, null));
+
+        Assert.AreEqual(1.3, viewModel.Compute!.FontScale, 1e-9);
+        Assert.AreEqual(FontWeight.Bold, viewModel.Compute!.StrongWeight);
     }
 }
