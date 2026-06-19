@@ -69,6 +69,13 @@
                                        VerticalAlignment="Center" />
                         </Grid>
                     </StackPanel>
+
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="Compact layout" />
+                        <CheckBox Content="CPU widget" IsChecked="{Binding CpuCompact}" />
+                        <CheckBox Content="GPU widget" IsChecked="{Binding GpuCompact}" />
+                        <CheckBox Content="Clock widget" IsChecked="{Binding DateTimeCompact}" />
+                    </StackPanel>
                 </StackPanel>
             </ScrollViewer>
         </TabItem>

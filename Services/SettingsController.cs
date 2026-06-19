@@ -67,6 +67,12 @@ public sealed class SettingsController
         Persist();
     }
 
+    // Each compact toggle flips one widget's layout flag and persists immediately, matching the other
+    // discrete display toggles.
+    public void SetCpuCompact(bool compact) { _settings.CpuCompact = compact; Persist(); }
+    public void SetGpuCompact(bool compact) { _settings.GpuCompact = compact; Persist(); }
+    public void SetDateTimeCompact(bool compact) { _settings.DateTimeCompact = compact; Persist(); }
+
     // Records the chosen time zone id, persisting on the debounce.
     public void SetTimeZone(string? timeZoneId)
     {

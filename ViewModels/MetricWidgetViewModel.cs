@@ -40,6 +40,10 @@ public partial class MetricWidgetViewModel : ObservableObject, IWidgetAppearance
     [ObservableProperty]
     private IBrush _cardBackground = Brushes.Transparent;
 
+    // Drives the widget window between its full two-card layout and the single-line compact layout.
+    [ObservableProperty]
+    private bool _isCompact;
+
     // Recomputes the card's solid background color from a base color and opacity.
     public void ApplyAppearance(string backgroundColor, int opacity)
     {

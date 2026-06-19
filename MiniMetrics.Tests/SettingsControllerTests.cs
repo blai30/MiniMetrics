@@ -99,6 +99,50 @@ public class SettingsControllerTests
     }
 
     [TestMethod]
+    public void SetCpuCompact_persists_immediately()
+    {
+        var (controller, store, scheduler) = NewController();
+
+        controller.SetCpuCompact(true);
+
+        Assert.IsTrue(controller.Current.CpuCompact);
+        Assert.IsTrue(store.Load().CpuCompact);
+        Assert.AreEqual(0, scheduler.ScheduleCount);
+    }
+
+    [TestMethod]
+    public void SetGpuCompact_persists_immediately()
+    {
+        var (controller, store, _) = NewController();
+
+        controller.SetGpuCompact(true);
+
+        Assert.IsTrue(controller.Current.GpuCompact);
+        Assert.IsTrue(store.Load().GpuCompact);
+    }
+
+    [TestMethod]
+    public void SetDateTimeCompact_persists_immediately()
+    {
+        var (controller, store, _) = NewController();
+
+        controller.SetDateTimeCompact(true);
+
+        Assert.IsTrue(controller.Current.DateTimeCompact);
+        Assert.IsTrue(store.Load().DateTimeCompact);
+    }
+
+    [TestMethod]
+    public void Compact_flags_default_to_false()
+    {
+        var (controller, _, _) = NewController();
+
+        Assert.IsFalse(controller.Current.CpuCompact);
+        Assert.IsFalse(controller.Current.GpuCompact);
+        Assert.IsFalse(controller.Current.DateTimeCompact);
+    }
+
+    [TestMethod]
     public void A_burst_of_debounced_edits_coalesces_into_one_write()
     {
         var (controller, store, scheduler) = NewController();
