@@ -122,7 +122,7 @@ public class OverlayWindow : Window
     {
         if (OperatingSystem.IsWindows() && GetCursorPos(out var native))
         {
-            point = new PixelPoint(native.X, native.Y);
+            point = new(native.X, native.Y);
             return true;
         }
 

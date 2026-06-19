@@ -204,7 +204,7 @@ public class SettingsViewModelTests
     [TestMethod]
     public void Changing_time_zone_raises_a_time_zone_change()
     {
-        var viewModel = new SettingsViewModel(new Settings { TimeZoneId = "UTC" });
+        var viewModel = new SettingsViewModel(new() { TimeZoneId = "UTC" });
         var changes = Capture(viewModel);
 
         var target = TimeZoneInfo.GetSystemTimeZones().First(tz => tz.Id != viewModel.SelectedTimeZone.Id);
@@ -225,7 +225,7 @@ public class SettingsViewModelTests
     [TestMethod]
     public void Use_local_time_defaults_false_when_id_present()
     {
-        var viewModel = new SettingsViewModel(new Settings { TimeZoneId = "UTC" });
+        var viewModel = new SettingsViewModel(new() { TimeZoneId = "UTC" });
 
         Assert.IsFalse(viewModel.UseLocalTime);
     }
@@ -233,7 +233,7 @@ public class SettingsViewModelTests
     [TestMethod]
     public void Toggling_use_local_time_raises_a_time_zone_change()
     {
-        var viewModel = new SettingsViewModel(new Settings { TimeZoneId = "UTC" });
+        var viewModel = new SettingsViewModel(new() { TimeZoneId = "UTC" });
         var changes = Capture(viewModel);
 
         viewModel.UseLocalTime = true;
@@ -257,7 +257,7 @@ public class SettingsViewModelTests
     [TestMethod]
     public void Changing_an_update_preference_raises_an_update_preferences_change()
     {
-        var viewModel = new SettingsViewModel(new Settings());
+        var viewModel = new SettingsViewModel(new());
         var changes = Capture(viewModel);
 
         viewModel.UpdateCheckEnabled = false;
@@ -282,7 +282,7 @@ public class SettingsViewModelTests
     [TestMethod]
     public void Toggling_cpu_compact_raises_a_compact_change_with_widget_key()
     {
-        var viewModel = new SettingsViewModel(new Settings());
+        var viewModel = new SettingsViewModel(new());
         var changes = Capture(viewModel);
 
         viewModel.CpuCompact = true;
@@ -296,7 +296,7 @@ public class SettingsViewModelTests
     [TestMethod]
     public void Toggling_gpu_compact_raises_a_compact_change_with_widget_key()
     {
-        var viewModel = new SettingsViewModel(new Settings());
+        var viewModel = new SettingsViewModel(new());
         var changes = Capture(viewModel);
 
         viewModel.GpuCompact = true;
@@ -310,7 +310,7 @@ public class SettingsViewModelTests
     [TestMethod]
     public void Toggling_clock_compact_raises_a_compact_change_with_clock_key()
     {
-        var viewModel = new SettingsViewModel(new Settings());
+        var viewModel = new SettingsViewModel(new());
         var changes = Capture(viewModel);
 
         viewModel.DateTimeCompact = true;
@@ -334,7 +334,7 @@ public class SettingsViewModelTests
     [TestMethod]
     public void Changing_clock_alignment_raises_a_clock_alignment_change()
     {
-        var viewModel = new SettingsViewModel(new Settings());
+        var viewModel = new SettingsViewModel(new());
         var changes = Capture(viewModel);
 
         viewModel.ClockAlignment = ClockAlignment.Center;
@@ -347,7 +347,7 @@ public class SettingsViewModelTests
     [TestMethod]
     public void Seeds_selected_locale_from_settings_id()
     {
-        var viewModel = new SettingsViewModel(new Settings { ClockLocaleId = "fr-FR" });
+        var viewModel = new SettingsViewModel(new() { ClockLocaleId = "fr-FR" });
 
         Assert.AreEqual("fr-FR", viewModel.SelectedLocale.Name);
     }
@@ -369,7 +369,7 @@ public class SettingsViewModelTests
     [TestMethod]
     public void Changing_a_clock_format_raises_a_clock_formats_change()
     {
-        var viewModel = new SettingsViewModel(new Settings());
+        var viewModel = new SettingsViewModel(new());
         var changes = Capture(viewModel);
 
         viewModel.ClockDateFormat = "yyyy-MM-dd";
@@ -381,7 +381,7 @@ public class SettingsViewModelTests
     [TestMethod]
     public void Changing_locale_raises_a_clock_locale_change()
     {
-        var viewModel = new SettingsViewModel(new Settings { ClockLocaleId = "en-US" });
+        var viewModel = new SettingsViewModel(new() { ClockLocaleId = "en-US" });
         var changes = Capture(viewModel);
 
         viewModel.SelectedLocale = viewModel.Locales.First(culture => culture.Name == "fr-FR");
@@ -395,7 +395,7 @@ public class SettingsViewModelTests
     {
         // The locale AutoCompleteBox clears its selection to null while the user types a filter; that
         // must not raise the change event (the host handles it by dereferencing the locale).
-        var viewModel = new SettingsViewModel(new Settings { ClockLocaleId = "en-US" });
+        var viewModel = new SettingsViewModel(new() { ClockLocaleId = "en-US" });
         var changes = Capture(viewModel);
 
         viewModel.SelectedLocale = null!;
@@ -407,7 +407,7 @@ public class SettingsViewModelTests
     public void Time_sample_reflects_a_valid_custom_format()
     {
         // TimeZoneId "UTC" makes the preview zone deterministic; en-US makes the rendering deterministic.
-        var viewModel = new SettingsViewModel(new Settings { TimeZoneId = "UTC", ClockLocaleId = "en-US" });
+        var viewModel = new SettingsViewModel(new() { TimeZoneId = "UTC", ClockLocaleId = "en-US" });
 
         viewModel.ClockTimeFormat = "HH:mm";
 
@@ -417,7 +417,7 @@ public class SettingsViewModelTests
     [TestMethod]
     public void Blank_time_sample_shows_the_default_long_time()
     {
-        var viewModel = new SettingsViewModel(new Settings { TimeZoneId = "UTC", ClockLocaleId = "en-US" });
+        var viewModel = new SettingsViewModel(new() { TimeZoneId = "UTC", ClockLocaleId = "en-US" });
 
         Assert.AreEqual("2:26:42 PM", viewModel.TimeSample);
     }
@@ -425,7 +425,7 @@ public class SettingsViewModelTests
     [TestMethod]
     public void Invalid_format_sets_an_error_and_a_valid_one_clears_it()
     {
-        var viewModel = new SettingsViewModel(new Settings { ClockLocaleId = "en-US" });
+        var viewModel = new SettingsViewModel(new() { ClockLocaleId = "en-US" });
 
         viewModel.ClockTimeFormat = "h"; // lone standard specifier, invalid
         Assert.AreNotEqual("", viewModel.TimeFormatError);

@@ -8,7 +8,7 @@ public class UpdateCheckDecisionTests
     private static UpdateCheckResult Evaluate(
         string latestTag, string? skippedVersion, bool manual) =>
         UpdateCheckDecision.Evaluate(
-            new Version(1, 2, 0), latestTag, skippedVersion, manual, "https://example/r", "1.2.0");
+            new(1, 2, 0), latestTag, skippedVersion, manual, "https://example/r", "1.2.0");
 
     [TestMethod]
     public void Reports_an_available_update()

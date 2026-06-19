@@ -29,7 +29,7 @@ public sealed class MockSensorSource(bool includeGpu = true) : ISensorSource
             ? new GpuMetrics(Clamp(Wave(78, 15, 2)), 71, 6_871_947_674UL, 12_884_901_888UL, 185)
             : null;
 
-        return new MetricsSnapshot(cpu, memory, gpu);
+        return new(cpu, memory, gpu);
 
         double Wave(double mid, double amplitude, int phase)
             => mid + amplitude * Math.Sin((_tick + phase) / 5.0);

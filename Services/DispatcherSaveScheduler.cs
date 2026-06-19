@@ -12,7 +12,7 @@ public sealed class DispatcherSaveScheduler : ISaveScheduler
 
     public DispatcherSaveScheduler(TimeSpan delay)
     {
-        _timer = new DispatcherTimer { Interval = delay };
+        _timer = new() { Interval = delay };
         _timer.Tick += (_, _) => Flush();
     }
 

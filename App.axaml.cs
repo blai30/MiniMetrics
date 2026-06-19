@@ -64,7 +64,7 @@ public partial class App : Application
             desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
             var settingsStore = new SettingsStore(SettingsStore.DefaultPath);
-            _settingsController = new SettingsController(
+            _settingsController = new(
                 settingsStore.Load(),
                 settingsStore,
                 new DispatcherSaveScheduler(TimeSpan.FromMilliseconds(600)));
@@ -87,18 +87,18 @@ public partial class App : Application
 
             _updateFlow = _isInstalled
                 ? new VelopackUpdateFlow(updateManager, _settingsController, () => DateTimeOffset.UtcNow)
-                : new NotifyUpdateFlow(new UpdateService(
+                : new NotifyUpdateFlow(new(
                     new GitHubReleaseSource(), _currentVersion, _settingsController, () => DateTimeOffset.UtcNow));
 
-            _cpuViewModel = new MetricWidgetViewModel("cpu", "ram");
+            _cpuViewModel = new("cpu", "ram");
             _cpuViewModel.BindVisibility(_settings.Visibility);
             _cpuViewModel.IsCompact = _settings.CpuCompact;
 
-            _gpuViewModel = new MetricWidgetViewModel("gpu", "vram");
+            _gpuViewModel = new("gpu", "vram");
             _gpuViewModel.BindVisibility(_settings.Visibility);
             _gpuViewModel.IsCompact = _settings.GpuCompact;
 
-            _dateTimeViewModel = new DateTimeWidgetViewModel();
+            _dateTimeViewModel = new();
             _dateTimeViewModel.SetTimeZone(ResolveTimeZone(_settings.TimeZoneId));
             _dateTimeViewModel.SetLocale(ResolveLocale(_settings.ClockLocaleId));
             _dateTimeViewModel.SetFormats(
@@ -122,13 +122,13 @@ public partial class App : Application
                 ? new WindowsDriverProbe()
                 : new NoopDriverProbe();
 
-            _elevationCoordinator = new ElevationCoordinator(elevation, driverProbe);
+            _elevationCoordinator = new(elevation, driverProbe);
 
-            _widgetCoordinator = new WidgetCoordinator(_settingsController, _cpuViewModel, _gpuViewModel, _source);
+            _widgetCoordinator = new(_settingsController, _cpuViewModel, _gpuViewModel, _source);
 
             // Owns the elevation sequence a metric toggle implies. Resolves the startup manager lazily
             // because BuildTray creates it after this point (and only on Windows).
-            _metricActivator = new MetricActivator(
+            _metricActivator = new(
                 _widgetCoordinator,
                 _elevationCoordinator,
                 _settingsController,
@@ -139,7 +139,7 @@ public partial class App : Application
             // first poll runs.
             _widgetCoordinator.ApplyActiveDevices();
 
-            _poller = new MetricsPoller(_source, TimeSpan.FromSeconds(1));
+            _poller = new(_source, TimeSpan.FromSeconds(1));
             _poller.SnapshotReady += snapshot =>
                 Dispatcher.UIThread.Post(() =>
                 {
@@ -183,7 +183,7 @@ public partial class App : Application
             // resident set balloons at startup. Trim it back to the working pages once warmup has
             // settled (first tick), then top up periodically. The 60s steady interval keeps a trim
             // from landing mid-drag, where evicted pages would refault and stutter the move.
-            _trimTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(10) };
+            _trimTimer = new() { Interval = TimeSpan.FromSeconds(10) };
             _trimTimer.Tick += (_, _) =>
             {
                 MemoryTrimmer.Trim();
@@ -203,7 +203,7 @@ public partial class App : Application
 
             // Drive the clock once per second. Tick immediately so the widget shows the time at once.
             _dateTimeViewModel.Tick(DateTimeOffset.Now);
-            _clockTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+            _clockTimer = new() { Interval = TimeSpan.FromSeconds(1) };
             _clockTimer.Tick += (_, _) => _dateTimeViewModel.Tick(DateTimeOffset.Now);
             _clockTimer.Start();
 
@@ -247,7 +247,7 @@ public partial class App : Application
 
         if (OperatingSystem.IsWindows())
         {
-            _startupManager = new StartupManager(
+            _startupManager = new(
                 new WindowsStartupOperations(),
                 AutostartTarget.Resolve(_isInstalled, _rootStubPath, Environment.ProcessPath!));
 
@@ -265,7 +265,7 @@ public partial class App : Application
             runAtStartupChecked = _startupManager.IsEnabled();
         }
 
-        _tray = new TrayMenuController(new TrayMenuController.InitialState(
+        _tray = new(new(
             !_settings.Hidden,
             !_settings.GpuHidden,
             !_settings.DateTimeHidden,
@@ -299,7 +299,7 @@ public partial class App : Application
 
         _tray.Attach(
             this,
-            new WindowIcon(AssetLoader.Open(new Uri("avares://MiniMetrics/Assets/minimetrics.ico"))),
+            new(AssetLoader.Open(new("avares://MiniMetrics/Assets/minimetrics.ico"))),
             "Mini Metrics");
     }
 
@@ -354,7 +354,7 @@ public partial class App : Application
         var viewModel = new SettingsViewModel(_settings, ResolvedIsDark());
         viewModel.SettingChanged += change => OnSettingChanged(viewModel, change);
 
-        _settingsWindow = new SettingsWindow { DataContext = viewModel };
+        _settingsWindow = new() { DataContext = viewModel };
         _settingsWindow.Closed += (_, _) => _settingsWindow = null;
         _settingsWindow.Show();
     }
@@ -602,7 +602,7 @@ public partial class App : Application
             return;
         }
 
-        _confirmUninstallWindow = new ConfirmUninstallWindow();
+        _confirmUninstallWindow = new();
         _confirmUninstallWindow.Confirmed += (_, _) => RunUninstall();
         _confirmUninstallWindow.Closed += (_, _) => _confirmUninstallWindow = null;
         _confirmUninstallWindow.Show();
@@ -653,7 +653,7 @@ public partial class App : Application
             return;
         }
 
-        _pawnIoPromptWindow = new PawnIoPromptWindow();
+        _pawnIoPromptWindow = new();
         _pawnIoPromptWindow.Closed += (_, _) => _pawnIoPromptWindow = null;
         _pawnIoPromptWindow.Show();
     }
@@ -697,7 +697,7 @@ public partial class App : Application
             ? UpdatePromptViewModel.ForInstallReady(version, CurrentVersionString)
             : UpdatePromptViewModel.ForAvailable(version, CurrentVersionString, url);
 
-        _updatePromptWindow = new UpdatePromptWindow(viewModel);
+        _updatePromptWindow = new(viewModel);
         _updatePromptWindow.SkipRequested += (_, _) =>
         {
             _settingsController.SetSkippedUpdateVersion(version);
@@ -730,7 +730,7 @@ public partial class App : Application
             return;
         }
 
-        _updatePromptWindow = new UpdatePromptWindow(viewModel);
+        _updatePromptWindow = new(viewModel);
         _updatePromptWindow.Closed += (_, _) => _updatePromptWindow = null;
         _updatePromptWindow.Show();
     }
@@ -794,7 +794,7 @@ public partial class App : Application
         window.WindowStartupLocation = WindowStartupLocation.Manual;
         var host = new WidgetHost(
             window,
-            new PositionSlot(readSavedPosition, persistPosition, _settingsController.Flush));
+            new(readSavedPosition, persistPosition, _settingsController.Flush));
         host.Initialize(_settings.Locked, _settings.SnapToEdges, _settings.AlwaysOnTop);
         return host;
     }

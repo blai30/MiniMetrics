@@ -44,12 +44,12 @@ public sealed class RowColorToBrushConverter : IValueConverter
 
         return new LinearGradientBrush
         {
-            StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative),
-            EndPoint = new RelativePoint(1, 0, RelativeUnit.Relative),
+            StartPoint = new(0, 0, RelativeUnit.Relative),
+            EndPoint = new(1, 0, RelativeUnit.Relative),
             GradientStops =
             {
-                new GradientStop(Color.Parse(from), 0),
-                new GradientStop(Color.Parse(to), 1)
+                new(Color.Parse(from), 0),
+                new(Color.Parse(to), 1)
             }
         };
     }

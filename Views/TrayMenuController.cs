@@ -57,7 +57,7 @@ public sealed class TrayMenuController
     {
         _menu = [];
 
-        _cpuShowHideItem = new NativeMenuItem("Show CPU widget")
+        _cpuShowHideItem = new("Show CPU widget")
         {
             ToggleType = MenuItemToggleType.CheckBox,
             IsChecked = state.CpuChecked
@@ -65,7 +65,7 @@ public sealed class TrayMenuController
         _cpuShowHideItem.Click += (_, _) => ToggleCpuRequested?.Invoke();
         _menu.Add(_cpuShowHideItem);
 
-        _gpuShowHideItem = new NativeMenuItem("Show GPU widget")
+        _gpuShowHideItem = new("Show GPU widget")
         {
             ToggleType = MenuItemToggleType.CheckBox,
             IsChecked = state.GpuChecked
@@ -73,7 +73,7 @@ public sealed class TrayMenuController
         _gpuShowHideItem.Click += (_, _) => ToggleGpuRequested?.Invoke();
         _menu.Add(_gpuShowHideItem);
 
-        _clockShowHideItem = new NativeMenuItem("Show clock widget")
+        _clockShowHideItem = new("Show clock widget")
         {
             ToggleType = MenuItemToggleType.CheckBox,
             IsChecked = state.ClockChecked
@@ -81,7 +81,7 @@ public sealed class TrayMenuController
         _clockShowHideItem.Click += (_, _) => ToggleClockRequested?.Invoke();
         _menu.Add(_clockShowHideItem);
 
-        _lockItem = new NativeMenuItem("Lock position")
+        _lockItem = new("Lock position")
         {
             ToggleType = MenuItemToggleType.CheckBox,
             IsChecked = state.LockChecked
@@ -89,7 +89,7 @@ public sealed class TrayMenuController
         _lockItem.Click += (_, _) => ToggleLockRequested?.Invoke();
         _menu.Add(_lockItem);
 
-        _alwaysOnTopItem = new NativeMenuItem("Always on top")
+        _alwaysOnTopItem = new("Always on top")
         {
             ToggleType = MenuItemToggleType.CheckBox,
             IsChecked = state.AlwaysOnTopChecked
@@ -97,7 +97,7 @@ public sealed class TrayMenuController
         _alwaysOnTopItem.Click += (_, _) => ToggleAlwaysOnTopRequested?.Invoke();
         _menu.Add(_alwaysOnTopItem);
 
-        _snapItem = new NativeMenuItem("Snap to edges")
+        _snapItem = new("Snap to edges")
         {
             ToggleType = MenuItemToggleType.CheckBox,
             IsChecked = state.SnapChecked
@@ -107,7 +107,7 @@ public sealed class TrayMenuController
 
         if (state.ShowRunAtStartup)
         {
-            _runAtStartupItem = new NativeMenuItem("Run at startup")
+            _runAtStartupItem = new("Run at startup")
             {
                 ToggleType = MenuItemToggleType.CheckBox,
                 IsChecked = state.RunAtStartupChecked
@@ -144,7 +144,7 @@ public sealed class TrayMenuController
     // loaded with the same lifetime as the old BuildTray call.
     public void Attach(Avalonia.Application application, WindowIcon icon, string toolTip)
     {
-        _trayIcon = new TrayIcon
+        _trayIcon = new()
         {
             Icon = icon,
             ToolTipText = toolTip,
@@ -188,7 +188,7 @@ public sealed class TrayMenuController
             return;
         }
 
-        _updateAvailableItem = new NativeMenuItem(UpdateItemHeader(version));
+        _updateAvailableItem = new(UpdateItemHeader(version));
         if (canApplyInApp)
             _updateAvailableItem.Click += (_, _) => ApplyUpdateRequested?.Invoke();
         else

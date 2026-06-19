@@ -11,7 +11,7 @@ public class StartupManagerTests
     private static (StartupManager Manager, FakeStartupOperations Ops) Build()
     {
         var ops = new FakeStartupOperations();
-        return (new StartupManager(ops, Exe), ops);
+        return (new(ops, Exe), ops);
     }
 
     [TestMethod]

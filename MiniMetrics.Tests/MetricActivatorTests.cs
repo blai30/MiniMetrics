@@ -36,9 +36,9 @@ public class MetricActivatorTests
         Path.Combine(Path.GetTempPath(), "dm-tests", Path.GetRandomFileName(), "settings.json");
 
     private static MetricsSnapshot Snapshot() => new(
-        new CpuMetrics(34.0, null, null),
-        new MemoryMetrics(12_026_124_800UL, 34_359_738_368UL),
-        new GpuMetrics(78.0, 71.0, 6_871_947_674UL, 12_884_901_888UL, 185.0));
+        new(34.0, null, null),
+        new(12_026_124_800UL, 34_359_738_368UL),
+        new(78.0, 71.0, 6_871_947_674UL, 12_884_901_888UL, 185.0));
 
     private sealed class Harness
     {
@@ -59,7 +59,7 @@ public class MetricActivatorTests
         string? runKeyPath = null)
     {
         var scheduler = new FakeSaveScheduler();
-        var controller = new SettingsController(new Settings(), new SettingsStore(TempPath()), scheduler);
+        var controller = new SettingsController(new(), new(TempPath()), scheduler);
         var cpu = new MetricWidgetViewModel("cpu", "ram");
         var gpu = new MetricWidgetViewModel("gpu", "vram");
         cpu.BindVisibility(controller.Current.Visibility);
@@ -79,7 +79,7 @@ public class MetricActivatorTests
 
         var activator = new MetricActivator(widgets, elevationCoordinator, controller, resolveStartup, ExePath);
 
-        return new Harness
+        return new()
         {
             Activator = activator,
             Controller = controller,

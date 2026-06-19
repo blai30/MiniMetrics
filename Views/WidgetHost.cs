@@ -127,7 +127,7 @@ public sealed class WidgetHost(OverlayWindow window, PositionSlot position)
     private static EdgeSnap.Rect RectOf(Window window)
     {
         double scale = window.RenderScaling;
-        return new EdgeSnap.Rect(
+        return new(
             window.Position.X,
             window.Position.Y,
             (int)Math.Round(window.Width * scale),

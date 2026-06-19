@@ -150,7 +150,7 @@ public partial class SettingsViewModel : ObservableObject
                 _togglesByKey[entry.Key] = toggle;
             }
 
-            groups.Add(new MetricGroupViewModel(card.ToUpperInvariant(), toggles));
+            groups.Add(new(card.ToUpperInvariant(), toggles));
         }
 
         MetricGroups = groups;

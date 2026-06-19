@@ -194,7 +194,7 @@ public class SettingsStoreTests
         var store = new SettingsStore(path);
         var when = new DateTimeOffset(2026, 6, 17, 8, 0, 0, TimeSpan.Zero);
 
-        store.Save(new Settings
+        store.Save(new()
         {
             UpdateCheckEnabled = false,
             UpdateFrequency = UpdateCheckFrequency.Weekly,
@@ -215,7 +215,7 @@ public class SettingsStoreTests
     {
         string path = TempPath();
         var store = new SettingsStore(path);
-        store.Save(new Settings
+        store.Save(new()
         {
             ClockLocaleId = "fr-FR",
             ClockTimeFormat = "HH:mm",

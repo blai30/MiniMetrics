@@ -49,30 +49,30 @@ public class UpdatePolicyTests
     [TestMethod]
     public void Evaluate_flags_a_newer_release()
     {
-        var decision = UpdatePolicy.Evaluate(new Version(1, 2, 0), "v1.3.0", null);
+        var decision = UpdatePolicy.Evaluate(new(1, 2, 0), "v1.3.0", null);
 
         Assert.IsTrue(decision.UpdateAvailable);
         Assert.IsTrue(decision.ShouldNotify);
-        Assert.AreEqual(new Version(1, 3, 0), decision.LatestVersion);
+        Assert.AreEqual(new(1, 3, 0), decision.LatestVersion);
     }
 
     [TestMethod]
     public void Evaluate_ignores_an_older_or_equal_release()
     {
-        Assert.IsFalse(UpdatePolicy.Evaluate(new Version(1, 3, 0), "v1.2.0", null).UpdateAvailable);
-        Assert.IsFalse(UpdatePolicy.Evaluate(new Version(1, 3, 0), "1.3.0", null).UpdateAvailable);
+        Assert.IsFalse(UpdatePolicy.Evaluate(new(1, 3, 0), "v1.2.0", null).UpdateAvailable);
+        Assert.IsFalse(UpdatePolicy.Evaluate(new(1, 3, 0), "1.3.0", null).UpdateAvailable);
     }
 
     [TestMethod]
     public void Evaluate_strips_leading_v_case_insensitively()
     {
-        Assert.IsTrue(UpdatePolicy.Evaluate(new Version(1, 2, 0), "V1.3.0", null).UpdateAvailable);
+        Assert.IsTrue(UpdatePolicy.Evaluate(new(1, 2, 0), "V1.3.0", null).UpdateAvailable);
     }
 
     [TestMethod]
     public void Evaluate_suppresses_notify_for_the_skipped_version()
     {
-        var decision = UpdatePolicy.Evaluate(new Version(1, 2, 0), "v1.3.0", "1.3.0");
+        var decision = UpdatePolicy.Evaluate(new(1, 2, 0), "v1.3.0", "1.3.0");
 
         Assert.IsTrue(decision.UpdateAvailable);
         Assert.IsFalse(decision.ShouldNotify);
@@ -81,7 +81,7 @@ public class UpdatePolicyTests
     [TestMethod]
     public void Evaluate_still_notifies_for_a_version_above_the_skipped_one()
     {
-        var decision = UpdatePolicy.Evaluate(new Version(1, 2, 0), "v1.4.0", "1.3.0");
+        var decision = UpdatePolicy.Evaluate(new(1, 2, 0), "v1.4.0", "1.3.0");
 
         Assert.IsTrue(decision.ShouldNotify);
     }
@@ -89,7 +89,7 @@ public class UpdatePolicyTests
     [TestMethod]
     public void Evaluate_treats_an_unparseable_tag_as_no_update()
     {
-        var decision = UpdatePolicy.Evaluate(new Version(1, 2, 0), "nightly-build", null);
+        var decision = UpdatePolicy.Evaluate(new(1, 2, 0), "nightly-build", null);
 
         Assert.IsFalse(decision.UpdateAvailable);
         Assert.IsNull(decision.LatestVersion);

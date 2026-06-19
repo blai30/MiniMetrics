@@ -50,7 +50,7 @@ public class MetricsPollerTests
         public MetricsSnapshot Read()
         {
             onRead();
-            return new MetricsSnapshot(null, null, null);
+            return new(null, null, null);
         }
     }
 }

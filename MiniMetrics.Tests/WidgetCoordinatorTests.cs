@@ -11,14 +11,14 @@ public class WidgetCoordinatorTests
         Path.Combine(Path.GetTempPath(), "dm-tests", Path.GetRandomFileName(), "settings.json");
 
     private static MetricsSnapshot Snapshot() => new(
-        new CpuMetrics(34.0, null, null),
-        new MemoryMetrics(12_026_124_800UL, 34_359_738_368UL),
-        new GpuMetrics(78.0, 71.0, 6_871_947_674UL, 12_884_901_888UL, 185.0));
+        new(34.0, null, null),
+        new(12_026_124_800UL, 34_359_738_368UL),
+        new(78.0, 71.0, 6_871_947_674UL, 12_884_901_888UL, 185.0));
 
     private static (WidgetCoordinator coordinator, SettingsController controller,
         MetricWidgetViewModel cpu, MetricWidgetViewModel gpu, RecordingSensorSource source) NewCoordinator()
     {
-        var controller = new SettingsController(new Settings(), new SettingsStore(TempPath()), new FakeSaveScheduler());
+        var controller = new SettingsController(new(), new(TempPath()), new FakeSaveScheduler());
         var cpu = new MetricWidgetViewModel("cpu", "ram");
         var gpu = new MetricWidgetViewModel("gpu", "vram");
         cpu.BindVisibility(controller.Current.Visibility);

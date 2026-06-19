@@ -65,7 +65,7 @@ public sealed class HardwareSensorSource(IHardwareTree tree, Func<ulong>? instal
                            Available(tree.Read(HardwareKind.Cpu, SensorKind.Temperature, "Core (Tctl/Tdie)"));
             double? power = Available(tree.Read(HardwareKind.Cpu, SensorKind.Power, "CPU Package")) ??
                             Available(tree.Read(HardwareKind.Cpu, SensorKind.Power, "Package"));
-            cpu = new CpuMetrics(load, temp, power);
+            cpu = new(load, temp, power);
         }
 
         MemoryMetrics? memory = null;
@@ -82,7 +82,7 @@ public sealed class HardwareSensorSource(IHardwareTree tree, Func<ulong>? instal
             // larger than the usable total, fall back to the usable total so the reserve never
             // underflows.
             memory = _installedMemoryBytes > usableTotalBytes
-                ? new MemoryMetrics(usedBytes + (_installedMemoryBytes - usableTotalBytes), _installedMemoryBytes)
+                ? new(usedBytes + (_installedMemoryBytes - usableTotalBytes), _installedMemoryBytes)
                 : new MemoryMetrics(usedBytes, usableTotalBytes);
         }
 
@@ -96,7 +96,7 @@ public sealed class HardwareSensorSource(IHardwareTree tree, Func<ulong>? instal
             double vramUsedMib = tree.Read(HardwareKind.Gpu, SensorKind.SmallData, "GPU Memory Used") ?? 0;
             double vramTotalMib = tree.Read(HardwareKind.Gpu, SensorKind.SmallData, "GPU Memory Total") ?? 0;
 
-            gpu = new GpuMetrics(
+            gpu = new(
                 load,
                 temp,
                 MibToBytes(vramUsedMib),
@@ -104,7 +104,7 @@ public sealed class HardwareSensorSource(IHardwareTree tree, Func<ulong>? instal
                 power);
         }
 
-        return new MetricsSnapshot(cpu, memory, gpu);
+        return new(cpu, memory, gpu);
     }
 
     // A CPU package temperature or power reading is only real when positive; 0 or null means the

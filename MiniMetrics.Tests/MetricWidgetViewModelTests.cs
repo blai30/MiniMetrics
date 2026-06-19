@@ -7,9 +7,9 @@ namespace MiniMetrics.Tests;
 public class MetricWidgetViewModelTests
 {
     private static MetricsSnapshot WithGpu() => new(
-        new CpuMetrics(34.0, null, null),
-        new MemoryMetrics(12_026_124_800UL, 34_359_738_368UL),
-        new GpuMetrics(78.0, 71.0, 6_871_947_674UL, 12_884_901_888UL, 185.0));
+        new(34.0, null, null),
+        new(12_026_124_800UL, 34_359_738_368UL),
+        new(78.0, 71.0, 6_871_947_674UL, 12_884_901_888UL, 185.0));
 
     private static MetricWidgetViewModel Cpu() => new("cpu", "ram");
     private static MetricWidgetViewModel Gpu() => new("gpu", "vram");
@@ -62,7 +62,7 @@ public class MetricWidgetViewModelTests
         vm.ApplySnapshot(WithGpu());
         var cpuRow = vm.Rows.Single(r => r.Key == "cpu");
 
-        vm.ApplySnapshot(WithGpu() with { Cpu = new CpuMetrics(50.0, null, null) });
+        vm.ApplySnapshot(WithGpu() with { Cpu = new(50.0, null, null) });
 
         Assert.AreSame(cpuRow, vm.Rows.Single(r => r.Key == "cpu"));
         Assert.AreEqual("50", cpuRow.Value);

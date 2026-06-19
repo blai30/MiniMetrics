@@ -69,7 +69,7 @@ public sealed class DesktopWindow(Window window)
         exStyle = enabled
             ? exStyle | WsExTransparent
             : exStyle & ~(long)WsExTransparent;
-        SetWindowLongPtr(hwnd, GwlExstyle, new IntPtr(exStyle));
+        SetWindowLongPtr(hwnd, GwlExstyle, new(exStyle));
     }
 
     private bool TryGetHandle(out IntPtr hwnd)

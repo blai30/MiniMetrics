@@ -9,9 +9,9 @@ public class NotifyUpdateFlowTests
     private static NotifyUpdateFlow NewFlow(IReleaseSource source)
     {
         string path = Path.Combine(Path.GetTempPath(), "dm-tests", Path.GetRandomFileName(), "settings.json");
-        var controller = new SettingsController(new Settings(), new SettingsStore(path), new FakeSaveScheduler());
-        var service = new UpdateService(source, new Version(1, 2, 0), controller, () => DateTimeOffset.UtcNow);
-        return new NotifyUpdateFlow(service);
+        var controller = new SettingsController(new(), new(path), new FakeSaveScheduler());
+        var service = new UpdateService(source, new(1, 2, 0), controller, () => DateTimeOffset.UtcNow);
+        return new(service);
     }
 
     [TestMethod]
@@ -33,7 +33,7 @@ public class NotifyUpdateFlowTests
     [TestMethod]
     public async Task Check_forwards_to_the_underlying_service()
     {
-        var source = new FakeReleaseSource { Release = new ReleaseInfo("v1.3.0", "https://example/r") };
+        var source = new FakeReleaseSource { Release = new("v1.3.0", "https://example/r") };
         var flow = NewFlow(source);
 
         var result = await flow.CheckAsync(false);

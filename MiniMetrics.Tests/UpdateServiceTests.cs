@@ -13,15 +13,15 @@ public class UpdateServiceTests
     {
         string path = Path.Combine(Path.GetTempPath(), "dm-tests", Path.GetRandomFileName(), "settings.json");
         var controller =
-            new SettingsController(settings ?? new Settings(), new SettingsStore(path), new FakeSaveScheduler());
-        var service = new UpdateService(source, new Version(1, 2, 0), controller, () => Now);
+            new SettingsController(settings ?? new Settings(), new(path), new FakeSaveScheduler());
+        var service = new UpdateService(source, new(1, 2, 0), controller, () => Now);
         return (service, controller);
     }
 
     [TestMethod]
     public async Task Reports_an_available_update_and_stamps_the_check()
     {
-        var source = new FakeReleaseSource { Release = new ReleaseInfo("v1.3.0", "https://example/r") };
+        var source = new FakeReleaseSource { Release = new("v1.3.0", "https://example/r") };
         var (service, controller) = NewService(source);
 
         var result = await service.CheckAsync(false);
@@ -35,7 +35,7 @@ public class UpdateServiceTests
     [TestMethod]
     public async Task Reports_up_to_date_when_not_newer()
     {
-        var source = new FakeReleaseSource { Release = new ReleaseInfo("v1.0.0", "https://example/r") };
+        var source = new FakeReleaseSource { Release = new("v1.0.0", "https://example/r") };
         var (service, controller) = NewService(source);
 
         var result = await service.CheckAsync(true);
@@ -60,8 +60,8 @@ public class UpdateServiceTests
     [TestMethod]
     public async Task Auto_check_suppresses_a_skipped_version()
     {
-        var source = new FakeReleaseSource { Release = new ReleaseInfo("v1.3.0", "https://example/r") };
-        var (service, _) = NewService(source, new Settings { SkippedUpdateVersion = "1.3.0" });
+        var source = new FakeReleaseSource { Release = new("v1.3.0", "https://example/r") };
+        var (service, _) = NewService(source, new() { SkippedUpdateVersion = "1.3.0" });
 
         var result = await service.CheckAsync(false);
 
@@ -71,8 +71,8 @@ public class UpdateServiceTests
     [TestMethod]
     public async Task Manual_check_shows_a_skipped_version_anyway()
     {
-        var source = new FakeReleaseSource { Release = new ReleaseInfo("v1.3.0", "https://example/r") };
-        var (service, _) = NewService(source, new Settings { SkippedUpdateVersion = "1.3.0" });
+        var source = new FakeReleaseSource { Release = new("v1.3.0", "https://example/r") };
+        var (service, _) = NewService(source, new() { SkippedUpdateVersion = "1.3.0" });
 
         var result = await service.CheckAsync(true);
 

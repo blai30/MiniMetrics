@@ -7,9 +7,9 @@ namespace MiniMetrics.Tests;
 public class RowBuilderTests
 {
     private static MetricsSnapshot WithGpu(double gpuTemp = 71.0) => new(
-        new CpuMetrics(34.0, null, null),
-        new MemoryMetrics(12_026_124_800UL, 34_359_738_368UL),
-        new GpuMetrics(78.0, gpuTemp, 6_871_947_674UL, 12_884_901_888UL, 185.0));
+        new(34.0, null, null),
+        new(12_026_124_800UL, 34_359_738_368UL),
+        new(78.0, gpuTemp, 6_871_947_674UL, 12_884_901_888UL, 185.0));
 
     [TestMethod]
     public void Build_with_gpu_produces_four_rows_in_order()
@@ -76,8 +76,8 @@ public class RowBuilderTests
     public void Build_formats_cpu_temperature_and_power_when_present()
     {
         var snapshot = new MetricsSnapshot(
-            new CpuMetrics(34.0, 56.0, 65.0),
-            new MemoryMetrics(12_026_124_800UL, 34_359_738_368UL),
+            new(34.0, 56.0, 65.0),
+            new(12_026_124_800UL, 34_359_738_368UL),
             null);
 
         var cpu = RowBuilder.Build(snapshot).Single(r => r.Key == "cpu");
@@ -98,8 +98,8 @@ public class RowBuilderTests
     public void Build_color_codes_cpu_temperature_by_threshold(double temp, TempLevel expected)
     {
         var snapshot = new MetricsSnapshot(
-            new CpuMetrics(34.0, temp, 65.0),
-            new MemoryMetrics(12_026_124_800UL, 34_359_738_368UL),
+            new(34.0, temp, 65.0),
+            new(12_026_124_800UL, 34_359_738_368UL),
             null);
 
         var cpu = RowBuilder.Build(snapshot).Single(r => r.Key == "cpu");

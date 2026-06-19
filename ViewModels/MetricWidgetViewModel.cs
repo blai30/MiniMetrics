@@ -71,7 +71,7 @@ public partial class MetricWidgetViewModel(string computeKey, string memoryKey) 
             var existing = Rows.FirstOrDefault(r => r.Key == row.Key);
             if (existing is null)
             {
-                existing = new MetricRowViewModel { Key = row.Key };
+                existing = new() { Key = row.Key };
                 Rows.Insert(i < Rows.Count ? i : Rows.Count, existing);
                 membershipChanged = true;
             }

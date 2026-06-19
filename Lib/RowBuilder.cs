@@ -42,7 +42,7 @@ public static class RowBuilder
         var rows = new List<MetricRow>();
 
         if (snapshot.Cpu is { } cpu)
-            rows.Add(new MetricRow(
+            rows.Add(new(
                 "cpu",
                 "CPU",
                 MetricFormatting.FormatPercent(cpu.UsagePercent),
@@ -57,7 +57,7 @@ public static class RowBuilder
                 RowColor.Cyan));
 
         if (snapshot.Memory is { } memory)
-            rows.Add(new MetricRow(
+            rows.Add(new(
                 "ram",
                 "RAM",
                 MetricFormatting.FormatGiB(memory.UsedBytes),
@@ -68,7 +68,7 @@ public static class RowBuilder
                 RowColor.Green));
 
         if (snapshot.Gpu is not { } gpu) return rows;
-        rows.Add(new MetricRow(
+        rows.Add(new(
             "gpu",
             "GPU",
             MetricFormatting.FormatPercent(gpu.UsagePercent),
@@ -77,7 +77,7 @@ public static class RowBuilder
             MetricFormatting.FormatPower(gpu.PowerWatts),
             gpu.UsagePercent,
             RowColor.Amber));
-        rows.Add(new MetricRow(
+        rows.Add(new(
             "vram",
             "VRAM",
             MetricFormatting.FormatGiB(gpu.VramUsedBytes),
