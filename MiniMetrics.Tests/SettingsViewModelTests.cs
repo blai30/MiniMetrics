@@ -260,6 +260,54 @@ public class SettingsViewModelTests
     }
 
     [TestMethod]
+    public void Seeds_compact_flags_from_settings()
+    {
+        var settings = new Settings { CpuCompact = true, GpuCompact = false, DateTimeCompact = true };
+
+        var viewModel = new SettingsViewModel(settings);
+
+        Assert.IsTrue(viewModel.CpuCompact);
+        Assert.IsFalse(viewModel.GpuCompact);
+        Assert.IsTrue(viewModel.DateTimeCompact);
+    }
+
+    [TestMethod]
+    public void Toggling_cpu_compact_raises_CompactChanged_with_widget_key()
+    {
+        var viewModel = new SettingsViewModel(new Settings());
+        (string Widget, bool Value)? last = null;
+        viewModel.CompactChanged += (widget, value) => last = (widget, value);
+
+        viewModel.CpuCompact = true;
+
+        Assert.AreEqual(("cpu", true), last);
+    }
+
+    [TestMethod]
+    public void Toggling_gpu_compact_raises_CompactChanged_with_widget_key()
+    {
+        var viewModel = new SettingsViewModel(new Settings());
+        (string Widget, bool Value)? last = null;
+        viewModel.CompactChanged += (widget, value) => last = (widget, value);
+
+        viewModel.GpuCompact = true;
+
+        Assert.AreEqual(("gpu", true), last);
+    }
+
+    [TestMethod]
+    public void Toggling_clock_compact_raises_CompactChanged_with_clock_key()
+    {
+        var viewModel = new SettingsViewModel(new Settings());
+        (string Widget, bool Value)? last = null;
+        viewModel.CompactChanged += (widget, value) => last = (widget, value);
+
+        viewModel.DateTimeCompact = true;
+
+        Assert.AreEqual(("clock", true), last);
+    }
+
+    [TestMethod]
     public void Seeds_selected_locale_from_settings_id()
     {
         var viewModel = new SettingsViewModel(new Settings { ClockLocaleId = "fr-FR" });

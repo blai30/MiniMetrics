@@ -81,6 +81,49 @@
             </StackPanel>
         </DataTemplate>
 
+        <!-- Compact compute (CPU, GPU): label, then temperature / usage / power inline. No bars,
+        neutral text except the temperature heat color. Numeric slots are fixed width so the row only
+        changes width when a metric is toggled, not when a value's digit count changes. -->
+        <DataTemplate x:Key="ComputeCompactTemplate" x:DataType="vm:MetricRowViewModel">
+            <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                <TextBlock Text="{Binding Label}"
+                           FontSize="22"
+                           FontWeight="Bold"
+                           Foreground="{DynamicResource Widget.Text.Label}"
+                           VerticalAlignment="Center" />
+                <TextBlock IsVisible="{Binding TempVisible}"
+                           VerticalAlignment="Center"
+                           MinWidth="72"
+                           TextAlignment="Right"
+                           Foreground="{Binding TempLevel, Converter={StaticResource TempLevelToBrush}}"><Run Text="{Binding Temp}" FontSize="26" FontWeight="Bold" /><Run Text="°C" FontSize="16" FontWeight="SemiBold" /></TextBlock>
+                <TextBlock IsVisible="{Binding UsageVisible}"
+                           VerticalAlignment="Center"
+                           MinWidth="64"
+                           TextAlignment="Right"
+                           Foreground="{DynamicResource Widget.Text.Primary}"><Run Text="{Binding Value}" FontSize="26" FontWeight="Bold" /><Run Text="%" FontSize="16" FontWeight="SemiBold" /></TextBlock>
+                <TextBlock IsVisible="{Binding PowerVisible}"
+                           Text="{Binding Detail}"
+                           VerticalAlignment="Center"
+                           MinWidth="66"
+                           TextAlignment="Right"
+                           FontSize="22"
+                           FontWeight="Bold"
+                           Foreground="{DynamicResource Widget.Text.Secondary}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <!-- Compact memory (RAM, VRAM): label then used / total inline. -->
+        <DataTemplate x:Key="MemoryCompactTemplate" x:DataType="vm:MetricRowViewModel">
+            <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                <TextBlock Text="{Binding Label}"
+                           FontSize="22"
+                           FontWeight="Bold"
+                           Foreground="{DynamicResource Widget.Text.Label}"
+                           VerticalAlignment="Center" />
+                <TextBlock VerticalAlignment="Center"><Run Text="{Binding Value}" FontSize="26" FontWeight="Bold" Foreground="{DynamicResource Widget.Text.Primary}" /><Run Text=" " /><Run Text="{Binding Detail}" FontSize="17" FontWeight="SemiBold" Foreground="{DynamicResource Widget.Text.Secondary}" /></TextBlock>
+            </StackPanel>
+        </DataTemplate>
+
         <!-- A memory metric (RAM, VRAM): a quiet used / total readout above its bar. -->
         <DataTemplate x:Key="MemoryTemplate" x:DataType="vm:MetricRowViewModel">
             <StackPanel>
@@ -121,17 +164,34 @@
             CornerRadius="0"
             Background="{Binding CardBackground}"
             TextElement.FontFeatures="+tnum">
-        <Grid RowDefinitions="*,Auto" Margin="20,14,20,16">
-            <ContentControl Grid.Row="0"
-                            Content="{Binding Compute}"
-                            ContentTemplate="{StaticResource ComputeTemplate}"
-                            IsVisible="{Binding Compute.IsVisible, FallbackValue=False}"
-                            VerticalContentAlignment="Center" />
-            <ContentControl Grid.Row="1"
-                            Margin="0,14,0,0"
-                            Content="{Binding Memory}"
-                            ContentTemplate="{StaticResource MemoryTemplate}"
-                            IsVisible="{Binding Memory.IsVisible, FallbackValue=False}" />
-        </Grid>
+        <Panel>
+            <!-- Full layout: compute card stacked over memory card. -->
+            <Grid RowDefinitions="*,Auto" Margin="20,14,20,16" IsVisible="{Binding !IsCompact}">
+                <ContentControl Grid.Row="0"
+                                Content="{Binding Compute}"
+                                ContentTemplate="{StaticResource ComputeTemplate}"
+                                IsVisible="{Binding Compute.IsVisible, FallbackValue=False}"
+                                VerticalContentAlignment="Center" />
+                <ContentControl Grid.Row="1"
+                                Margin="0,14,0,0"
+                                Content="{Binding Memory}"
+                                ContentTemplate="{StaticResource MemoryTemplate}"
+                                IsVisible="{Binding Memory.IsVisible, FallbackValue=False}" />
+            </Grid>
+
+            <!-- Compact layout: everything on one line, no bars. -->
+            <StackPanel Orientation="Horizontal"
+                        Margin="18,0"
+                        Spacing="18"
+                        VerticalAlignment="Center"
+                        IsVisible="{Binding IsCompact}">
+                <ContentControl Content="{Binding Compute}"
+                                ContentTemplate="{StaticResource ComputeCompactTemplate}"
+                                IsVisible="{Binding Compute.IsVisible, FallbackValue=False}" />
+                <ContentControl Content="{Binding Memory}"
+                                ContentTemplate="{StaticResource MemoryCompactTemplate}"
+                                IsVisible="{Binding Memory.IsVisible, FallbackValue=False}" />
+            </StackPanel>
+        </Panel>
     </Border>
 </views:OverlayWindow>

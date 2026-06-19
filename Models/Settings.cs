@@ -15,6 +15,9 @@ public sealed class Settings
     public AppTheme Theme { get; set; } = AppTheme.System;
     public string LightBackgroundColor { get; set; } = "#EEF1F5";
     public int Opacity { get; set; } = 96;
+    public bool CpuCompact { get; set; }
+    public bool GpuCompact { get; set; }
+    public bool DateTimeCompact { get; set; }
     public int? DateTimeX { get; set; }
     public int? DateTimeY { get; set; }
     public bool DateTimeHidden { get; set; } = true;

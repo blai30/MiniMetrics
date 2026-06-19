@@ -55,6 +55,15 @@ public partial class SettingsViewModel : ObservableObject
     private UpdateCheckFrequency _updateFrequency;
 
     [ObservableProperty]
+    private bool _cpuCompact;
+
+    [ObservableProperty]
+    private bool _gpuCompact;
+
+    [ObservableProperty]
+    private bool _dateTimeCompact;
+
+    [ObservableProperty]
     private bool _useLocalTime;
 
     // The full set of specific cultures for the locale picker, ordered by display name.
@@ -143,6 +152,9 @@ public partial class SettingsViewModel : ObservableObject
         _opacity = settings.Opacity;
         _updateCheckEnabled = settings.UpdateCheckEnabled;
         _updateFrequency = settings.UpdateFrequency;
+        _cpuCompact = settings.CpuCompact;
+        _gpuCompact = settings.GpuCompact;
+        _dateTimeCompact = settings.DateTimeCompact;
         _useLocalTime = settings.TimeZoneId is null;
         _clockTimeFormat = settings.ClockTimeFormat;
         _clockDateFormat = settings.ClockDateFormat;
@@ -192,6 +204,10 @@ public partial class SettingsViewModel : ObservableObject
 
     // Raised when the update-check enabled flag or cadence changes (persist).
     public event Action? UpdatePreferencesChanged;
+
+    // Raised when a per-widget compact toggle changes, with the widget key ("cpu", "gpu", "clock")
+    // and the new value.
+    public event Action<string, bool>? CompactChanged;
 
     // The toggle for a metric key.
     public MetricToggleViewModel ToggleFor(string key) => _togglesByKey[key];
@@ -270,6 +286,12 @@ public partial class SettingsViewModel : ObservableObject
     partial void OnUpdateCheckEnabledChanged(bool value) => UpdatePreferencesChanged?.Invoke();
 
     partial void OnUpdateFrequencyChanged(UpdateCheckFrequency value) => UpdatePreferencesChanged?.Invoke();
+
+    partial void OnCpuCompactChanged(bool value) => CompactChanged?.Invoke("cpu", value);
+
+    partial void OnGpuCompactChanged(bool value) => CompactChanged?.Invoke("gpu", value);
+
+    partial void OnDateTimeCompactChanged(bool value) => CompactChanged?.Invoke("clock", value);
 
     // Picks the saved zone by id, else the machine's local zone (matched from the list so the
     // dropdown highlights it), else local as a last resort.

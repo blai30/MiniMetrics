@@ -30,6 +30,10 @@ public partial class DateTimeWidgetViewModel : ObservableObject, IWidgetAppearan
     [ObservableProperty]
     private IBrush _cardBackground = Brushes.Transparent;
 
+    // Drives the clock window between its stacked layout and the single-line compact layout.
+    [ObservableProperty]
+    private bool _isCompact;
+
     // Recomputes the card's solid background color from a base color and opacity (shared with the
     // metrics widget's appearance logic).
     public void ApplyAppearance(string backgroundColor, int opacity)

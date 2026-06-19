@@ -93,9 +93,11 @@ public partial class App : Application
 
             _cpuViewModel = new MetricWidgetViewModel("cpu", "ram");
             _cpuViewModel.BindVisibility(_settings.Visibility);
+            _cpuViewModel.IsCompact = _settings.CpuCompact;
 
             _gpuViewModel = new MetricWidgetViewModel("gpu", "vram");
             _gpuViewModel.BindVisibility(_settings.Visibility);
+            _gpuViewModel.IsCompact = _settings.GpuCompact;
 
             _dateTimeViewModel = new DateTimeWidgetViewModel();
             _dateTimeViewModel.SetTimeZone(ResolveTimeZone(_settings.TimeZoneId));
@@ -103,6 +105,7 @@ public partial class App : Application
             _dateTimeViewModel.SetFormats(
                 _settings.ClockTimeFormat, _settings.ClockDateFormat,
                 _settings.ClockTimeFormatHover, _settings.ClockDateFormatHover);
+            _dateTimeViewModel.IsCompact = _settings.DateTimeCompact;
 
             _appearances = new IWidgetAppearance[] { _cpuViewModel, _gpuViewModel, _dateTimeViewModel };
             ApplyAppearanceToWidgets();
@@ -369,6 +372,7 @@ public partial class App : Application
         viewModel.AppearanceChanged += () => OnAppearanceChanged(viewModel);
         viewModel.ThemeChanged += () => OnThemeChanged(viewModel);
         viewModel.MetricVisibilityChanged += OnMetricVisibilityChanged;
+        viewModel.CompactChanged += OnCompactChanged;
         viewModel.TimeZoneChanged += () => OnTimeZoneChanged(viewModel);
         viewModel.ClockFormatsChanged += () => OnClockFormatsChanged(viewModel);
         viewModel.ClockLocaleChanged += () => OnClockLocaleChanged(viewModel);
@@ -461,6 +465,26 @@ public partial class App : Application
         // SelectedLocale always comes from the list, so its Name is a valid culture name to persist.
         _settingsController.SetClockLocale(viewModel.SelectedLocale.Name);
         _dateTimeViewModel.SetLocale(viewModel.SelectedLocale);
+    }
+
+    // Persists a per-widget compact toggle and pushes it onto the affected widget so it reflows live.
+    private void OnCompactChanged(string widget, bool value)
+    {
+        switch (widget)
+        {
+            case "cpu":
+                _settingsController.SetCpuCompact(value);
+                _cpuViewModel.IsCompact = value;
+                break;
+            case "gpu":
+                _settingsController.SetGpuCompact(value);
+                _gpuViewModel.IsCompact = value;
+                break;
+            case "clock":
+                _settingsController.SetDateTimeCompact(value);
+                _dateTimeViewModel.IsCompact = value;
+                break;
+        }
     }
 
     // Re-entrancy guard: RevertMetricToggle flips a toggle back, which re-raises this event; the guard
