@@ -316,4 +316,34 @@ public class SettingsControllerTests
 
         Assert.AreEqual("fr-FR", store.Load().ClockLocaleId);
     }
+
+    [TestMethod]
+    public void SetWidgetFont_updates_state_now_but_defers_the_write()
+    {
+        var (controller, store, scheduler) = NewController();
+
+        controller.SetWidgetFont("Cascadia Code", 125, WidgetFontWeight.Bold);
+
+        Assert.AreEqual("Cascadia Code", controller.Current.WidgetFontFamily);
+        Assert.AreEqual(125, controller.Current.WidgetFontScale);
+        Assert.AreEqual(WidgetFontWeight.Bold, controller.Current.WidgetFontWeight);
+        Assert.AreEqual(1, scheduler.ScheduleCount);
+        Assert.IsNull(store.Load().WidgetFontFamily); // default until flush
+
+        controller.Flush();
+
+        Assert.AreEqual("Cascadia Code", store.Load().WidgetFontFamily);
+        Assert.AreEqual(125, store.Load().WidgetFontScale);
+        Assert.AreEqual(WidgetFontWeight.Bold, store.Load().WidgetFontWeight);
+    }
+
+    [TestMethod]
+    public void Widget_font_defaults_are_inter_regular_full_size()
+    {
+        var (controller, _, _) = NewController();
+
+        Assert.IsNull(controller.Current.WidgetFontFamily);
+        Assert.AreEqual(100, controller.Current.WidgetFontScale);
+        Assert.AreEqual(WidgetFontWeight.Regular, controller.Current.WidgetFontWeight);
+    }
 }

@@ -18,6 +18,9 @@ public sealed class Settings
     public bool CpuCompact { get; set; }
     public bool GpuCompact { get; set; }
     public bool DateTimeCompact { get; set; }
+    public string? WidgetFontFamily { get; set; }
+    public int WidgetFontScale { get; set; } = 100;
+    public WidgetFontWeight WidgetFontWeight { get; set; } = WidgetFontWeight.Regular;
     public ClockAlignment ClockAlignment { get; set; } = ClockAlignment.Left;
     public int? DateTimeX { get; set; }
     public int? DateTimeY { get; set; }
