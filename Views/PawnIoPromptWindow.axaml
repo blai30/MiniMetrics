@@ -9,23 +9,28 @@
         Width="400"
         SizeToContent="Height"
         CanResize="False"
-        WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="CenterScreen"
+        TransparencyLevelHint="Mica"
+        Background="Transparent">
 
-    <StackPanel Margin="22" Spacing="14">
+    <StackPanel Margin="24,22" Spacing="16">
+        <StackPanel Orientation="Horizontal" Spacing="14">
+            <Border Width="44" Height="44" CornerRadius="10"
+                    Background="{DynamicResource AccentFillColorDefaultBrush}" VerticalAlignment="Top">
+                <PathIcon Width="20" Height="20"
+                          Foreground="{DynamicResource TextOnAccentFillColorPrimaryBrush}"
+                          Data="M12 3 L20 7 L20 12 C20 17 16 20 12 21 C8 20 4 17 4 12 L4 7 Z" />
+            </Border>
+            <TextBlock Text="CPU temperature and power need a driver" FontSize="17" FontWeight="SemiBold"
+                       TextWrapping="Wrap" VerticalAlignment="Center" />
+        </StackPanel>
 
-        <TextBlock Text="CPU temperature and power need a driver"
-                   FontSize="15"
-                   FontWeight="SemiBold"
-                   TextWrapping="Wrap" />
-
-        <TextBlock TextWrapping="Wrap"
-                   LineHeight="20"
+        <TextBlock TextWrapping="Wrap" LineHeight="20"
                    Text="MiniMetrics reads CPU temperature and power through the PawnIO kernel driver, which is not installed on this machine. Until it is, those two metrics stay blank. Installing PawnIO is a one-time step; afterwards the app asks for elevation only when it needs to read the sensors." />
 
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,4,0,0">
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
             <Button Content="Not now" Click="OnClose" />
             <Button Content="Install PawnIO" Click="OnInstall" Classes="accent" />
         </StackPanel>
-
     </StackPanel>
 </Window>
