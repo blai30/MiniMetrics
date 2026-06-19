@@ -433,8 +433,8 @@ public partial class App : Application
         ApplyWidgetStyle();
     }
 
-    // Resolves one font profile from the current settings and pushes it to every widget through the
-    // shared font seam.
+    // Resolves one style profile from the current settings and pushes it to every widget through the
+    // shared widget-style seam.
     private void ApplyWidgetStyle()
     {
         var profile = WidgetStyleProfile.Resolve(

@@ -143,7 +143,7 @@ public class DateTimeWidgetViewModelTests
     }
 
     [TestMethod]
-    public void DateTime_font_defaults_reproduce_todays_look()
+    public void DateTime_style_defaults_reproduce_todays_look()
     {
         var viewModel = new DateTimeWidgetViewModel();
 

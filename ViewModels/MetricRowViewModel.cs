@@ -22,7 +22,7 @@ public partial class MetricRowViewModel : ObservableObject
     [ObservableProperty] public partial bool TempVisible { get; set; } = true;
     [ObservableProperty] public partial bool PowerVisible { get; set; } = true;
 
-    // The active font scale and resolved weights, stamped by the owning widget so the row template
+    // The active widget scale and resolved weights, stamped by the owning widget so the row template
     // (whose DataContext is this row) can bind them. Defaults reproduce the original look.
     [ObservableProperty] public partial double Scale { get; set; } = 1.0;
     [ObservableProperty] public partial FontWeight StrongWeight { get; set; } = FontWeight.Bold;

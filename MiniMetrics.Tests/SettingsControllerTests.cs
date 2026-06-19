@@ -338,7 +338,7 @@ public class SettingsControllerTests
     }
 
     [TestMethod]
-    public void Widget_font_defaults_are_inter_regular_full_size()
+    public void Widget_style_defaults_are_inter_regular_full_size()
     {
         var (controller, _, _) = NewController();
 

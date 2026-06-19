@@ -8,7 +8,7 @@ namespace MiniMetrics.Tests;
 public class ScaleConverterTests
 {
     [TestMethod]
-    public void Font_scale_multiplies_base_size_by_factor()
+    public void Scale_multiplies_base_size_by_factor()
     {
         var converter = new ScaleConverter();
 
@@ -18,7 +18,7 @@ public class ScaleConverterTests
     }
 
     [TestMethod]
-    public void Font_scale_at_unity_returns_base_size()
+    public void Scale_at_unity_returns_base_size()
     {
         var converter = new ScaleConverter();
 

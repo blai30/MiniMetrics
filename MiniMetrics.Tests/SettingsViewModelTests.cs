@@ -470,7 +470,7 @@ public class SettingsViewModelTests
     }
 
     [TestMethod]
-    public void Changing_font_family_raises_a_font_change()
+    public void Changing_font_family_raises_a_widget_style_change()
     {
         var viewModel = new SettingsViewModel(new(), true, new FakeFontCatalog("Arial"));
         var changes = Capture(viewModel);
@@ -482,7 +482,7 @@ public class SettingsViewModelTests
     }
 
     [TestMethod]
-    public void Changing_font_scale_raises_a_font_change()
+    public void Changing_scale_raises_a_widget_style_change()
     {
         var viewModel = new SettingsViewModel(new(), true, new FakeFontCatalog());
         var changes = Capture(viewModel);
@@ -494,7 +494,7 @@ public class SettingsViewModelTests
     }
 
     [TestMethod]
-    public void Changing_font_weight_raises_a_font_change()
+    public void Changing_font_weight_raises_a_widget_style_change()
     {
         var viewModel = new SettingsViewModel(new(), true, new FakeFontCatalog());
         var changes = Capture(viewModel);

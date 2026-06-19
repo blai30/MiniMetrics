@@ -59,7 +59,7 @@ public partial class MetricWidgetViewModel(string computeKey, string memoryKey) 
         foreach (var row in Rows) row.NotifyThemeChanged();
     }
 
-    // Applies the resolved font to the window-level bindings and stamps each row so the templates,
+    // Applies the resolved style to the window-level bindings and stamps each row so the templates,
     // whose DataContext is a row, can bind the scale and weights too.
     public void ApplyStyle(WidgetStyleProfile profile)
     {
@@ -70,10 +70,10 @@ public partial class MetricWidgetViewModel(string computeKey, string memoryKey) 
         StrongWeight = (FontWeight)profile.StrongWeight;
         UnitWeight = (FontWeight)profile.UnitWeight;
 
-        foreach (var row in Rows) StampFont(row);
+        foreach (var row in Rows) StampStyle(row);
     }
 
-    private void StampFont(MetricRowViewModel row)
+    private void StampStyle(MetricRowViewModel row)
     {
         row.Scale = Scale;
         row.StrongWeight = StrongWeight;
@@ -106,7 +106,7 @@ public partial class MetricWidgetViewModel(string computeKey, string memoryKey) 
             {
                 existing = new() { Key = row.Key };
                 Rows.Insert(i < Rows.Count ? i : Rows.Count, existing);
-                StampFont(existing);
+                StampStyle(existing);
                 membershipChanged = true;
             }
 
