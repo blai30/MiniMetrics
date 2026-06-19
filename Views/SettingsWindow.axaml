@@ -346,19 +346,20 @@
                         <ItemsControl ItemsSource="{Binding MetricGroups}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate x:DataType="vm:MetricGroupViewModel">
-                                    <ui:FASettingsExpander Header="{Binding Header}" Margin="0,0,0,6">
+                                    <StackPanel Spacing="6" Margin="0,0,0,14">
+                                        <TextBlock Text="{Binding Header}" FontSize="16" FontWeight="SemiBold" Margin="2,4,0,2" />
                                         <ItemsControl ItemsSource="{Binding Toggles}">
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate x:DataType="vm:MetricToggleViewModel">
-                                                    <ui:FASettingsExpanderItem Content="{Binding Label}">
-                                                        <ui:FASettingsExpanderItem.Footer>
+                                                    <ui:FASettingsExpander Header="{Binding Label}" Margin="0,0,0,6">
+                                                        <ui:FASettingsExpander.Footer>
                                                             <ToggleSwitch IsChecked="{Binding IsVisible}" OnContent="" OffContent="" />
-                                                        </ui:FASettingsExpanderItem.Footer>
-                                                    </ui:FASettingsExpanderItem>
+                                                        </ui:FASettingsExpander.Footer>
+                                                    </ui:FASettingsExpander>
                                                 </DataTemplate>
                                             </ItemsControl.ItemTemplate>
                                         </ItemsControl>
-                                    </ui:FASettingsExpander>
+                                    </StackPanel>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
