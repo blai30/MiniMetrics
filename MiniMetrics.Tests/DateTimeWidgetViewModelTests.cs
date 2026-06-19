@@ -1,4 +1,7 @@
 using System.Globalization;
+using Avalonia.Media;
+using MiniMetrics.Lib;
+using MiniMetrics.Models;
 using MiniMetrics.ViewModels;
 
 namespace MiniMetrics.Tests;
@@ -123,5 +126,31 @@ public class DateTimeWidgetViewModelTests
 
         var brush = Assert.IsInstanceOfType<Avalonia.Media.SolidColorBrush>(vm.CardBackground);
         Assert.AreEqual(Avalonia.Media.Color.Parse("#FF0F121D"), brush.Color);
+    }
+
+    [TestMethod]
+    public void ApplyFont_sets_family_scale_weight_and_scaled_size()
+    {
+        var viewModel = new DateTimeWidgetViewModel();
+
+        viewModel.ApplyFont(WidgetFontProfile.Resolve("Cascadia Code", 150, WidgetFontWeight.Bold));
+
+        Assert.AreEqual("Cascadia Code", viewModel.FontFamily.Name);
+        Assert.AreEqual(1.5, viewModel.FontScale, 1e-9);
+        Assert.AreEqual(FontWeight.SemiBold, viewModel.ClockWeight); // Bold preset clock = 600
+        Assert.AreEqual(640 * 1.5, viewModel.ScaledWidth, 1e-9);
+        Assert.AreEqual(176 * 1.5, viewModel.ScaledHeight, 1e-9);
+    }
+
+    [TestMethod]
+    public void DateTime_font_defaults_reproduce_todays_look()
+    {
+        var viewModel = new DateTimeWidgetViewModel();
+
+        Assert.AreEqual("Inter", viewModel.FontFamily.Name);
+        Assert.AreEqual(1.0, viewModel.FontScale, 1e-9);
+        Assert.AreEqual(FontWeight.Medium, viewModel.ClockWeight);
+        Assert.AreEqual(640.0, viewModel.ScaledWidth, 1e-9);
+        Assert.AreEqual(176.0, viewModel.ScaledHeight, 1e-9);
     }
 }

@@ -1,3 +1,4 @@
+using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using MiniMetrics.Lib;
 
@@ -20,6 +21,12 @@ public partial class MetricRowViewModel : ObservableObject
     [ObservableProperty] public partial bool UsageVisible { get; set; } = true;
     [ObservableProperty] public partial bool TempVisible { get; set; } = true;
     [ObservableProperty] public partial bool PowerVisible { get; set; } = true;
+
+    // The active font scale and resolved weights, stamped by the owning widget so the row template
+    // (whose DataContext is this row) can bind them. Defaults reproduce the original look.
+    [ObservableProperty] public partial double FontScale { get; set; } = 1.0;
+    [ObservableProperty] public partial FontWeight StrongWeight { get; set; } = FontWeight.Bold;
+    [ObservableProperty] public partial FontWeight UnitWeight { get; set; } = FontWeight.SemiBold;
 
     // True when this row has a temperature to show, used to collapse the temp slot otherwise.
     public bool HasTemp => Temp.Length > 0;
