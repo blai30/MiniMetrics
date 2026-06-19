@@ -18,7 +18,9 @@ A mini widget display for performance metrics that sits on your desktop. MiniMet
 
 - Floating CPU and GPU widgets with live readouts such as temperature, usage, power, and RAM/VRAM, powered by [LibreHardwareMonitor](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor)
 - Temperature color coding with thresholds, including a critical level for the GPU
-- Date and time widget with timezone selection and a timezone offset shown on hover
+- Light, dark, and system themes, with accent colors that follow the theme
+- Compact layout toggle per widget (CPU, GPU, and clock) for a denser readout
+- Date and time widget with time zone and locale selection, custom date/time format strings (with a separate format shown on hover), and left, center, or right text alignment
 - Per-metric visibility toggles for CPU, RAM, GPU, and VRAM, so you show only what you care about
 - Customizable background color and opacity, with an always-on-top display
 - Edge snapping: widgets snap flush to screen edges and to each other
@@ -66,6 +68,6 @@ Clock widget:
 
 ![Clock widget](docs/screenshots/clock-widget.webp)
 
-Settings, with background color, opacity, time zone, and per-metric visibility:
+Settings, with theme, background color, opacity, compact layout, clock format and alignment, and per-metric visibility:
 
 ![Settings window](docs/screenshots/settings-window.webp)
