@@ -81,6 +81,8 @@ public sealed class TrayMenuController
         _clockShowHideItem.Click += (_, _) => ToggleClockRequested?.Invoke();
         _menu.Add(_clockShowHideItem);
 
+        _menu.Add(new NativeMenuItemSeparator());
+
         _lockItem = new("Lock position")
         {
             ToggleType = MenuItemToggleType.CheckBox,
