@@ -5,12 +5,12 @@ using MiniMetrics.Converters;
 namespace MiniMetrics.Tests;
 
 [TestClass]
-public class FontScaleConverterTests
+public class ScaleConverterTests
 {
     [TestMethod]
-    public void Font_scale_multiplies_base_size_by_factor()
+    public void Scale_multiplies_base_size_by_factor()
     {
-        var converter = new FontScaleConverter();
+        var converter = new ScaleConverter();
 
         var result = converter.Convert(1.5, typeof(double), "42", CultureInfo.InvariantCulture);
 
@@ -18,9 +18,9 @@ public class FontScaleConverterTests
     }
 
     [TestMethod]
-    public void Font_scale_at_unity_returns_base_size()
+    public void Scale_at_unity_returns_base_size()
     {
-        var converter = new FontScaleConverter();
+        var converter = new ScaleConverter();
 
         var result = converter.Convert(1.0, typeof(double), "18", CultureInfo.InvariantCulture);
 

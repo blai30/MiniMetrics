@@ -318,14 +318,14 @@ public class SettingsControllerTests
     }
 
     [TestMethod]
-    public void SetWidgetFont_updates_state_now_but_defers_the_write()
+    public void SetWidgetStyle_updates_state_now_but_defers_the_write()
     {
         var (controller, store, scheduler) = NewController();
 
-        controller.SetWidgetFont("Cascadia Code", 125, WidgetFontWeight.Bold);
+        controller.SetWidgetStyle("Cascadia Code", 125, WidgetFontWeight.Bold);
 
         Assert.AreEqual("Cascadia Code", controller.Current.WidgetFontFamily);
-        Assert.AreEqual(125, controller.Current.WidgetFontScale);
+        Assert.AreEqual(125, controller.Current.WidgetScale);
         Assert.AreEqual(WidgetFontWeight.Bold, controller.Current.WidgetFontWeight);
         Assert.AreEqual(1, scheduler.ScheduleCount);
         Assert.IsNull(store.Load().WidgetFontFamily); // default until flush
@@ -333,17 +333,17 @@ public class SettingsControllerTests
         controller.Flush();
 
         Assert.AreEqual("Cascadia Code", store.Load().WidgetFontFamily);
-        Assert.AreEqual(125, store.Load().WidgetFontScale);
+        Assert.AreEqual(125, store.Load().WidgetScale);
         Assert.AreEqual(WidgetFontWeight.Bold, store.Load().WidgetFontWeight);
     }
 
     [TestMethod]
-    public void Widget_font_defaults_are_inter_regular_full_size()
+    public void Widget_style_defaults_are_inter_regular_full_size()
     {
         var (controller, _, _) = NewController();
 
         Assert.IsNull(controller.Current.WidgetFontFamily);
-        Assert.AreEqual(100, controller.Current.WidgetFontScale);
+        Assert.AreEqual(100, controller.Current.WidgetScale);
         Assert.AreEqual(WidgetFontWeight.Regular, controller.Current.WidgetFontWeight);
     }
 }

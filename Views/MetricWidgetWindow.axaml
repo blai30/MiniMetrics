@@ -24,7 +24,7 @@
         <conv:RowColorToBrushConverter x:Key="RowColorToBrush" />
         <conv:TempLevelToBrushConverter x:Key="TempLevelToBrush" />
         <conv:BoolToOpacityConverter x:Key="BoolToOpacity" />
-        <conv:FontScaleConverter x:Key="FontScale" />
+        <conv:ScaleConverter x:Key="Scale" />
         <conv:ThicknessScaleConverter x:Key="ThicknessScale" />
 
         <!-- A compute metric (CPU, GPU): temperature is the hero number, usage is the strong
@@ -32,24 +32,24 @@
         <DataTemplate x:Key="ComputeTemplate" x:DataType="vm:MetricRowViewModel">
             <StackPanel>
                 <Grid ColumnDefinitions="*,Auto"
-                      Margin="{Binding FontScale, Converter={StaticResource ThicknessScale}, ConverterParameter='0,0,0,7'}">
+                      Margin="{Binding Scale, Converter={StaticResource ThicknessScale}, ConverterParameter='0,0,0,7'}">
                     <TextBlock Grid.Column="0"
                                Text="{Binding Label}"
-                               FontSize="{Binding FontScale, Converter={StaticResource FontScale}, ConverterParameter=18}"
+                               FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=18}"
                                FontWeight="{Binding StrongWeight}"
                                Foreground="{DynamicResource Widget.Text.Label}"
                                VerticalAlignment="Center" />
                     <TextBlock Grid.Column="1"
                                Text="{Binding Detail}"
                                Opacity="{Binding PowerVisible, Converter={StaticResource BoolToOpacity}}"
-                               FontSize="{Binding FontScale, Converter={StaticResource FontScale}, ConverterParameter=18}"
+                               FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=18}"
                                FontWeight="{Binding StrongWeight}"
                                Foreground="{DynamicResource Widget.Text.Secondary}"
                                VerticalAlignment="Center" />
                 </Grid>
 
                 <Grid ColumnDefinitions="*,Auto"
-                      Margin="{Binding FontScale, Converter={StaticResource ThicknessScale}, ConverterParameter='0,0,0,2'}">
+                      Margin="{Binding Scale, Converter={StaticResource ThicknessScale}, ConverterParameter='0,0,0,2'}">
                     <!-- Temperature hero: big value with a small, top-aligned unit whose degree
                     sign is superscripted. -->
                     <StackPanel Grid.Column="0"
@@ -57,33 +57,35 @@
                                 VerticalAlignment="Bottom"
                                 Opacity="{Binding TempVisible, Converter={StaticResource BoolToOpacity}}">
                         <TextBlock Text="{Binding Temp}"
-                                   FontSize="{Binding FontScale, Converter={StaticResource FontScale}, ConverterParameter=42}"
+                                   FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=42}"
                                    FontWeight="{Binding StrongWeight}"
                                    VerticalAlignment="Bottom"
                                    Foreground="{Binding TempLevel, Converter={StaticResource TempLevelToBrush}}" />
                         <TextBlock VerticalAlignment="Top"
-                                   Margin="{Binding FontScale, Converter={StaticResource ThicknessScale}, ConverterParameter='2,8,0,0'}"
-                                   FontSize="{Binding FontScale, Converter={StaticResource FontScale}, ConverterParameter=19}"
+                                   Margin="{Binding Scale, Converter={StaticResource ThicknessScale}, ConverterParameter='2,8,0,0'}"
+                                   FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=19}"
                                    FontWeight="{Binding UnitWeight}"
                                    Foreground="{Binding TempLevel, Converter={StaticResource TempLevelToBrush}}">
-                            <Run Text="°" FontSize="{Binding FontScale, Converter={StaticResource FontScale}, ConverterParameter=13}" BaselineAlignment="Superscript" /><Run Text="C" />
+                            <Run Text="°" FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=13}" BaselineAlignment="Superscript" /><Run Text="C" />
                         </TextBlock>
                     </StackPanel>
 
                     <!-- Usage: strong but secondary; sits on the temperature's baseline. -->
                     <TextBlock Grid.Column="1"
                                VerticalAlignment="Bottom"
-                               Margin="{Binding FontScale, Converter={StaticResource ThicknessScale}, ConverterParameter='0,0,0,4'}"
+                               Margin="{Binding Scale, Converter={StaticResource ThicknessScale}, ConverterParameter='0,0,0,4'}"
                                Opacity="{Binding UsageVisible, Converter={StaticResource BoolToOpacity}}"
                                Foreground="{DynamicResource Widget.Text.Primary}">
-                        <Run Text="{Binding Value}" FontSize="{Binding FontScale, Converter={StaticResource FontScale}, ConverterParameter=24}" FontWeight="{Binding StrongWeight}" /><Run Text=" " FontSize="{Binding FontScale, Converter={StaticResource FontScale}, ConverterParameter=8}" />
-                        <Run Text="%" FontSize="{Binding FontScale, Converter={StaticResource FontScale}, ConverterParameter=14}" FontWeight="{Binding UnitWeight}" />
+                        <Run Text="{Binding Value}" FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=24}" FontWeight="{Binding StrongWeight}" /><Run Text=" " FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=8}" />
+                        <Run Text="%" FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=14}" FontWeight="{Binding UnitWeight}" />
                     </TextBlock>
                 </Grid>
 
                 <ProgressBar Classes="metric"
                              Minimum="0"
                              Maximum="100"
+                             Height="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=5}"
+                             MinHeight="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=5}"
                              Value="{Binding BarPercent}"
                              Opacity="{Binding UsageVisible, Converter={StaticResource BoolToOpacity}}"
                              Foreground="{Binding Color, Converter={StaticResource RowColorToBrush}}" />
@@ -95,35 +97,35 @@
         changes width when a metric is toggled, not when a value's digit count changes. -->
         <DataTemplate x:Key="ComputeCompactTemplate" x:DataType="vm:MetricRowViewModel">
             <StackPanel Orientation="Horizontal"
-                        Spacing="{Binding FontScale, Converter={StaticResource FontScale}, ConverterParameter=12}"
+                        Spacing="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=12}"
                         VerticalAlignment="Center">
                 <TextBlock Text="{Binding Label}"
-                           FontSize="{Binding FontScale, Converter={StaticResource FontScale}, ConverterParameter=22}"
+                           FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=22}"
                            FontWeight="{Binding StrongWeight}"
                            Foreground="{DynamicResource Widget.Text.Label}"
                            VerticalAlignment="Center" />
                 <TextBlock IsVisible="{Binding TempVisible}"
                            VerticalAlignment="Center"
-                           MinWidth="{Binding FontScale, Converter={StaticResource FontScale}, ConverterParameter=72}"
+                           MinWidth="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=72}"
                            TextAlignment="Right"
                            Foreground="{Binding TempLevel, Converter={StaticResource TempLevelToBrush}}">
-                    <Run Text="{Binding Temp}" FontSize="{Binding FontScale, Converter={StaticResource FontScale}, ConverterParameter=26}" FontWeight="{Binding StrongWeight}" />
-                    <Run Text="°C" FontSize="{Binding FontScale, Converter={StaticResource FontScale}, ConverterParameter=16}" FontWeight="{Binding UnitWeight}" />
+                    <Run Text="{Binding Temp}" FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=26}" FontWeight="{Binding StrongWeight}" />
+                    <Run Text="°C" FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=16}" FontWeight="{Binding UnitWeight}" />
                 </TextBlock>
                 <TextBlock IsVisible="{Binding UsageVisible}"
                            VerticalAlignment="Center"
-                           MinWidth="{Binding FontScale, Converter={StaticResource FontScale}, ConverterParameter=64}"
+                           MinWidth="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=64}"
                            TextAlignment="Right"
                            Foreground="{DynamicResource Widget.Text.Primary}">
-                    <Run Text="{Binding Value}" FontSize="{Binding FontScale, Converter={StaticResource FontScale}, ConverterParameter=26}" FontWeight="{Binding StrongWeight}" />
-                    <Run Text="%" FontSize="{Binding FontScale, Converter={StaticResource FontScale}, ConverterParameter=16}" FontWeight="{Binding UnitWeight}" />
+                    <Run Text="{Binding Value}" FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=26}" FontWeight="{Binding StrongWeight}" />
+                    <Run Text="%" FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=16}" FontWeight="{Binding UnitWeight}" />
                 </TextBlock>
                 <TextBlock IsVisible="{Binding PowerVisible}"
                            Text="{Binding Detail}"
                            VerticalAlignment="Center"
-                           MinWidth="{Binding FontScale, Converter={StaticResource FontScale}, ConverterParameter=66}"
+                           MinWidth="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=66}"
                            TextAlignment="Right"
-                           FontSize="{Binding FontScale, Converter={StaticResource FontScale}, ConverterParameter=22}"
+                           FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=22}"
                            FontWeight="{Binding StrongWeight}"
                            Foreground="{DynamicResource Widget.Text.Secondary}" />
             </StackPanel>
@@ -132,18 +134,18 @@
         <!-- Compact memory (RAM, VRAM): label then used / total inline. -->
         <DataTemplate x:Key="MemoryCompactTemplate" x:DataType="vm:MetricRowViewModel">
             <StackPanel Orientation="Horizontal"
-                        Spacing="{Binding FontScale, Converter={StaticResource FontScale}, ConverterParameter=10}"
+                        Spacing="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=10}"
                         VerticalAlignment="Center">
                 <TextBlock Text="{Binding Label}"
-                           FontSize="{Binding FontScale, Converter={StaticResource FontScale}, ConverterParameter=22}"
+                           FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=22}"
                            FontWeight="{Binding StrongWeight}"
                            Foreground="{DynamicResource Widget.Text.Label}"
                            VerticalAlignment="Center" />
                 <TextBlock VerticalAlignment="Center">
-                    <Run Text="{Binding Value}" FontSize="{Binding FontScale, Converter={StaticResource FontScale}, ConverterParameter=26}" FontWeight="{Binding StrongWeight}"
+                    <Run Text="{Binding Value}" FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=26}" FontWeight="{Binding StrongWeight}"
                          Foreground="{DynamicResource Widget.Text.Primary}" />
                     <Run Text=" " />
-                    <Run Text="{Binding Detail}" FontSize="{Binding FontScale, Converter={StaticResource FontScale}, ConverterParameter=17}" FontWeight="{Binding UnitWeight}"
+                    <Run Text="{Binding Detail}" FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=17}" FontWeight="{Binding UnitWeight}"
                          Foreground="{DynamicResource Widget.Text.Secondary}" />
                 </TextBlock>
             </StackPanel>
@@ -153,19 +155,19 @@
         <DataTemplate x:Key="MemoryTemplate" x:DataType="vm:MetricRowViewModel">
             <StackPanel>
                 <Grid ColumnDefinitions="*,Auto"
-                      Margin="{Binding FontScale, Converter={StaticResource ThicknessScale}, ConverterParameter='0,0,0,6'}">
+                      Margin="{Binding Scale, Converter={StaticResource ThicknessScale}, ConverterParameter='0,0,0,6'}">
                     <TextBlock Grid.Column="0"
                                Text="{Binding Label}"
-                               FontSize="{Binding FontScale, Converter={StaticResource FontScale}, ConverterParameter=16}"
+                               FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=16}"
                                FontWeight="{Binding StrongWeight}"
                                Foreground="{DynamicResource Widget.Text.Label}"
                                VerticalAlignment="Center" />
                     <TextBlock Grid.Column="1"
                                VerticalAlignment="Center">
-                        <Run Text="{Binding Value}" FontSize="{Binding FontScale, Converter={StaticResource FontScale}, ConverterParameter=16}" FontWeight="{Binding StrongWeight}"
+                        <Run Text="{Binding Value}" FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=16}" FontWeight="{Binding StrongWeight}"
                              Foreground="{DynamicResource Widget.Text.Primary}" />
                         <Run Text=" " />
-                        <Run Text="{Binding Detail}" FontSize="{Binding FontScale, Converter={StaticResource FontScale}, ConverterParameter=13}" FontWeight="{Binding UnitWeight}"
+                        <Run Text="{Binding Detail}" FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=13}" FontWeight="{Binding UnitWeight}"
                              Foreground="{DynamicResource Widget.Text.Secondary}" />
                     </TextBlock>
                 </Grid>
@@ -173,6 +175,8 @@
                 <ProgressBar Classes="metric"
                              Minimum="0"
                              Maximum="100"
+                             Height="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=5}"
+                             MinHeight="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=5}"
                              Value="{Binding BarPercent}"
                              Foreground="{Binding Color, Converter={StaticResource RowColorToBrush}}" />
             </StackPanel>
@@ -181,8 +185,6 @@
 
     <Window.Styles>
         <Style Selector="ProgressBar.metric">
-            <Setter Property="MinHeight" Value="5" />
-            <Setter Property="Height" Value="5" />
             <Setter Property="MinWidth" Value="0" />
             <Setter Property="CornerRadius" Value="0" />
             <Setter Property="Background" Value="{DynamicResource Widget.Bar.Track}" />
@@ -199,7 +201,7 @@
         <Panel>
             <!-- Full layout: compute card stacked over memory card. -->
             <Grid RowDefinitions="*,Auto"
-                  Margin="{Binding FontScale, Converter={StaticResource ThicknessScale}, ConverterParameter='20,14,20,16'}"
+                  Margin="{Binding Scale, Converter={StaticResource ThicknessScale}, ConverterParameter='20,14,20,16'}"
                   IsVisible="{Binding !IsCompact}">
                 <ContentControl Grid.Row="0"
                                 Content="{Binding Compute}"
@@ -207,7 +209,7 @@
                                 IsVisible="{Binding Compute.IsVisible, FallbackValue=False}"
                                 VerticalContentAlignment="Center" />
                 <ContentControl Grid.Row="1"
-                                Margin="{Binding FontScale, Converter={StaticResource ThicknessScale}, ConverterParameter='0,14,0,0'}"
+                                Margin="{Binding Scale, Converter={StaticResource ThicknessScale}, ConverterParameter='0,14,0,0'}"
                                 Content="{Binding Memory}"
                                 ContentTemplate="{StaticResource MemoryTemplate}"
                                 IsVisible="{Binding Memory.IsVisible, FallbackValue=False}" />
@@ -215,8 +217,8 @@
 
             <!-- Compact layout: everything on one line, no bars. -->
             <StackPanel Orientation="Horizontal"
-                        Margin="{Binding FontScale, Converter={StaticResource ThicknessScale}, ConverterParameter='18,0'}"
-                        Spacing="{Binding FontScale, Converter={StaticResource FontScale}, ConverterParameter=18}"
+                        Margin="{Binding Scale, Converter={StaticResource ThicknessScale}, ConverterParameter='18,0'}"
+                        Spacing="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=18}"
                         VerticalAlignment="Center"
                         IsVisible="{Binding IsCompact}">
                 <ContentControl Content="{Binding Compute}"

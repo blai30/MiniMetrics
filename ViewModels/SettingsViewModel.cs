@@ -52,7 +52,7 @@ public partial class SettingsViewModel : ObservableObject
         [WidgetFontWeight.Light, WidgetFontWeight.Regular, WidgetFontWeight.Bold];
 
     [ObservableProperty] public partial string WidgetFontFamily { get; set; }
-    [ObservableProperty] public partial int WidgetFontScale { get; set; }
+    [ObservableProperty] public partial int WidgetScale { get; set; }
     [ObservableProperty] public partial WidgetFontWeight WidgetFontWeight { get; set; }
     [ObservableProperty] public partial bool UseLocalTime { get; set; }
 
@@ -137,9 +137,9 @@ public partial class SettingsViewModel : ObservableObject
         CpuCompact = settings.CpuCompact;
         GpuCompact = settings.GpuCompact;
         DateTimeCompact = settings.DateTimeCompact;
-        AvailableFonts = fonts?.AvailableFamilies() ?? [WidgetFontProfile.DefaultFamilyName];
-        WidgetFontFamily = settings.WidgetFontFamily ?? WidgetFontProfile.DefaultFamilyName;
-        WidgetFontScale = settings.WidgetFontScale;
+        AvailableFonts = fonts?.AvailableFamilies() ?? [WidgetStyleProfile.DefaultFamilyName];
+        WidgetFontFamily = settings.WidgetFontFamily ?? WidgetStyleProfile.DefaultFamilyName;
+        WidgetScale = settings.WidgetScale;
         WidgetFontWeight = settings.WidgetFontWeight;
         ClockAlignment = settings.ClockAlignment;
         UseLocalTime = settings.TimeZoneId is null;
@@ -265,13 +265,13 @@ public partial class SettingsViewModel : ObservableObject
     partial void OnDateTimeCompactChanged(bool value) => SettingChanged?.Invoke(SettingChange.Compact("clock", value));
 
     partial void OnWidgetFontFamilyChanged(string value) =>
-        SettingChanged?.Invoke(SettingChange.Of(SettingKind.Font));
+        SettingChanged?.Invoke(SettingChange.Of(SettingKind.WidgetStyle));
 
-    partial void OnWidgetFontScaleChanged(int value) =>
-        SettingChanged?.Invoke(SettingChange.Of(SettingKind.Font));
+    partial void OnWidgetScaleChanged(int value) =>
+        SettingChanged?.Invoke(SettingChange.Of(SettingKind.WidgetStyle));
 
     partial void OnWidgetFontWeightChanged(WidgetFontWeight value) =>
-        SettingChanged?.Invoke(SettingChange.Of(SettingKind.Font));
+        SettingChanged?.Invoke(SettingChange.Of(SettingKind.WidgetStyle));
 
     partial void OnClockAlignmentChanged(ClockAlignment value) =>
         SettingChanged?.Invoke(SettingChange.ForAlignment(value));
