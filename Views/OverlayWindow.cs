@@ -17,9 +17,25 @@ public class OverlayWindow : Window
     private PixelPoint _windowStart;
     private PixelPoint _cursorStart;
 
+    private bool _isLocked;
+
     // When locked, the window is click-through (handled in DesktopWindow), so this guards the
     // unlocked case where a press on the panel should start a window move.
-    public bool IsLocked { get; set; }
+    public bool IsLocked
+    {
+        get => _isLocked;
+        set
+        {
+            _isLocked = value;
+            OnLockChanged(value);
+        }
+    }
+
+    // Hook for subclasses to react when the lock state changes. A locked window is click-through, so
+    // pointer-driven state (e.g. hover) can no longer be cleared by the OS and must be reset here.
+    protected virtual void OnLockChanged(bool locked)
+    {
+    }
 
     // When enabled, a drag pulls the widget flush to nearby screen edges and peer widgets.
     public bool SnapEnabled { get; set; }

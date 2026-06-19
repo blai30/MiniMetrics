@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using Avalonia.Controls;
 using Avalonia.Platform;
 
@@ -222,35 +221,20 @@ public sealed class TrayMenuController
         }
 
         int index = _menu.Items.IndexOf(_updateAvailableItem);
-        foreach (int removeAt in UpdateItemRemovalIndices(index, HasTrailingSeparator(index)))
+        if (index >= 0)
         {
-            _menu.Items.RemoveAt(removeAt);
+            _menu.Items.RemoveAt(index);
+
+            // The separator inserted right after the update item slides down into the same index.
+            if (index < _menu.Items.Count && _menu.Items[index] is NativeMenuItemSeparator)
+            {
+                _menu.Items.RemoveAt(index);
+            }
         }
 
         _updateAvailableItem = null;
         _updateUrl = null;
     }
 
-    private bool HasTrailingSeparator(int index) =>
-        index >= 0
-        && index + 1 < _menu.Items.Count
-        && _menu.Items[index + 1] is NativeMenuItemSeparator;
-
     private static string UpdateItemHeader(string version) => $"Update available (v{version})";
-
-    // Pure index math for removing the update item plus its trailing separator. Returns the positions to
-    // remove, in order, accounting for the list shrinking after the first removal. Empty when the item is
-    // not present.
-    public static IReadOnlyList<int> UpdateItemRemovalIndices(int itemIndex, bool hasTrailingSeparator)
-    {
-        if (itemIndex < 0)
-        {
-            return Array.Empty<int>();
-        }
-
-        // After removing the item at itemIndex, a trailing separator slides down into the same index.
-        return hasTrailingSeparator
-            ? new[] { itemIndex, itemIndex }
-            : new[] { itemIndex };
-    }
 }

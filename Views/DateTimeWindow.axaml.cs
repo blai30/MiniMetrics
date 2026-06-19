@@ -84,4 +84,14 @@ public partial class DateTimeWindow : OverlayWindow
             vm.IsHovering = false;
         }
     }
+
+    // Locking makes the window click-through, so OnPointerExited will never fire to clear a hover that
+    // is active at that moment. Drop the hover now so the clock returns to its normal format pair.
+    protected override void OnLockChanged(bool locked)
+    {
+        if (locked && DataContext is DateTimeWidgetViewModel vm)
+        {
+            vm.IsHovering = false;
+        }
+    }
 }

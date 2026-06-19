@@ -33,11 +33,18 @@ public sealed class MetricsPoller : IDisposable
     private async Task RunAsync(CancellationToken token)
     {
         using var timer = new PeriodicTimer(_interval);
-        do
+        try
         {
-            Emit();
+            do
+            {
+                Emit();
+            }
+            while (await timer.WaitForNextTickAsync(token));
         }
-        while (await WaitSafelyAsync(timer, token));
+        catch (OperationCanceledException)
+        {
+            // Cancellation on Dispose ends the loop cleanly.
+        }
     }
 
     private void Emit()
@@ -50,18 +57,6 @@ public sealed class MetricsPoller : IDisposable
         catch
         {
             // A transient sensor read failure must not kill the loop; the next tick retries.
-        }
-    }
-
-    private static async Task<bool> WaitSafelyAsync(PeriodicTimer timer, CancellationToken token)
-    {
-        try
-        {
-            return await timer.WaitForNextTickAsync(token);
-        }
-        catch (OperationCanceledException)
-        {
-            return false;
         }
     }
 

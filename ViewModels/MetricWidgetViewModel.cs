@@ -141,7 +141,7 @@ public partial class MetricWidgetViewModel : ObservableObject, IWidgetAppearance
     {
         bool Visible(string key) => _visibility.GetValueOrDefault(key, true);
 
-        List<MetricEntry> metrics = MetricRegistry.ForCard(row.Key).ToList();
+        IReadOnlyList<MetricEntry> metrics = MetricRegistry.ForCard(row.Key);
 
         // A single-metric card (RAM, VRAM) collapses as a whole; a compute card (CPU, GPU) keeps its
         // slots in place and toggles each element by its metric key suffix.
@@ -154,7 +154,7 @@ public partial class MetricWidgetViewModel : ObservableObject, IWidgetAppearance
         foreach (MetricEntry metric in metrics)
         {
             bool visible = Visible(metric.Key);
-            switch (metric.Key[(metric.Card.Length + 1)..])
+            switch (metric.Element)
             {
                 case "usage":
                     row.UsageVisible = visible;
