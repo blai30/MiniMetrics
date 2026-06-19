@@ -153,6 +153,9 @@ public sealed class TrayMenuController
             Menu = _menu,
         };
 
+        // Left-click opens Settings; right-click still shows the context menu above.
+        _trayIcon.Clicked += (_, _) => OpenSettingsRequested?.Invoke();
+
         TrayIcon.SetIcons(application, new TrayIcons { _trayIcon });
     }
 
