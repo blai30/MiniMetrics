@@ -82,7 +82,7 @@ public sealed class VelopackUpdateFlow : IUpdateFlow
     // The installed package version as a System.Version so the shared decision can compare it. Parses the
     // major.minor.patch string Velopack reports; a missing or unparseable version collapses to 0.0.0.
     private Version CurrentVersion() =>
-        Version.TryParse(CurrentVersionString(), out Version? parsed) && parsed is not null
+        Version.TryParse(CurrentVersionString(), out Version? parsed)
             ? parsed
             : new Version(0, 0, 0);
 }

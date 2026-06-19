@@ -12,6 +12,12 @@ public sealed class HardwareSensorSource : ISensorSource, IDisposable
     private readonly IHardwareTree _tree;
     private readonly ulong _installedMemoryBytes;
 
+    // Serializes every touch of the underlying tree. SetActiveDevices runs on the UI thread while Read
+    // runs on the poll thread, and both enumerate/mutate the same LibreHardwareMonitor hardware
+    // collection; concurrent access there can fault the PawnIO driver. The lock keeps tree access
+    // single-threaded without moving the read off the poll thread.
+    private readonly object _treeLock = new();
+
     private bool _cpuActive = true;
     private bool _memoryActive = true;
     private bool _gpuActive = true;
@@ -28,13 +34,24 @@ public sealed class HardwareSensorSource : ISensorSource, IDisposable
     // building the snapshot, so the app stops reading it entirely once all its metrics are hidden.
     public void SetActiveDevices(bool cpu, bool memory, bool gpu)
     {
-        _cpuActive = cpu;
-        _memoryActive = memory;
-        _gpuActive = gpu;
-        _tree.SetEnabled(cpu, memory, gpu);
+        lock (_treeLock)
+        {
+            _cpuActive = cpu;
+            _memoryActive = memory;
+            _gpuActive = gpu;
+            _tree.SetEnabled(cpu, memory, gpu);
+        }
     }
 
     public MetricsSnapshot Read()
+    {
+        lock (_treeLock)
+        {
+            return ReadLocked();
+        }
+    }
+
+    private MetricsSnapshot ReadLocked()
     {
         _tree.Refresh();
 

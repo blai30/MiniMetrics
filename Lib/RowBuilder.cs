@@ -50,7 +50,7 @@ public static class RowBuilder
                 // CPU temperature is null when the PawnIO driver cannot read it; the hero slot shows a
                 // muted placeholder rather than going blank.
                 cpu.TempCelsius is { } cpuTemp ? MetricFormatting.FormatTempValue(cpuTemp) : "—",
-                cpu.TempCelsius is { } cpuLevel ? LevelFor(cpuLevel) : TempLevel.None,
+                cpu.TempCelsius is { } cpuTempForLevel ? LevelFor(cpuTempForLevel) : TempLevel.None,
                 // CPU power is null when the PawnIO driver cannot read it; the detail slot shows a muted
                 // placeholder rather than a misleading reading.
                 cpu.PowerWatts is { } cpuPower ? MetricFormatting.FormatPower(cpuPower) : "—",

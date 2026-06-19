@@ -32,8 +32,10 @@ public static class ClockFormatting
             {
                 return local.ToString(customFormat, culture);
             }
-            catch (FormatException)
+            catch (Exception ex) when (ex is FormatException or ArgumentOutOfRangeException)
             {
+                // A malformed pattern throws FormatException; one that expands past the formatter's
+                // length cap throws ArgumentOutOfRangeException. Either way, fall back to the default.
             }
         }
 
@@ -53,7 +55,7 @@ public static class ClockFormatting
             Sample.ToString(format, culture);
             return true;
         }
-        catch (FormatException)
+        catch (Exception ex) when (ex is FormatException or ArgumentOutOfRangeException)
         {
             return false;
         }

@@ -1,3 +1,5 @@
+using System.Globalization;
+using System.Threading;
 using MiniMetrics.Lib;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -6,6 +8,23 @@ namespace MiniMetrics.Tests;
 [TestClass]
 public class MetricFormattingTests
 {
+    [TestMethod]
+    public void FormatGiB_uses_a_period_decimal_separator_under_a_comma_locale()
+    {
+        // The unit label is hardcoded English, so the number must not pick up the machine's comma
+        // decimal separator (de-DE would otherwise render "11,2").
+        CultureInfo original = Thread.CurrentThread.CurrentCulture;
+        Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo("de-DE");
+        try
+        {
+            Assert.AreEqual("11.2", MetricFormatting.FormatGiB(12_026_124_800UL));
+        }
+        finally
+        {
+            Thread.CurrentThread.CurrentCulture = original;
+        }
+    }
+
     [TestMethod]
     [DataRow(34.4, "34")]
     [DataRow(77.6, "78")]
