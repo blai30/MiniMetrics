@@ -151,19 +151,17 @@
                                 <ui:FASymbolIconSource Symbol="Font" />
                             </ui:FASettingsExpander.IconSource>
                             <ui:FASettingsExpander.Footer>
-                                <ComboBox ItemsSource="{Binding AvailableFonts}" SelectedItem="{Binding WidgetFontFamily}" MinWidth="180">
-                                    <ComboBox.Styles>
-                                        <Style Selector="ComboBox /template/ ScrollViewer">
-                                            <Setter Property="(ScrollViewer.AllowAutoHide)" Value="False" />
-                                        </Style>
-                                    </ComboBox.Styles>
-                                </ComboBox>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <ComboBox ItemsSource="{Binding AvailableFonts}" SelectedItem="{Binding WidgetFontFamily}" MinWidth="160">
+                                        <ComboBox.Styles>
+                                            <Style Selector="ComboBox /template/ ScrollViewer">
+                                                <Setter Property="(ScrollViewer.AllowAutoHide)" Value="False" />
+                                            </Style>
+                                        </ComboBox.Styles>
+                                    </ComboBox>
+                                    <ComboBox ItemsSource="{Binding WidgetFontWeights}" SelectedItem="{Binding WidgetFontWeight}" MinWidth="140" />
+                                </StackPanel>
                             </ui:FASettingsExpander.Footer>
-                            <ui:FASettingsExpanderItem Content="Weight">
-                                <ui:FASettingsExpanderItem.Footer>
-                                    <ComboBox ItemsSource="{Binding WidgetFontWeights}" SelectedItem="{Binding WidgetFontWeight}" MinWidth="180" />
-                                </ui:FASettingsExpanderItem.Footer>
-                            </ui:FASettingsExpanderItem>
                         </ui:FASettingsExpander>
 
                         <ui:FASettingsExpander Header="Compact layout" Description="Use the condensed single-line widget layout">
@@ -208,8 +206,8 @@
                             <ui:FASettingsExpander.IconSource>
                                 <ui:FASymbolIconSource Symbol="Calendar" />
                             </ui:FASettingsExpander.IconSource>
-                            <ui:FASettingsExpanderItem>
-                                <Grid>
+                            <ui:FASettingsExpander.Footer>
+                                <Grid Width="340">
                                     <AutoCompleteBox x:Name="TimeZoneBox"
                                                      ItemsSource="{Binding TimeZones}"
                                                      SelectedItem="{Binding SelectedTimeZone}"
@@ -229,7 +227,7 @@
                                         <PathIcon Width="11" Height="11" Data="M0,0 L4,4 L8,0 Z" />
                                     </Button>
                                 </Grid>
-                            </ui:FASettingsExpanderItem>
+                            </ui:FASettingsExpander.Footer>
                         </ui:FASettingsExpander>
 
                         <!-- Globe not in confirmed-valid FASymbol list; substituted with Calendar -->
@@ -237,8 +235,8 @@
                             <ui:FASettingsExpander.IconSource>
                                 <ui:FASymbolIconSource Symbol="Calendar" />
                             </ui:FASettingsExpander.IconSource>
-                            <ui:FASettingsExpanderItem>
-                                <Grid>
+                            <ui:FASettingsExpander.Footer>
+                                <Grid Width="340">
                                     <AutoCompleteBox x:Name="LocaleBox"
                                                      ItemsSource="{Binding Locales}"
                                                      SelectedItem="{Binding SelectedLocale}"
@@ -258,7 +256,7 @@
                                         <PathIcon Width="11" Height="11" Data="M0,0 L4,4 L8,0 Z" />
                                     </Button>
                                 </Grid>
-                            </ui:FASettingsExpanderItem>
+                            </ui:FASettingsExpander.Footer>
                         </ui:FASettingsExpander>
 
                         <!-- AlignLeft not in confirmed-valid FASymbol list; substituted with List -->
@@ -378,17 +376,22 @@
                             <ui:FASettingsExpander.Footer>
                                 <ToggleSwitch IsChecked="{Binding UpdateCheckEnabled}" OnContent="" OffContent="" />
                             </ui:FASettingsExpander.Footer>
-                            <ui:FASettingsExpanderItem Content="Frequency" IsEnabled="{Binding UpdateCheckEnabled}">
-                                <ui:FASettingsExpanderItem.Footer>
-                                    <ComboBox ItemsSource="{Binding UpdateFrequencies}" SelectedItem="{Binding UpdateFrequency}" MinWidth="180">
-                                        <ComboBox.ItemTemplate>
-                                            <DataTemplate x:DataType="models:UpdateCheckFrequency">
-                                                <TextBlock Text="{Binding Converter={StaticResource FrequencyLabel}}" />
-                                            </DataTemplate>
-                                        </ComboBox.ItemTemplate>
-                                    </ComboBox>
-                                </ui:FASettingsExpanderItem.Footer>
-                            </ui:FASettingsExpanderItem>
+                        </ui:FASettingsExpander>
+
+                        <ui:FASettingsExpander Header="Frequency" Description="How often to check for new releases"
+                                               IsEnabled="{Binding UpdateCheckEnabled}">
+                            <ui:FASettingsExpander.IconSource>
+                                <ui:FASymbolIconSource Symbol="Clock" />
+                            </ui:FASettingsExpander.IconSource>
+                            <ui:FASettingsExpander.Footer>
+                                <ComboBox ItemsSource="{Binding UpdateFrequencies}" SelectedItem="{Binding UpdateFrequency}" MinWidth="180">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate x:DataType="models:UpdateCheckFrequency">
+                                            <TextBlock Text="{Binding Converter={StaticResource FrequencyLabel}}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                            </ui:FASettingsExpander.Footer>
                         </ui:FASettingsExpander>
                     </StackPanel>
                 </ScrollViewer>
