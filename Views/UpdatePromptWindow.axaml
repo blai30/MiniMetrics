@@ -11,37 +11,35 @@
         Width="480"
         SizeToContent="Height"
         CanResize="False"
-        WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="CenterScreen"
+        TransparencyLevelHint="Mica"
+        Background="Transparent">
 
-    <StackPanel Margin="22" Spacing="14">
+    <StackPanel Margin="24,22" Spacing="16">
+        <StackPanel Orientation="Horizontal" Spacing="14">
+            <Border Width="44" Height="44" CornerRadius="10"
+                    Background="{DynamicResource AccentFillColorDefaultBrush}" VerticalAlignment="Top">
+                <PathIcon Width="20" Height="20"
+                          Foreground="{DynamicResource TextOnAccentFillColorPrimaryBrush}"
+                          Data="M12 4 L12 14 M8 10 L12 14 L16 10 M5 18 L19 18" />
+            </Border>
+            <TextBlock Text="{Binding Heading}" FontSize="17" FontWeight="SemiBold"
+                       TextWrapping="Wrap" VerticalAlignment="Center" />
+        </StackPanel>
 
-        <TextBlock Text="{Binding Heading}"
-                   FontSize="15"
-                   FontWeight="SemiBold"
-                   TextWrapping="Wrap" />
+        <TextBlock Text="{Binding Body}" TextWrapping="Wrap" LineHeight="20" />
 
-        <TextBlock Text="{Binding Body}"
-                   TextWrapping="Wrap"
-                   LineHeight="20" />
-
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,4,0,0"
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8"
                     IsVisible="{Binding IsActionable}">
             <Button Content="Remind me later" Click="OnDismiss" />
             <Button Content="Skip this version" Click="OnSkip" />
-            <Button Content="View release" Click="OnViewRelease" Classes="accent"
-                    IsVisible="{Binding !CanInstall}" />
-            <Button Content="Install and restart" Click="OnInstall" Classes="accent"
-                    IsVisible="{Binding CanInstall}" />
+            <Button Content="View release" Click="OnViewRelease" Classes="accent" IsVisible="{Binding !CanInstall}" />
+            <Button Content="Install and restart" Click="OnInstall" Classes="accent" IsVisible="{Binding CanInstall}" />
         </StackPanel>
 
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,4,0,0"
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8"
                     IsVisible="{Binding IsInformational}">
-            <Button Content="Close"
-                    Click="OnClose"
-                    IsDefault="True"
-                    IsCancel="True"
-                    Classes="accent" />
+            <Button Content="Close" Click="OnClose" IsDefault="True" IsCancel="True" Classes="accent" />
         </StackPanel>
-
     </StackPanel>
 </Window>
