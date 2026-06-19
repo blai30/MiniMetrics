@@ -84,6 +84,8 @@
                 <ProgressBar Classes="metric"
                              Minimum="0"
                              Maximum="100"
+                             Height="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=5}"
+                             MinHeight="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=5}"
                              Value="{Binding BarPercent}"
                              Opacity="{Binding UsageVisible, Converter={StaticResource BoolToOpacity}}"
                              Foreground="{Binding Color, Converter={StaticResource RowColorToBrush}}" />
@@ -173,6 +175,8 @@
                 <ProgressBar Classes="metric"
                              Minimum="0"
                              Maximum="100"
+                             Height="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=5}"
+                             MinHeight="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=5}"
                              Value="{Binding BarPercent}"
                              Foreground="{Binding Color, Converter={StaticResource RowColorToBrush}}" />
             </StackPanel>
@@ -181,8 +185,6 @@
 
     <Window.Styles>
         <Style Selector="ProgressBar.metric">
-            <Setter Property="MinHeight" Value="5" />
-            <Setter Property="Height" Value="5" />
             <Setter Property="MinWidth" Value="0" />
             <Setter Property="CornerRadius" Value="0" />
             <Setter Property="Background" Value="{DynamicResource Widget.Bar.Track}" />
