@@ -21,8 +21,8 @@ public readonly record struct WidgetStyleProfile(
     // The friendly name shown for the bundled font and used as the sentinel for it.
     public const string DefaultFamilyName = "Inter";
 
-    private const int MinScalePercent = 80;
-    private const int MaxScalePercent = 150;
+    private const int MinScalePercent = 50;
+    private const int MaxScalePercent = 200;
 
     public static WidgetStyleProfile Resolve(string? family, int scalePercent, WidgetFontWeight weight)
     {

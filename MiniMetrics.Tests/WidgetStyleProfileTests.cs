@@ -42,12 +42,14 @@ public class WidgetStyleProfileTests
     }
 
     [TestMethod]
-    public void Scale_clamps_below_80_and_above_150()
+    public void Scale_clamps_below_50_and_above_200()
     {
-        Assert.AreEqual(0.80, WidgetStyleProfile.Resolve(null, 50, WidgetFontWeight.Regular).Scale, 1e-9);
-        Assert.AreEqual(0.80, WidgetStyleProfile.Resolve(null, 79, WidgetFontWeight.Regular).Scale, 1e-9);
-        Assert.AreEqual(1.50, WidgetStyleProfile.Resolve(null, 151, WidgetFontWeight.Regular).Scale, 1e-9);
-        Assert.AreEqual(1.50, WidgetStyleProfile.Resolve(null, 999, WidgetFontWeight.Regular).Scale, 1e-9);
+        Assert.AreEqual(0.50, WidgetStyleProfile.Resolve(null, 10, WidgetFontWeight.Regular).Scale, 1e-9);
+        Assert.AreEqual(0.50, WidgetStyleProfile.Resolve(null, 49, WidgetFontWeight.Regular).Scale, 1e-9);
+        Assert.AreEqual(0.50, WidgetStyleProfile.Resolve(null, 50, WidgetFontWeight.Regular).Scale, 1e-9);
+        Assert.AreEqual(2.00, WidgetStyleProfile.Resolve(null, 200, WidgetFontWeight.Regular).Scale, 1e-9);
+        Assert.AreEqual(2.00, WidgetStyleProfile.Resolve(null, 201, WidgetFontWeight.Regular).Scale, 1e-9);
+        Assert.AreEqual(2.00, WidgetStyleProfile.Resolve(null, 999, WidgetFontWeight.Regular).Scale, 1e-9);
     }
 
     [TestMethod]
