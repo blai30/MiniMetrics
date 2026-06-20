@@ -2,7 +2,6 @@
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:MiniMetrics"
-    xmlns:fa="using:FluentAvalonia.Styling"
     x:Class="MiniMetrics.App"
     RequestedThemeVariant="Default">
 
@@ -30,6 +29,7 @@
     </Application.Resources>
 
     <Application.Styles>
-        <fa:FluentAvaloniaTheme PreferSystemTheme="True" PreferUserAccentColor="True" />
+        <FluentTheme />
+        <StyleInclude Source="avares://MiniMetrics/Styles/Chrome.axaml" />
     </Application.Styles>
 </Application>

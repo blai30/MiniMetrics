@@ -243,8 +243,9 @@
         <Style Selector="ProgressBar.metric /template/ Border#PART_Indicator">
             <Setter Property="CornerRadius" Value="0" />
         </Style>
-        <!-- FluentAvalonia's ProgressBar pins the track to a 1px hairline (ProgressBarTrackHeight);
-        stretch it back to the control height so the bar reads as a filled track, not a thin line. -->
+        <!-- Stretch the track to the control height so the bar reads as a filled track, not a thin line.
+        The ProgressBarTrack part name is theme-template specific; verify the usage bars still render as a
+        filled track under the Simple theme and adjust this selector if the part name differs. -->
         <Style Selector="ProgressBar.metric /template/ Border#ProgressBarTrack">
             <Setter Property="CornerRadius" Value="0" />
             <Setter Property="Height" Value="NaN" />

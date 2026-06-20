@@ -3,39 +3,24 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:v="using:MiniMetrics.Views"
     mc:Ignorable="d"
     x:Class="MiniMetrics.Views.ConfirmUninstallWindow"
     Width="400"
     SizeToContent="Height"
-    TransparencyLevelHint="Mica"
-    Background="Transparent"
     Title="Uninstall MiniMetrics"
     Icon="avares://MiniMetrics/Assets/minimetrics.ico"
     CanResize="False"
-    WindowStartupLocation="CenterScreen">
+    WindowStartupLocation="CenterScreen"
+    Background="Transparent"
+    TransparencyLevelHint="Mica"
+    TransparencyBackgroundFallback="{DynamicResource Chrome.Surface}">
 
     <StackPanel Margin="24,22" Spacing="16">
-        <StackPanel Orientation="Horizontal" Spacing="14">
-            <Border
-                Width="44"
-                Height="44"
-                VerticalAlignment="Top"
-                CornerRadius="10"
-                Background="{DynamicResource SystemFillColorCriticalBackgroundBrush}">
-                <v:LucideIcon
-                    Width="20"
-                    Height="20"
-                    Foreground="{DynamicResource SystemFillColorCriticalBrush}"
-                    Symbol="trash-2" />
-            </Border>
-            <TextBlock
-                VerticalAlignment="Center"
-                FontSize="17"
-                FontWeight="SemiBold"
-                TextWrapping="Wrap"
-                Text="Uninstall MiniMetrics?" />
-        </StackPanel>
+        <TextBlock
+            FontSize="20"
+            FontWeight="SemiBold"
+            TextWrapping="Wrap"
+            Text="Uninstall MiniMetrics?" />
 
         <TextBlock
             LineHeight="20"
@@ -44,7 +29,7 @@
 
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
             <Button Content="Cancel" IsCancel="True" Click="OnCancel" />
-            <Button Content="Uninstall" Classes="accent" Click="OnConfirm" />
+            <Button Content="Uninstall" IsDefault="True" Classes="accent" Click="OnConfirm" />
         </StackPanel>
     </StackPanel>
 </Window>

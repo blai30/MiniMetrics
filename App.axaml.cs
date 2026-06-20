@@ -214,22 +214,6 @@ public partial class App : Application
 
             BuildTray();
 
-            // Warm the tray menu's code paths so the first right-click is instant; see WarmUpTrayMenu.
-            // Windows only, where the tray menu is a managed Avalonia popup.
-            if (OperatingSystem.IsWindows())
-                Dispatcher.UIThread.Post(WarmUpTrayMenu, DispatcherPriority.Background);
-
-            // The settings window pays the same kind of one-time first-open cost; warm it off-screen shortly
-            // after launch (see WarmUpSettingsWindow). Deferred a couple seconds so the heavier window build
-            // does not compete with the startup burst.
-            var settingsWarmupTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
-            settingsWarmupTimer.Tick += (_, _) =>
-            {
-                settingsWarmupTimer.Stop();
-                WarmUpSettingsWindow();
-            };
-            settingsWarmupTimer.Start();
-
             desktop.ShutdownRequested += (_, _) =>
             {
                 _settingsController.Flush();
@@ -243,8 +227,8 @@ public partial class App : Application
             if (OperatingSystem.IsWindows() && _elevationCoordinator.NeedsDriverInstallPrompt(_settings.Visibility))
                 ShowPawnIoPrompt();
 
-            // Run the launch-time update check a few seconds after startup so it never competes with
-            // warmup, and only when enabled and the cadence is due.
+            // Run the launch-time update check a few seconds after startup so it never competes with the
+            // startup burst, and only when enabled and the cadence is due.
             if (_settings.UpdateCheckEnabled
                 && UpdatePolicy.IsDue(_settings.LastUpdateCheckUtc, _settings.UpdateFrequency, DateTimeOffset.UtcNow))
             {
@@ -287,16 +271,15 @@ public partial class App : Application
         }
 
         _tray = new(new(
-                !_settings.Hidden,
-                !_settings.GpuHidden,
-                !_settings.DateTimeHidden,
-                _settings.Locked,
-                _settings.AlwaysOnTop,
-                _settings.SnapToEdges,
-                showRunAtStartup,
-                runAtStartupChecked,
-                OperatingSystem.IsWindows() && _isInstalled),
-            TrayIconBrush());
+            !_settings.Hidden,
+            !_settings.GpuHidden,
+            !_settings.DateTimeHidden,
+            _settings.Locked,
+            _settings.AlwaysOnTop,
+            _settings.SnapToEdges,
+            showRunAtStartup,
+            runAtStartupChecked,
+            OperatingSystem.IsWindows() && _isInstalled));
 
         _tray.ToggleCpuRequested += OnToggleCpuShowHide;
         _tray.ToggleGpuRequested += OnToggleGpuShowHide;
@@ -323,64 +306,6 @@ public partial class App : Application
             this,
             new(AssetLoader.Open(new("avares://MiniMetrics/Assets/minimetrics.ico"))),
             "Mini Metrics");
-    }
-
-    // The tray context menu is a managed Avalonia popup that Avalonia rebuilds on each right-click, and the
-    // first build pays a one-time cost (JIT, Fluent menu control themes resolving, font shaping, top-level
-    // creation) of a few hundred milliseconds. Build an equivalent menu once in an off-screen, non-activating
-    // window and discard it, so the first real right-click hits warm code paths. Posted at Background priority
-    // so it runs after startup layout has settled rather than competing with warmup.
-    private void WarmUpTrayMenu()
-    {
-        var presenter = new MenuFlyoutPresenter
-        {
-            ItemsSource = new[]
-            {
-                new MenuItem
-                {
-                    Header = "Warmup", Icon = new Image { Source = MenuIconRenderer.Render("cpu", Brushes.Gray) }
-                },
-                new MenuItem { Header = "Warmup" }
-            }
-        };
-
-        var window = new Window
-        {
-            SizeToContent = SizeToContent.WidthAndHeight,
-            ShowInTaskbar = false,
-            ShowActivated = false,
-            Position = new(-32000, -32000),
-            Content = presenter
-        };
-
-        window.Show();
-
-        // Let one layout pass run so the measure/template/text paths warm, then discard the window.
-        Dispatcher.UIThread.Post(window.Close, DispatcherPriority.Background);
-    }
-
-    // The settings window pays a one-time first-open cost (JIT, FluentAvalonia control themes for the nav
-    // view / settings expanders / combo boxes, font shaping, the card icon rasterization, and creating a
-    // large top-level). Build a throwaway one off-screen and discard it so the first real open is fast.
-    private void WarmUpSettingsWindow()
-    {
-        // If the user already opened settings before this ran, the paths are warm; nothing to do.
-        if (_settingsWindow is not null) return;
-
-        var viewModel = new SettingsViewModel(_settings, ResolvedIsDark(), _fontCatalog);
-        var window = new SettingsWindow
-        {
-            DataContext = viewModel,
-            ShowInTaskbar = false,
-            ShowActivated = false,
-            WindowStartupLocation = WindowStartupLocation.Manual,
-            Position = new(-32000, -32000)
-        };
-
-        window.Show();
-
-        // Let one layout pass run so the templates, text, and card icons warm, then discard the window.
-        Dispatcher.UIThread.Post(window.Close, DispatcherPriority.Background);
     }
 
     private void OnToggleCpuShowHide()
@@ -454,7 +379,6 @@ public partial class App : Application
                 ApplyThemeVariant();
                 ApplyAppearanceToWidgets();
                 RefreshWidgetAccents();
-                _tray.SetIconColor(TrayIconBrush());
                 break;
             case SettingChange.MetricVisibility metric:
                 OnMetricVisibilityChanged(metric.Key, metric.Visible);
@@ -509,11 +433,6 @@ public partial class App : Application
     // default when no app exists (design time) so the original look is preserved.
     private bool ResolvedIsDark() => ActualThemeVariant != ThemeVariant.Light;
 
-    // Tray menu glyph color, baked into each icon bitmap to match the managed menu's text in the resolved
-    // theme. Re-applied through TrayMenuController.SetIconColor when the variant changes.
-    private IBrush TrayIconBrush() =>
-        new SolidColorBrush(ResolvedIsDark() ? Color.FromRgb(0xE8, 0xE8, 0xE8) : Color.FromRgb(0x1A, 0x1A, 0x1A));
-
     private void ApplyThemeVariant()
     {
         RequestedThemeVariant = _settings.Theme switch
@@ -532,7 +451,6 @@ public partial class App : Application
         {
             ApplyAppearanceToWidgets();
             RefreshWidgetAccents();
-            _tray.SetIconColor(TrayIconBrush());
         }
     }
 

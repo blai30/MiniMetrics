@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using Avalonia.Controls;
-using Avalonia.Media;
 
 namespace MiniMetrics.Views;
 
@@ -36,26 +34,6 @@ public sealed class TrayMenuController
     private NativeMenuItem? _updateAvailableItem;
     private string? _updateUrl;
 
-    // Catalog names (see LucideIcons) for each item's icon, rasterized per item by MenuIconRenderer.
-    private const string CpuIcon = "cpu";
-    private const string GpuIcon = "monitor";
-    private const string ClockIcon = "clock";
-    private const string LockIcon = "lock";
-    private const string AlwaysOnTopIcon = "arrow-up-to-line";
-    private const string SnapIcon = "frame";
-    private const string RunAtStartupIcon = "power";
-    private const string SettingsIcon = "settings";
-    private const string CheckUpdatesIcon = "refresh-cw";
-    private const string UninstallIcon = "trash-2";
-    private const string QuitIcon = "log-out";
-    private const string UpdateAvailableIcon = "download";
-
-    private IBrush _iconBrush;
-
-    // Each item paired with its lucide path so SetIconColor can re-rasterize every glyph when the theme
-    // changes without re-deriving which icon belongs where.
-    private readonly List<(NativeMenuItem Item, string PathData)> _icons = [];
-
     // Raised when the user clicks a tray entry. App carries out what each action does (widget show/hide,
     // persistence, elevation, startup registration) and then pushes the resulting checked-state back in.
     public event Action? ToggleCpuRequested;
@@ -75,9 +53,8 @@ public sealed class TrayMenuController
     public event Action? ApplyUpdateRequested;
     public event Action<string>? OpenReleasePageRequested;
 
-    public TrayMenuController(InitialState state, IBrush iconBrush)
+    public TrayMenuController(InitialState state)
     {
-        _iconBrush = iconBrush;
         _menu = [];
 
         _cpuShowHideItem = new("Show CPU widget")
@@ -86,7 +63,7 @@ public sealed class TrayMenuController
             IsChecked = state.CpuChecked
         };
         _cpuShowHideItem.Click += (_, _) => ToggleCpuRequested?.Invoke();
-        AddItem(_cpuShowHideItem, CpuIcon);
+        _menu.Add(_cpuShowHideItem);
 
         _gpuShowHideItem = new("Show GPU widget")
         {
@@ -94,7 +71,7 @@ public sealed class TrayMenuController
             IsChecked = state.GpuChecked
         };
         _gpuShowHideItem.Click += (_, _) => ToggleGpuRequested?.Invoke();
-        AddItem(_gpuShowHideItem, GpuIcon);
+        _menu.Add(_gpuShowHideItem);
 
         _clockShowHideItem = new("Show clock widget")
         {
@@ -102,7 +79,7 @@ public sealed class TrayMenuController
             IsChecked = state.ClockChecked
         };
         _clockShowHideItem.Click += (_, _) => ToggleClockRequested?.Invoke();
-        AddItem(_clockShowHideItem, ClockIcon);
+        _menu.Add(_clockShowHideItem);
 
         _menu.Add(new NativeMenuItemSeparator());
 
@@ -112,7 +89,7 @@ public sealed class TrayMenuController
             IsChecked = state.LockChecked
         };
         _lockItem.Click += (_, _) => ToggleLockRequested?.Invoke();
-        AddItem(_lockItem, LockIcon);
+        _menu.Add(_lockItem);
 
         _alwaysOnTopItem = new("Always on top")
         {
@@ -120,7 +97,7 @@ public sealed class TrayMenuController
             IsChecked = state.AlwaysOnTopChecked
         };
         _alwaysOnTopItem.Click += (_, _) => ToggleAlwaysOnTopRequested?.Invoke();
-        AddItem(_alwaysOnTopItem, AlwaysOnTopIcon);
+        _menu.Add(_alwaysOnTopItem);
 
         _snapItem = new("Snap to edges")
         {
@@ -128,7 +105,7 @@ public sealed class TrayMenuController
             IsChecked = state.SnapChecked
         };
         _snapItem.Click += (_, _) => ToggleSnapRequested?.Invoke();
-        AddItem(_snapItem, SnapIcon);
+        _menu.Add(_snapItem);
 
         if (state.ShowRunAtStartup)
         {
@@ -138,48 +115,31 @@ public sealed class TrayMenuController
                 IsChecked = state.RunAtStartupChecked
             };
             _runAtStartupItem.Click += (_, _) => RunAtStartupRequested?.Invoke();
-            AddItem(_runAtStartupItem, RunAtStartupIcon);
+            _menu.Add(_runAtStartupItem);
         }
 
         _menu.Add(new NativeMenuItemSeparator());
 
         var settingsItem = new NativeMenuItem("Settings...");
         settingsItem.Click += (_, _) => OpenSettingsRequested?.Invoke();
-        AddItem(settingsItem, SettingsIcon);
+        _menu.Add(settingsItem);
 
         var checkUpdatesItem = new NativeMenuItem("Check for updates...");
         checkUpdatesItem.Click += (_, _) => CheckUpdatesRequested?.Invoke();
-        AddItem(checkUpdatesItem, CheckUpdatesIcon);
+        _menu.Add(checkUpdatesItem);
 
         if (state.ShowUninstall)
         {
             var uninstallItem = new NativeMenuItem("Uninstall MiniMetrics...");
             uninstallItem.Click += (_, _) => UninstallRequested?.Invoke();
-            AddItem(uninstallItem, UninstallIcon);
+            _menu.Add(uninstallItem);
         }
 
         _menu.Add(new NativeMenuItemSeparator());
 
         var quit = new NativeMenuItem("Quit");
         quit.Click += (_, _) => QuitRequested?.Invoke();
-        AddItem(quit, QuitIcon);
-    }
-
-    // Adds an item to the menu, rasterizes its icon for the current theme, and records the pairing so
-    // SetIconColor can re-render every glyph when the theme changes.
-    private void AddItem(NativeMenuItem item, string pathData)
-    {
-        item.Icon = MenuIconRenderer.Render(pathData, _iconBrush);
-        _icons.Add((item, pathData));
-        _menu.Add(item);
-    }
-
-    // Re-rasterizes every icon in the new theme's menu-text color. Called when the resolved theme variant
-    // changes so light glyphs do not end up on a light menu (or vice versa).
-    public void SetIconColor(IBrush brush)
-    {
-        _iconBrush = brush;
-        foreach ((var item, string pathData) in _icons) item.Icon = MenuIconRenderer.Render(pathData, brush);
+        _menu.Add(quit);
     }
 
     // Installs the tray icon on the application. Kept separate from the constructor so the icon asset is
@@ -230,11 +190,7 @@ public sealed class TrayMenuController
             return;
         }
 
-        _updateAvailableItem = new(UpdateItemHeader(version))
-        {
-            Icon = MenuIconRenderer.Render(UpdateAvailableIcon, _iconBrush)
-        };
-        _icons.Add((_updateAvailableItem, UpdateAvailableIcon));
+        _updateAvailableItem = new(UpdateItemHeader(version));
         if (canApplyInApp)
             _updateAvailableItem.Click += (_, _) => ApplyUpdateRequested?.Invoke();
         else
@@ -251,8 +207,6 @@ public sealed class TrayMenuController
     public void RemoveUpdateItem()
     {
         if (_updateAvailableItem is null) return;
-
-        _icons.RemoveAll(pair => pair.Item == _updateAvailableItem);
 
         int index = _menu.Items.IndexOf(_updateAvailableItem);
         if (index >= 0)
