@@ -504,4 +504,217 @@ public class SettingsViewModelTests
         Assert.AreEqual(1, changes.Count);
         Assert.AreEqual(SettingKind.WidgetStyle, changes[0].Kind);
     }
+
+    [TestMethod]
+    public void Plain_scalar_options_start_unmodified_at_defaults()
+    {
+        var viewModel = new SettingsViewModel(new(), true, new FakeFontCatalog());
+
+        Assert.IsFalse(viewModel.ThemeModified);
+        Assert.IsFalse(viewModel.OpacityModified);
+        Assert.IsFalse(viewModel.WidgetScaleModified);
+        Assert.IsFalse(viewModel.WidgetFontWeightModified);
+        Assert.IsFalse(viewModel.ClockAlignmentModified);
+        Assert.IsFalse(viewModel.UpdateFrequencyModified);
+    }
+
+    [TestMethod]
+    public void Changing_a_plain_scalar_sets_its_modified_flag()
+    {
+        var viewModel = new SettingsViewModel(new(), true, new FakeFontCatalog());
+
+        viewModel.Opacity = 50;
+        viewModel.UpdateFrequency = UpdateCheckFrequency.Monthly;
+        viewModel.ClockAlignment = ClockAlignment.Center;
+
+        Assert.IsTrue(viewModel.OpacityModified);
+        Assert.IsTrue(viewModel.UpdateFrequencyModified);
+        Assert.IsTrue(viewModel.ClockAlignmentModified);
+        Assert.IsFalse(viewModel.ThemeModified);
+    }
+
+    [TestMethod]
+    public void Restoring_a_plain_scalar_resets_value_clears_flag_and_raises_a_change()
+    {
+        var settings = new Settings { Opacity = 50, UpdateFrequency = UpdateCheckFrequency.Monthly };
+        var viewModel = new SettingsViewModel(settings, true, new FakeFontCatalog());
+        var changes = Capture(viewModel);
+
+        Assert.IsTrue(viewModel.OpacityModified);
+        viewModel.RestoreOpacityCommand.Execute(null);
+        Assert.AreEqual(96, viewModel.Opacity);
+        Assert.IsFalse(viewModel.OpacityModified);
+
+        viewModel.RestoreUpdateFrequencyCommand.Execute(null);
+        Assert.AreEqual(UpdateCheckFrequency.Daily, viewModel.UpdateFrequency);
+        Assert.IsFalse(viewModel.UpdateFrequencyModified);
+
+        // restore routes through the normal change pipeline
+        Assert.IsTrue(changes.Any(change => change.Kind == SettingKind.Appearance));
+        Assert.IsTrue(changes.Any(change => change.Kind == SettingKind.UpdatePreferences));
+    }
+
+    [TestMethod]
+    public void Editing_a_scalar_back_to_default_clears_the_modified_flag()
+    {
+        var viewModel = new SettingsViewModel(new(), true, new FakeFontCatalog());
+
+        viewModel.WidgetScale = 130;
+        Assert.IsTrue(viewModel.WidgetScaleModified);
+
+        viewModel.WidgetScale = 100;
+        Assert.IsFalse(viewModel.WidgetScaleModified);
+    }
+
+    [TestMethod]
+    public void Background_color_unmodified_at_default_for_each_variant()
+    {
+        var settings = new Settings { BackgroundColor = "#0F121D", LightBackgroundColor = "#EEF1F5" };
+
+        var darkVm = new SettingsViewModel(settings, true);
+        Assert.IsFalse(darkVm.BackgroundColorModified);
+
+        var lightVm = new SettingsViewModel(settings, false);
+        Assert.IsFalse(lightVm.BackgroundColorModified);
+    }
+
+    [TestMethod]
+    public void Background_color_modified_compares_against_the_current_variant_default()
+    {
+        var settings = new Settings { BackgroundColor = "#101010", LightBackgroundColor = "#EEF1F5" };
+
+        var darkVm = new SettingsViewModel(settings, true);
+        Assert.IsTrue(darkVm.BackgroundColorModified);
+
+        // Light variant default is untouched, so under light the flag is clear.
+        var lightVm = new SettingsViewModel(settings, false);
+        Assert.IsFalse(lightVm.BackgroundColorModified);
+    }
+
+    [TestMethod]
+    public void Restoring_background_color_resets_the_current_variant_only()
+    {
+        var settings = new Settings { BackgroundColor = "#101010", LightBackgroundColor = "#EEF1F5" };
+        var viewModel = new SettingsViewModel(settings, true);
+        var changes = Capture(viewModel);
+
+        viewModel.RestoreBackgroundColorCommand.Execute(null);
+
+        Assert.AreEqual("#0F121D", viewModel.BackgroundColor);
+        Assert.IsFalse(viewModel.BackgroundColorModified);
+        Assert.IsTrue(changes.Any(change => change.Kind == SettingKind.Appearance));
+    }
+
+    [TestMethod]
+    public void Font_family_unmodified_at_default()
+    {
+        var viewModel = new SettingsViewModel(new(), true, new FakeFontCatalog("Arial"));
+
+        Assert.IsFalse(viewModel.WidgetFontFamilyModified);
+    }
+
+    [TestMethod]
+    public void Restoring_font_family_resets_to_inter_and_clears_flag()
+    {
+        var viewModel = new SettingsViewModel(new(), true, new FakeFontCatalog("Arial"));
+
+        viewModel.WidgetFontFamily = "Arial";
+        Assert.IsTrue(viewModel.WidgetFontFamilyModified);
+
+        viewModel.RestoreWidgetFontFamilyCommand.Execute(null);
+        Assert.AreEqual("Inter", viewModel.WidgetFontFamily);
+        Assert.IsFalse(viewModel.WidgetFontFamilyModified);
+    }
+
+    [TestMethod]
+    public void Time_zone_and_locale_unmodified_at_default()
+    {
+        var viewModel = new SettingsViewModel(SampleSettings());
+
+        Assert.IsFalse(viewModel.TimeZoneModified);
+        Assert.IsFalse(viewModel.LocaleModified);
+    }
+
+    [TestMethod]
+    public void Time_zone_modified_when_not_local_and_restore_returns_to_local()
+    {
+        var viewModel = new SettingsViewModel(SampleSettings());
+        var changes = Capture(viewModel);
+
+        var other = viewModel.TimeZones.First(zone => zone.Id != viewModel.SelectedTimeZone.Id);
+        viewModel.SelectedTimeZone = other;
+        Assert.IsTrue(viewModel.TimeZoneModified);
+
+        viewModel.RestoreTimeZoneCommand.Execute(null);
+        Assert.AreEqual(TimeZoneInfo.Local.Id, viewModel.SelectedTimeZone.Id);
+        Assert.IsFalse(viewModel.TimeZoneModified);
+        Assert.IsTrue(changes.Any(change => change.Kind == SettingKind.TimeZone));
+    }
+
+    [TestMethod]
+    public void Locale_modified_when_changed_and_restore_returns_to_current_culture()
+    {
+        var viewModel = new SettingsViewModel(new() { ClockLocaleId = "en-US" });
+        var changes = Capture(viewModel);
+
+        viewModel.SelectedLocale = viewModel.Locales.First(culture => culture.Name == "fr-FR");
+        Assert.IsTrue(viewModel.LocaleModified);
+
+        viewModel.RestoreLocaleCommand.Execute(null);
+        Assert.IsFalse(viewModel.LocaleModified);
+        Assert.IsTrue(changes.Any(change => change.Kind == SettingKind.ClockLocale));
+    }
+
+    [TestMethod]
+    public void Transient_null_selection_does_not_report_modified()
+    {
+        var viewModel = new SettingsViewModel(new() { ClockLocaleId = "en-US" });
+
+        // The AutoCompleteBox clears its selection to null while the user types; the flag getter must not throw.
+        viewModel.SelectedLocale = null!;
+        Assert.IsFalse(viewModel.LocaleModified);
+    }
+
+    [TestMethod]
+    public void Transient_null_time_zone_selection_does_not_report_modified()
+    {
+        var viewModel = new SettingsViewModel(new() { TimeZoneId = "UTC" });
+
+        // The time zone AutoCompleteBox clears its selection to null while the user types; the getter must not throw.
+        viewModel.SelectedTimeZone = null!;
+        Assert.IsFalse(viewModel.TimeZoneModified);
+    }
+
+    [TestMethod]
+    public void Clock_formats_unmodified_when_null_or_blank()
+    {
+        var viewModel = new SettingsViewModel(new());
+        Assert.IsFalse(viewModel.ClockTimeFormatModified);
+
+        viewModel.ClockTimeFormat = "   ";
+        Assert.IsFalse(viewModel.ClockTimeFormatModified);
+    }
+
+    [TestMethod]
+    public void Setting_a_clock_format_marks_it_modified()
+    {
+        var viewModel = new SettingsViewModel(new());
+
+        viewModel.ClockDateFormat = "yyyy-MM-dd";
+        Assert.IsTrue(viewModel.ClockDateFormatModified);
+    }
+
+    [TestMethod]
+    public void Restoring_a_clock_format_writes_null_clears_flag_and_raises_a_change()
+    {
+        var viewModel = new SettingsViewModel(new() { ClockDateFormat = "yyyy-MM-dd" });
+        var changes = Capture(viewModel);
+
+        Assert.IsTrue(viewModel.ClockDateFormatModified);
+        viewModel.RestoreClockDateFormatCommand.Execute(null);
+
+        Assert.IsNull(viewModel.ClockDateFormat);
+        Assert.IsFalse(viewModel.ClockDateFormatModified);
+        Assert.IsTrue(changes.Any(change => change.Kind == SettingKind.ClockFormats));
+    }
 }

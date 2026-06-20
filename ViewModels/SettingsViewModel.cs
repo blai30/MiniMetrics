@@ -12,9 +12,26 @@ namespace MiniMetrics.ViewModels;
 
 public partial class SettingsViewModel : ObservableObject
 {
-    [ObservableProperty] public partial string BackgroundColor { get; set; }
-    [ObservableProperty] public partial int Opacity { get; set; }
-    [ObservableProperty] public partial AppTheme Theme { get; set; }
+    // Canonical defaults for the per-option restore affordance. A fresh Settings carries every
+    // field-initializer default; the computed defaults (font, time zone, locale) are resolved in the
+    // constructor below.
+    private static readonly Settings Defaults = new();
+
+    private readonly TimeZoneInfo _defaultTimeZone;
+    private readonly CultureInfo _defaultLocale;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(BackgroundColorModified))]
+    public partial string BackgroundColor { get; set; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(OpacityModified))]
+    public partial int Opacity { get; set; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ThemeModified))]
+    [NotifyPropertyChangedFor(nameof(BackgroundColorModified))]
+    public partial AppTheme Theme { get; set; }
     public IReadOnlyList<AppTheme> Themes { get; } = [AppTheme.System, AppTheme.Light, AppTheme.Dark];
 
     private static readonly string[] DarkSwatches =
@@ -39,22 +56,38 @@ public partial class SettingsViewModel : ObservableObject
 
     public IReadOnlyList<TimeZoneInfo> TimeZones { get; } = TimeZoneInfo.GetSystemTimeZones();
 
-    [ObservableProperty] public partial TimeZoneInfo SelectedTimeZone { get; set; }
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(TimeZoneModified))]
+    public partial TimeZoneInfo SelectedTimeZone { get; set; }
     [ObservableProperty] public partial bool UpdateCheckEnabled { get; set; }
-    [ObservableProperty] public partial UpdateCheckFrequency UpdateFrequency { get; set; }
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(UpdateFrequencyModified))]
+    public partial UpdateCheckFrequency UpdateFrequency { get; set; }
+
     [ObservableProperty] public partial bool CpuCompact { get; set; }
     [ObservableProperty] public partial bool GpuCompact { get; set; }
     [ObservableProperty] public partial bool DateTimeCompact { get; set; }
-    [ObservableProperty] public partial ClockAlignment ClockAlignment { get; set; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ClockAlignmentModified))]
+    public partial ClockAlignment ClockAlignment { get; set; }
 
     public IReadOnlyList<string> AvailableFonts { get; }
 
     public IReadOnlyList<WidgetFontWeight> WidgetFontWeights { get; } =
         [WidgetFontWeight.Light, WidgetFontWeight.Regular, WidgetFontWeight.Bold];
 
-    [ObservableProperty] public partial string WidgetFontFamily { get; set; }
-    [ObservableProperty] public partial int WidgetScale { get; set; }
-    [ObservableProperty] public partial WidgetFontWeight WidgetFontWeight { get; set; }
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(WidgetFontFamilyModified))]
+    public partial string WidgetFontFamily { get; set; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(WidgetScaleModified))]
+    public partial int WidgetScale { get; set; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(WidgetFontWeightModified))]
+    public partial WidgetFontWeight WidgetFontWeight { get; set; }
     [ObservableProperty] public partial bool UseLocalTime { get; set; }
 
     // The full set of specific cultures for the locale picker, ordered by display name.
@@ -63,26 +96,32 @@ public partial class SettingsViewModel : ObservableObject
             .OrderBy(culture => culture.DisplayName, StringComparer.CurrentCulture)
             .ToArray();
 
-    [ObservableProperty] public partial CultureInfo SelectedLocale { get; set; }
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(LocaleModified))]
+    public partial CultureInfo SelectedLocale { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(TimeSample))]
     [NotifyPropertyChangedFor(nameof(TimeFormatError))]
+    [NotifyPropertyChangedFor(nameof(ClockTimeFormatModified))]
     public partial string? ClockTimeFormat { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(DateSample))]
     [NotifyPropertyChangedFor(nameof(DateFormatError))]
+    [NotifyPropertyChangedFor(nameof(ClockDateFormatModified))]
     public partial string? ClockDateFormat { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(TimeHoverSample))]
     [NotifyPropertyChangedFor(nameof(TimeHoverFormatError))]
+    [NotifyPropertyChangedFor(nameof(ClockTimeFormatHoverModified))]
     public partial string? ClockTimeFormatHover { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(DateHoverSample))]
     [NotifyPropertyChangedFor(nameof(DateHoverFormatError))]
+    [NotifyPropertyChangedFor(nameof(ClockDateFormatHoverModified))]
     public partial string? ClockDateFormatHover { get; set; }
 
     // A fixed instant so the settings preview stays stable while the user edits.
@@ -168,7 +207,9 @@ public partial class SettingsViewModel : ObservableObject
         }
 
         MetricGroups = groups;
+        _defaultTimeZone = ResolveZone(null, TimeZones);
         SelectedTimeZone = ResolveZone(settings.TimeZoneId, TimeZones);
+        _defaultLocale = ResolveLocale(null, Locales);
         SelectedLocale = ResolveLocale(settings.ClockLocaleId, Locales);
         return;
 
@@ -187,6 +228,49 @@ public partial class SettingsViewModel : ObservableObject
 
     // The toggle for a metric key.
     public MetricToggleViewModel ToggleFor(string key) => _togglesByKey[key];
+
+    // Each option's value differs from its default. The Settings-window reset button binds its
+    // IsVisible to these so it surfaces only while the option strays from default.
+    public bool ThemeModified => Theme != Defaults.Theme;
+    public bool OpacityModified => Opacity != Defaults.Opacity;
+    public bool WidgetScaleModified => WidgetScale != Defaults.WidgetScale;
+    public bool WidgetFontFamilyModified => WidgetFontFamily != WidgetStyleProfile.DefaultFamilyName;
+    public bool WidgetFontWeightModified => WidgetFontWeight != Defaults.WidgetFontWeight;
+    public bool ClockAlignmentModified => ClockAlignment != Defaults.ClockAlignment;
+    public bool UpdateFrequencyModified => UpdateFrequency != Defaults.UpdateFrequency;
+
+    // The editor writes one theme variant at a time, so compare against and restore that variant's default.
+    public bool BackgroundColorModified =>
+        BackgroundColor != (EditingVariantIsDark ? Defaults.BackgroundColor : Defaults.LightBackgroundColor);
+
+    public bool TimeZoneModified => SelectedTimeZone is not null && SelectedTimeZone.Id != _defaultTimeZone.Id;
+    public bool LocaleModified => SelectedLocale is not null && SelectedLocale.Name != _defaultLocale.Name;
+
+    [RelayCommand] private void RestoreTheme() => Theme = Defaults.Theme;
+    [RelayCommand] private void RestoreOpacity() => Opacity = Defaults.Opacity;
+    [RelayCommand] private void RestoreWidgetScale() => WidgetScale = Defaults.WidgetScale;
+    [RelayCommand] private void RestoreWidgetFontFamily() => WidgetFontFamily = WidgetStyleProfile.DefaultFamilyName;
+    [RelayCommand] private void RestoreWidgetFontWeight() => WidgetFontWeight = Defaults.WidgetFontWeight;
+    [RelayCommand] private void RestoreClockAlignment() => ClockAlignment = Defaults.ClockAlignment;
+    [RelayCommand] private void RestoreUpdateFrequency() => UpdateFrequency = Defaults.UpdateFrequency;
+
+    [RelayCommand]
+    private void RestoreBackgroundColor() =>
+        BackgroundColor = EditingVariantIsDark ? Defaults.BackgroundColor : Defaults.LightBackgroundColor;
+
+    [RelayCommand] private void RestoreTimeZone() => SelectedTimeZone = _defaultTimeZone;
+    [RelayCommand] private void RestoreLocale() => SelectedLocale = _defaultLocale;
+
+    // A null or blank format means "use the built-in default", so blank counts as default and restore clears it.
+    public bool ClockTimeFormatModified => !string.IsNullOrWhiteSpace(ClockTimeFormat);
+    public bool ClockDateFormatModified => !string.IsNullOrWhiteSpace(ClockDateFormat);
+    public bool ClockTimeFormatHoverModified => !string.IsNullOrWhiteSpace(ClockTimeFormatHover);
+    public bool ClockDateFormatHoverModified => !string.IsNullOrWhiteSpace(ClockDateFormatHover);
+
+    [RelayCommand] private void RestoreClockTimeFormat() => ClockTimeFormat = null;
+    [RelayCommand] private void RestoreClockDateFormat() => ClockDateFormat = null;
+    [RelayCommand] private void RestoreClockTimeFormatHover() => ClockTimeFormatHover = null;
+    [RelayCommand] private void RestoreClockDateFormatHover() => ClockDateFormatHover = null;
 
     [RelayCommand]
     private void SelectPreset(string hex) => BackgroundColor = hex;
