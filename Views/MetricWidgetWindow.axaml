@@ -82,8 +82,6 @@
                         <Run Text="{Binding Value}"
                              FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=24}"
                              FontWeight="{Binding StrongWeight}" />
-                        <Run Text=" "
-                             FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=8}" />
                         <Run Text="%"
                              FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=14}"
                              FontWeight="{Binding UnitWeight}" />
@@ -161,7 +159,6 @@
                          FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=26}"
                          FontWeight="{Binding StrongWeight}"
                          Foreground="{DynamicResource Widget.Text.Primary}" />
-                    <Run Text=" " />
                     <Run Text="{Binding Detail}"
                          FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=17}"
                          FontWeight="{Binding UnitWeight}"
@@ -187,7 +184,6 @@
                              FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=16}"
                              FontWeight="{Binding StrongWeight}"
                              Foreground="{DynamicResource Widget.Text.Primary}" />
-                        <Run Text=" " />
                         <Run Text="{Binding Detail}"
                              FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=13}"
                              FontWeight="{Binding UnitWeight}"
