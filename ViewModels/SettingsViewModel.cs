@@ -72,7 +72,9 @@ public partial class SettingsViewModel : ObservableObject
     public IReadOnlyList<WidgetFontWeight> WidgetFontWeights { get; } =
         [WidgetFontWeight.Light, WidgetFontWeight.Regular, WidgetFontWeight.Bold];
 
-    [ObservableProperty] public partial string WidgetFontFamily { get; set; }
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(WidgetFontFamilyModified))]
+    public partial string WidgetFontFamily { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(WidgetScaleModified))]
@@ -219,6 +221,7 @@ public partial class SettingsViewModel : ObservableObject
     public bool ThemeModified => Theme != Defaults.Theme;
     public bool OpacityModified => Opacity != Defaults.Opacity;
     public bool WidgetScaleModified => WidgetScale != Defaults.WidgetScale;
+    public bool WidgetFontFamilyModified => WidgetFontFamily != WidgetStyleProfile.DefaultFamilyName;
     public bool WidgetFontWeightModified => WidgetFontWeight != Defaults.WidgetFontWeight;
     public bool ClockAlignmentModified => ClockAlignment != Defaults.ClockAlignment;
     public bool UpdateFrequencyModified => UpdateFrequency != Defaults.UpdateFrequency;
@@ -230,6 +233,7 @@ public partial class SettingsViewModel : ObservableObject
     [RelayCommand] private void RestoreTheme() => Theme = Defaults.Theme;
     [RelayCommand] private void RestoreOpacity() => Opacity = Defaults.Opacity;
     [RelayCommand] private void RestoreWidgetScale() => WidgetScale = Defaults.WidgetScale;
+    [RelayCommand] private void RestoreWidgetFontFamily() => WidgetFontFamily = WidgetStyleProfile.DefaultFamilyName;
     [RelayCommand] private void RestoreWidgetFontWeight() => WidgetFontWeight = Defaults.WidgetFontWeight;
     [RelayCommand] private void RestoreClockAlignment() => ClockAlignment = Defaults.ClockAlignment;
     [RelayCommand] private void RestoreUpdateFrequency() => UpdateFrequency = Defaults.UpdateFrequency;

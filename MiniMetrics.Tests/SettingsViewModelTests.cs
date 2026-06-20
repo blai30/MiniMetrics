@@ -604,4 +604,25 @@ public class SettingsViewModelTests
         Assert.IsFalse(viewModel.BackgroundColorModified);
         Assert.IsTrue(changes.Any(change => change.Kind == SettingKind.Appearance));
     }
+
+    [TestMethod]
+    public void Font_family_unmodified_at_default()
+    {
+        var viewModel = new SettingsViewModel(new(), true, new FakeFontCatalog("Arial"));
+
+        Assert.IsFalse(viewModel.WidgetFontFamilyModified);
+    }
+
+    [TestMethod]
+    public void Restoring_font_family_resets_to_inter_and_clears_flag()
+    {
+        var viewModel = new SettingsViewModel(new(), true, new FakeFontCatalog("Arial"));
+
+        viewModel.WidgetFontFamily = "Arial";
+        Assert.IsTrue(viewModel.WidgetFontFamilyModified);
+
+        viewModel.RestoreWidgetFontFamilyCommand.Execute(null);
+        Assert.AreEqual("Inter", viewModel.WidgetFontFamily);
+        Assert.IsFalse(viewModel.WidgetFontFamilyModified);
+    }
 }
