@@ -12,9 +12,20 @@ namespace MiniMetrics.ViewModels;
 
 public partial class SettingsViewModel : ObservableObject
 {
+    // Canonical defaults for the per-option restore affordance. A fresh Settings carries every
+    // field-initializer default; the computed defaults (font, time zone, locale) are resolved in the
+    // constructor below.
+    private static readonly Settings Defaults = new();
+
     [ObservableProperty] public partial string BackgroundColor { get; set; }
-    [ObservableProperty] public partial int Opacity { get; set; }
-    [ObservableProperty] public partial AppTheme Theme { get; set; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(OpacityModified))]
+    public partial int Opacity { get; set; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ThemeModified))]
+    public partial AppTheme Theme { get; set; }
     public IReadOnlyList<AppTheme> Themes { get; } = [AppTheme.System, AppTheme.Light, AppTheme.Dark];
 
     private static readonly string[] DarkSwatches =
@@ -41,11 +52,17 @@ public partial class SettingsViewModel : ObservableObject
 
     [ObservableProperty] public partial TimeZoneInfo SelectedTimeZone { get; set; }
     [ObservableProperty] public partial bool UpdateCheckEnabled { get; set; }
-    [ObservableProperty] public partial UpdateCheckFrequency UpdateFrequency { get; set; }
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(UpdateFrequencyModified))]
+    public partial UpdateCheckFrequency UpdateFrequency { get; set; }
+
     [ObservableProperty] public partial bool CpuCompact { get; set; }
     [ObservableProperty] public partial bool GpuCompact { get; set; }
     [ObservableProperty] public partial bool DateTimeCompact { get; set; }
-    [ObservableProperty] public partial ClockAlignment ClockAlignment { get; set; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ClockAlignmentModified))]
+    public partial ClockAlignment ClockAlignment { get; set; }
 
     public IReadOnlyList<string> AvailableFonts { get; }
 
@@ -53,8 +70,14 @@ public partial class SettingsViewModel : ObservableObject
         [WidgetFontWeight.Light, WidgetFontWeight.Regular, WidgetFontWeight.Bold];
 
     [ObservableProperty] public partial string WidgetFontFamily { get; set; }
-    [ObservableProperty] public partial int WidgetScale { get; set; }
-    [ObservableProperty] public partial WidgetFontWeight WidgetFontWeight { get; set; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(WidgetScaleModified))]
+    public partial int WidgetScale { get; set; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(WidgetFontWeightModified))]
+    public partial WidgetFontWeight WidgetFontWeight { get; set; }
     [ObservableProperty] public partial bool UseLocalTime { get; set; }
 
     // The full set of specific cultures for the locale picker, ordered by display name.
@@ -187,6 +210,22 @@ public partial class SettingsViewModel : ObservableObject
 
     // The toggle for a metric key.
     public MetricToggleViewModel ToggleFor(string key) => _togglesByKey[key];
+
+    // Each option's value differs from its default. The Settings-window reset button binds its
+    // IsVisible to these so it surfaces only while the option strays from default.
+    public bool ThemeModified => Theme != Defaults.Theme;
+    public bool OpacityModified => Opacity != Defaults.Opacity;
+    public bool WidgetScaleModified => WidgetScale != Defaults.WidgetScale;
+    public bool WidgetFontWeightModified => WidgetFontWeight != Defaults.WidgetFontWeight;
+    public bool ClockAlignmentModified => ClockAlignment != Defaults.ClockAlignment;
+    public bool UpdateFrequencyModified => UpdateFrequency != Defaults.UpdateFrequency;
+
+    [RelayCommand] private void RestoreTheme() => Theme = Defaults.Theme;
+    [RelayCommand] private void RestoreOpacity() => Opacity = Defaults.Opacity;
+    [RelayCommand] private void RestoreWidgetScale() => WidgetScale = Defaults.WidgetScale;
+    [RelayCommand] private void RestoreWidgetFontWeight() => WidgetFontWeight = Defaults.WidgetFontWeight;
+    [RelayCommand] private void RestoreClockAlignment() => ClockAlignment = Defaults.ClockAlignment;
+    [RelayCommand] private void RestoreUpdateFrequency() => UpdateFrequency = Defaults.UpdateFrequency;
 
     [RelayCommand]
     private void SelectPreset(string hex) => BackgroundColor = hex;

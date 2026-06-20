@@ -504,4 +504,65 @@ public class SettingsViewModelTests
         Assert.AreEqual(1, changes.Count);
         Assert.AreEqual(SettingKind.WidgetStyle, changes[0].Kind);
     }
+
+    [TestMethod]
+    public void Plain_scalar_options_start_unmodified_at_defaults()
+    {
+        var viewModel = new SettingsViewModel(new(), true, new FakeFontCatalog());
+
+        Assert.IsFalse(viewModel.ThemeModified);
+        Assert.IsFalse(viewModel.OpacityModified);
+        Assert.IsFalse(viewModel.WidgetScaleModified);
+        Assert.IsFalse(viewModel.WidgetFontWeightModified);
+        Assert.IsFalse(viewModel.ClockAlignmentModified);
+        Assert.IsFalse(viewModel.UpdateFrequencyModified);
+    }
+
+    [TestMethod]
+    public void Changing_a_plain_scalar_sets_its_modified_flag()
+    {
+        var viewModel = new SettingsViewModel(new(), true, new FakeFontCatalog());
+
+        viewModel.Opacity = 50;
+        viewModel.UpdateFrequency = UpdateCheckFrequency.Monthly;
+        viewModel.ClockAlignment = ClockAlignment.Center;
+
+        Assert.IsTrue(viewModel.OpacityModified);
+        Assert.IsTrue(viewModel.UpdateFrequencyModified);
+        Assert.IsTrue(viewModel.ClockAlignmentModified);
+        Assert.IsFalse(viewModel.ThemeModified);
+    }
+
+    [TestMethod]
+    public void Restoring_a_plain_scalar_resets_value_clears_flag_and_raises_a_change()
+    {
+        var settings = new Settings { Opacity = 50, UpdateFrequency = UpdateCheckFrequency.Monthly };
+        var viewModel = new SettingsViewModel(settings, true, new FakeFontCatalog());
+        var changes = Capture(viewModel);
+
+        Assert.IsTrue(viewModel.OpacityModified);
+        viewModel.RestoreOpacityCommand.Execute(null);
+        Assert.AreEqual(96, viewModel.Opacity);
+        Assert.IsFalse(viewModel.OpacityModified);
+
+        viewModel.RestoreUpdateFrequencyCommand.Execute(null);
+        Assert.AreEqual(UpdateCheckFrequency.Daily, viewModel.UpdateFrequency);
+        Assert.IsFalse(viewModel.UpdateFrequencyModified);
+
+        // restore routes through the normal change pipeline
+        Assert.IsTrue(changes.Any(change => change.Kind == SettingKind.Appearance));
+        Assert.IsTrue(changes.Any(change => change.Kind == SettingKind.UpdatePreferences));
+    }
+
+    [TestMethod]
+    public void Editing_a_scalar_back_to_default_clears_the_modified_flag()
+    {
+        var viewModel = new SettingsViewModel(new(), true, new FakeFontCatalog());
+
+        viewModel.WidgetScale = 130;
+        Assert.IsTrue(viewModel.WidgetScaleModified);
+
+        viewModel.WidgetScale = 100;
+        Assert.IsFalse(viewModel.WidgetScaleModified);
+    }
 }
