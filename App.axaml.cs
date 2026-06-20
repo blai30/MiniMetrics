@@ -329,7 +329,7 @@ public partial class App : Application
             {
                 new MenuItem
                 {
-                    Header = "Warmup", Icon = new Image { Source = MenuIconRenderer.Render("M12 2v20", Brushes.Gray) }
+                    Header = "Warmup", Icon = new Image { Source = MenuIconRenderer.Render("cpu", Brushes.Gray) }
                 },
                 new MenuItem { Header = "Warmup" }
             }

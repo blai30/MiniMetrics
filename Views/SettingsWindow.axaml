@@ -7,6 +7,7 @@
     xmlns:models="using:MiniMetrics.Models"
     xmlns:sys="using:System"
     xmlns:glob="using:System.Globalization"
+    xmlns:v="using:MiniMetrics.Views"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
@@ -29,7 +30,7 @@
         <conv:UpdateFrequencyLabelConverter x:Key="FrequencyLabel" />
         <conv:EnumToBoolConverter x:Key="EnumToBool" />
         <conv:StringToFontFamilyConverter x:Key="StringToFontFamily" />
-        <StreamGeometry x:Key="UndoIcon">M8 3a5 5 0 1 1-4.546 2.914.5.5 0 0 0-.908-.417A6 6 0 1 0 8 2z M8 4.466V.534a.25.25 0 0 0-.41-.192L5.23 2.308a.25.25 0 0 0 0 .384l2.36 1.966A.25.25 0 0 0 8 4.466z</StreamGeometry>
+        <conv:LucideIconSourceConverter x:Key="LucideIconSource" />
     </Window.Resources>
 
     <Window.Styles>
@@ -46,7 +47,11 @@
         <Style Selector="Button.reset">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="Padding" Value="8,6" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Width" Value="36" />
+            <Setter Property="Height" Value="36" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
             <Setter Property="CornerRadius" Value="6" />
             <Setter Property="VerticalAlignment" Value="Center" />
             <Setter Property="Focusable" Value="False" />
@@ -70,25 +75,29 @@
             OpenPaneLength="200"
             SelectionChanged="OnNavSelectionChanged">
             <ui:FANavigationView.MenuItems>
-                <ui:FANavigationViewItem Content="Appearance" Tag="Appearance" IsSelected="True">
-                    <ui:FANavigationViewItem.IconSource>
-                        <ui:FASymbolIconSource Symbol="Setting" />
-                    </ui:FANavigationViewItem.IconSource>
+                <ui:FANavigationViewItem Tag="Appearance" IsSelected="True">
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <v:LucideIcon Symbol="palette" Width="16" Height="16" />
+                        <TextBlock VerticalAlignment="Center" Text="Appearance" />
+                    </StackPanel>
                 </ui:FANavigationViewItem>
-                <ui:FANavigationViewItem Content="Clock" Tag="Clock">
-                    <ui:FANavigationViewItem.IconSource>
-                        <ui:FASymbolIconSource Symbol="Clock" />
-                    </ui:FANavigationViewItem.IconSource>
+                <ui:FANavigationViewItem Tag="Clock">
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <v:LucideIcon Symbol="clock" Width="16" Height="16" />
+                        <TextBlock VerticalAlignment="Center" Text="Clock" />
+                    </StackPanel>
                 </ui:FANavigationViewItem>
-                <ui:FANavigationViewItem Content="Metrics" Tag="Metrics">
-                    <ui:FANavigationViewItem.IconSource>
-                        <ui:FASymbolIconSource Symbol="Home" />
-                    </ui:FANavigationViewItem.IconSource>
+                <ui:FANavigationViewItem Tag="Metrics">
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <v:LucideIcon Symbol="gauge" Width="16" Height="16" />
+                        <TextBlock VerticalAlignment="Center" Text="Metrics" />
+                    </StackPanel>
                 </ui:FANavigationViewItem>
-                <ui:FANavigationViewItem Content="Updates" Tag="Updates">
-                    <ui:FANavigationViewItem.IconSource>
-                        <ui:FASymbolIconSource Symbol="Refresh" />
-                    </ui:FANavigationViewItem.IconSource>
+                <ui:FANavigationViewItem Tag="Updates">
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <v:LucideIcon Symbol="refresh-cw" Width="16" Height="16" />
+                        <TextBlock VerticalAlignment="Center" Text="Updates" />
+                    </StackPanel>
                 </ui:FANavigationViewItem>
             </ui:FANavigationView.MenuItems>
 
@@ -120,15 +129,13 @@
                             FontWeight="SemiBold"
                             Text="Appearance" />
 
-                        <ui:FASettingsExpander Header="Theme" Description="Color mode for the app and widgets">
-                            <ui:FASettingsExpander.IconSource>
-                                <ui:FASymbolIconSource Symbol="Setting" />
-                            </ui:FASettingsExpander.IconSource>
+                        <ui:FASettingsExpander Header="Theme" Description="Color mode for the app and widgets"
+                                               IconSource="{Binding ActualThemeVariant, RelativeSource={RelativeSource Self}, Converter={StaticResource LucideIconSource}, ConverterParameter=sun-moon, x:CompileBindings=False}">
                             <ui:FASettingsExpander.Footer>
                                 <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
                                     <Button Classes="reset" ToolTip.Tip="Restore default"
                                             Command="{Binding RestoreThemeCommand}" IsVisible="{Binding ThemeModified}">
-                                        <PathIcon Width="16" Height="16" Data="{StaticResource UndoIcon}" />
+                                        <v:LucideIcon Width="20" Height="20" Symbol="rotate-ccw" />
                                     </Button>
                                     <ComboBox
                                         MinWidth="160"
@@ -140,10 +147,8 @@
 
                         <ui:FASettingsExpander
                             Header="Background color"
-                            Description="Translucent fill behind every widget">
-                            <ui:FASettingsExpander.IconSource>
-                                <ui:FASymbolIconSource Symbol="Edit" />
-                            </ui:FASettingsExpander.IconSource>
+                            Description="Translucent fill behind every widget"
+                            IconSource="{Binding ActualThemeVariant, RelativeSource={RelativeSource Self}, Converter={StaticResource LucideIconSource}, ConverterParameter=palette, x:CompileBindings=False}">
                             <ui:FASettingsExpanderItem>
                                 <ItemsControl ItemsSource="{Binding Swatches}">
                                     <ItemsControl.ItemsPanel>
@@ -171,7 +176,7 @@
                                         <Button Classes="reset" ToolTip.Tip="Restore default"
                                                 Command="{Binding RestoreBackgroundColorCommand}"
                                                 IsVisible="{Binding BackgroundColorModified}">
-                                            <PathIcon Width="16" Height="16" Data="{StaticResource UndoIcon}" />
+                                            <v:LucideIcon Width="20" Height="20" Symbol="rotate-ccw" />
                                         </Button>
                                         <TextBox
                                             Width="120"
@@ -182,16 +187,14 @@
                             </ui:FASettingsExpanderItem>
                         </ui:FASettingsExpander>
 
-                        <ui:FASettingsExpander Header="Opacity" Description="How opaque the widget background is">
-                            <ui:FASettingsExpander.IconSource>
-                                <ui:FASymbolIconSource Symbol="Highlight" />
-                            </ui:FASettingsExpander.IconSource>
+                        <ui:FASettingsExpander Header="Opacity" Description="How opaque the widget background is"
+                                               IconSource="{Binding ActualThemeVariant, RelativeSource={RelativeSource Self}, Converter={StaticResource LucideIconSource}, ConverterParameter=blend, x:CompileBindings=False}">
                             <ui:FASettingsExpander.Footer>
                                 <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
                                     <Button Classes="reset" ToolTip.Tip="Restore default"
                                             Command="{Binding RestoreOpacityCommand}"
                                             IsVisible="{Binding OpacityModified}">
-                                        <PathIcon Width="16" Height="16" Data="{StaticResource UndoIcon}" />
+                                        <v:LucideIcon Width="20" Height="20" Symbol="rotate-ccw" />
                                     </Button>
                                     <Grid ColumnDefinitions="200,Auto">
                                         <Slider Grid.Column="0" Minimum="0" Maximum="100" Value="{Binding Opacity}" />
@@ -219,16 +222,14 @@
                             </ui:FASettingsExpander.Footer>
                         </ui:FASettingsExpander>
 
-                        <ui:FASettingsExpander Header="Widget size" Description="Scale of every widget on screen">
-                            <ui:FASettingsExpander.IconSource>
-                                <ui:FASymbolIconSource Symbol="FullScreen" />
-                            </ui:FASettingsExpander.IconSource>
+                        <ui:FASettingsExpander Header="Widget size" Description="Scale of every widget on screen"
+                                               IconSource="{Binding ActualThemeVariant, RelativeSource={RelativeSource Self}, Converter={StaticResource LucideIconSource}, ConverterParameter=scaling, x:CompileBindings=False}">
                             <ui:FASettingsExpander.Footer>
                                 <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
                                     <Button Classes="reset" ToolTip.Tip="Restore default"
                                             Command="{Binding RestoreWidgetScaleCommand}"
                                             IsVisible="{Binding WidgetScaleModified}">
-                                        <PathIcon Width="16" Height="16" Data="{StaticResource UndoIcon}" />
+                                        <v:LucideIcon Width="20" Height="20" Symbol="rotate-ccw" />
                                     </Button>
                                     <Grid ColumnDefinitions="200,Auto">
                                         <Slider Grid.Column="0" Minimum="50" Maximum="200"
@@ -257,16 +258,14 @@
                             </ui:FASettingsExpander.Footer>
                         </ui:FASettingsExpander>
 
-                        <ui:FASettingsExpander Header="Font" Description="Typeface and weight used by the widgets">
-                            <ui:FASettingsExpander.IconSource>
-                                <ui:FASymbolIconSource Symbol="Font" />
-                            </ui:FASettingsExpander.IconSource>
+                        <ui:FASettingsExpander Header="Font" Description="Typeface and weight used by the widgets"
+                                               IconSource="{Binding ActualThemeVariant, RelativeSource={RelativeSource Self}, Converter={StaticResource LucideIconSource}, ConverterParameter=type, x:CompileBindings=False}">
                             <ui:FASettingsExpander.Footer>
                                 <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                                     <Button Classes="reset" ToolTip.Tip="Restore default"
                                             Command="{Binding RestoreWidgetFontFamilyCommand}"
                                             IsVisible="{Binding WidgetFontFamilyModified}">
-                                        <PathIcon Width="16" Height="16" Data="{StaticResource UndoIcon}" />
+                                        <v:LucideIcon Width="20" Height="20" Symbol="rotate-ccw" />
                                     </Button>
                                     <Grid Width="200">
                                         <AutoCompleteBox
@@ -299,13 +298,13 @@
                                             Background="Transparent"
                                             BorderThickness="0"
                                             Focusable="False">
-                                            <PathIcon Width="11" Height="11" Data="M0,0 L4,4 L8,0 Z" />
+                                            <v:LucideIcon Width="11" Height="11" Symbol="chevron-down" />
                                         </Button>
                                     </Grid>
                                     <Button Classes="reset" ToolTip.Tip="Restore default"
                                             Command="{Binding RestoreWidgetFontWeightCommand}"
                                             IsVisible="{Binding WidgetFontWeightModified}">
-                                        <PathIcon Width="16" Height="16" Data="{StaticResource UndoIcon}" />
+                                        <v:LucideIcon Width="20" Height="20" Symbol="rotate-ccw" />
                                     </Button>
                                     <ComboBox
                                         MinWidth="140"
@@ -317,10 +316,8 @@
 
                         <ui:FASettingsExpander
                             Header="Compact layout"
-                            Description="Use the condensed single-line widget layout">
-                            <ui:FASettingsExpander.IconSource>
-                                <ui:FASymbolIconSource Symbol="List" />
-                            </ui:FASettingsExpander.IconSource>
+                            Description="Use the condensed single-line widget layout"
+                            IconSource="{Binding ActualThemeVariant, RelativeSource={RelativeSource Self}, Converter={StaticResource LucideIconSource}, ConverterParameter=rows-2, x:CompileBindings=False}">
                             <ui:FASettingsExpanderItem Content="CPU widget">
                                 <ui:FASettingsExpanderItem.Footer>
                                     <ToggleSwitch IsChecked="{Binding CpuCompact}" OnContent="" OffContent="" />
@@ -355,26 +352,21 @@
 
                         <ui:FASettingsExpander
                             Header="Use local time"
-                            Description="Follow the system clock and time zone">
-                            <ui:FASettingsExpander.IconSource>
-                                <ui:FASymbolIconSource Symbol="Clock" />
-                            </ui:FASettingsExpander.IconSource>
+                            Description="Follow the system clock and time zone"
+                            IconSource="{Binding ActualThemeVariant, RelativeSource={RelativeSource Self}, Converter={StaticResource LucideIconSource}, ConverterParameter=clock, x:CompileBindings=False}">
                             <ui:FASettingsExpander.Footer>
                                 <ToggleSwitch IsChecked="{Binding UseLocalTime}" OnContent="" OffContent="" />
                             </ui:FASettingsExpander.Footer>
                         </ui:FASettingsExpander>
 
-                        <!-- Globe not in confirmed-valid FASymbol list; substituted with Calendar -->
-                        <ui:FASettingsExpander Header="Time zone" IsEnabled="{Binding !UseLocalTime}">
-                            <ui:FASettingsExpander.IconSource>
-                                <ui:FASymbolIconSource Symbol="Calendar" />
-                            </ui:FASettingsExpander.IconSource>
+                        <ui:FASettingsExpander Header="Time zone" IsEnabled="{Binding !UseLocalTime}"
+                                               IconSource="{Binding ActualThemeVariant, RelativeSource={RelativeSource Self}, Converter={StaticResource LucideIconSource}, ConverterParameter=globe, x:CompileBindings=False}">
                             <ui:FASettingsExpander.Footer>
                                 <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
                                     <Button Classes="reset" ToolTip.Tip="Restore default"
                                             Command="{Binding RestoreTimeZoneCommand}"
                                             IsVisible="{Binding TimeZoneModified}">
-                                        <PathIcon Width="16" Height="16" Data="{StaticResource UndoIcon}" />
+                                        <v:LucideIcon Width="20" Height="20" Symbol="rotate-ccw" />
                                     </Button>
                                     <Grid Width="340">
                                         <AutoCompleteBox
@@ -403,24 +395,21 @@
                                             Background="Transparent"
                                             BorderThickness="0"
                                             Focusable="False">
-                                            <PathIcon Width="11" Height="11" Data="M0,0 L4,4 L8,0 Z" />
+                                            <v:LucideIcon Width="11" Height="11" Symbol="chevron-down" />
                                         </Button>
                                     </Grid>
                                 </StackPanel>
                             </ui:FASettingsExpander.Footer>
                         </ui:FASettingsExpander>
 
-                        <!-- Globe not in confirmed-valid FASymbol list; substituted with Calendar -->
-                        <ui:FASettingsExpander Header="Locale">
-                            <ui:FASettingsExpander.IconSource>
-                                <ui:FASymbolIconSource Symbol="Calendar" />
-                            </ui:FASettingsExpander.IconSource>
+                        <ui:FASettingsExpander Header="Locale"
+                                               IconSource="{Binding ActualThemeVariant, RelativeSource={RelativeSource Self}, Converter={StaticResource LucideIconSource}, ConverterParameter=languages, x:CompileBindings=False}">
                             <ui:FASettingsExpander.Footer>
                                 <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
                                     <Button Classes="reset" ToolTip.Tip="Restore default"
                                             Command="{Binding RestoreLocaleCommand}"
                                             IsVisible="{Binding LocaleModified}">
-                                        <PathIcon Width="16" Height="16" Data="{StaticResource UndoIcon}" />
+                                        <v:LucideIcon Width="20" Height="20" Symbol="rotate-ccw" />
                                     </Button>
                                     <Grid Width="340">
                                         <AutoCompleteBox
@@ -449,24 +438,21 @@
                                             Background="Transparent"
                                             BorderThickness="0"
                                             Focusable="False">
-                                            <PathIcon Width="11" Height="11" Data="M0,0 L4,4 L8,0 Z" />
+                                            <v:LucideIcon Width="11" Height="11" Symbol="chevron-down" />
                                         </Button>
                                     </Grid>
                                 </StackPanel>
                             </ui:FASettingsExpander.Footer>
                         </ui:FASettingsExpander>
 
-                        <!-- AlignLeft not in confirmed-valid FASymbol list; substituted with List -->
-                        <ui:FASettingsExpander Header="Text alignment">
-                            <ui:FASettingsExpander.IconSource>
-                                <ui:FASymbolIconSource Symbol="List" />
-                            </ui:FASettingsExpander.IconSource>
+                        <ui:FASettingsExpander Header="Text alignment"
+                                               IconSource="{Binding ActualThemeVariant, RelativeSource={RelativeSource Self}, Converter={StaticResource LucideIconSource}, ConverterParameter=text-align-start, x:CompileBindings=False}">
                             <ui:FASettingsExpander.Footer>
                                 <StackPanel Orientation="Horizontal" Spacing="16">
                                     <Button Classes="reset" ToolTip.Tip="Restore default"
                                             Command="{Binding RestoreClockAlignmentCommand}"
                                             IsVisible="{Binding ClockAlignmentModified}">
-                                        <PathIcon Width="16" Height="16" Data="{StaticResource UndoIcon}" />
+                                        <v:LucideIcon Width="20" Height="20" Symbol="rotate-ccw" />
                                     </Button>
                                     <RadioButton
                                         GroupName="ClockAlignment"
@@ -484,17 +470,15 @@
                             </ui:FASettingsExpander.Footer>
                         </ui:FASettingsExpander>
 
-                        <ui:FASettingsExpander Header="Display format" Description="Time and date shown by default">
-                            <ui:FASettingsExpander.IconSource>
-                                <ui:FASymbolIconSource Symbol="Calendar" />
-                            </ui:FASettingsExpander.IconSource>
+                        <ui:FASettingsExpander Header="Display format" Description="Time and date shown by default"
+                                               IconSource="{Binding ActualThemeVariant, RelativeSource={RelativeSource Self}, Converter={StaticResource LucideIconSource}, ConverterParameter=calendar-clock, x:CompileBindings=False}">
                             <ui:FASettingsExpanderItem Content="Time format">
                                 <ui:FASettingsExpanderItem.Footer>
                                     <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Top">
                                         <Button Classes="reset" ToolTip.Tip="Restore default" VerticalAlignment="Top"
                                                 Command="{Binding RestoreClockTimeFormatCommand}"
                                                 IsVisible="{Binding ClockTimeFormatModified}">
-                                            <PathIcon Width="16" Height="16" Data="{StaticResource UndoIcon}" />
+                                            <v:LucideIcon Width="20" Height="20" Symbol="rotate-ccw" />
                                         </Button>
                                         <StackPanel Spacing="2" Width="240">
                                             <TextBox Text="{Binding ClockTimeFormat}" PlaceholderText="T" />
@@ -517,7 +501,7 @@
                                         <Button Classes="reset" ToolTip.Tip="Restore default" VerticalAlignment="Top"
                                                 Command="{Binding RestoreClockDateFormatCommand}"
                                                 IsVisible="{Binding ClockDateFormatModified}">
-                                            <PathIcon Width="16" Height="16" Data="{StaticResource UndoIcon}" />
+                                            <v:LucideIcon Width="20" Height="20" Symbol="rotate-ccw" />
                                         </Button>
                                         <StackPanel Spacing="2" Width="240">
                                             <TextBox Text="{Binding ClockDateFormat}" PlaceholderText="D" />
@@ -538,17 +522,15 @@
 
                         <ui:FASettingsExpander
                             Header="Display format on hover"
-                            Description="Time and date shown while hovering the widget">
-                            <ui:FASettingsExpander.IconSource>
-                                <ui:FASymbolIconSource Symbol="Calendar" />
-                            </ui:FASettingsExpander.IconSource>
+                            Description="Time and date shown while hovering the widget"
+                            IconSource="{Binding ActualThemeVariant, RelativeSource={RelativeSource Self}, Converter={StaticResource LucideIconSource}, ConverterParameter=square-mouse-pointer, x:CompileBindings=False}">
                             <ui:FASettingsExpanderItem Content="Time format">
                                 <ui:FASettingsExpanderItem.Footer>
                                     <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Top">
                                         <Button Classes="reset" ToolTip.Tip="Restore default" VerticalAlignment="Top"
                                                 Command="{Binding RestoreClockTimeFormatHoverCommand}"
                                                 IsVisible="{Binding ClockTimeFormatHoverModified}">
-                                            <PathIcon Width="16" Height="16" Data="{StaticResource UndoIcon}" />
+                                            <v:LucideIcon Width="20" Height="20" Symbol="rotate-ccw" />
                                         </Button>
                                         <StackPanel Spacing="2" Width="240">
                                             <TextBox Text="{Binding ClockTimeFormatHover}" PlaceholderText="HH:mm:ss" />
@@ -571,7 +553,7 @@
                                         <Button Classes="reset" ToolTip.Tip="Restore default" VerticalAlignment="Top"
                                                 Command="{Binding RestoreClockDateFormatHoverCommand}"
                                                 IsVisible="{Binding ClockDateFormatHoverModified}">
-                                            <PathIcon Width="16" Height="16" Data="{StaticResource UndoIcon}" />
+                                            <v:LucideIcon Width="20" Height="20" Symbol="rotate-ccw" />
                                         </Button>
                                         <StackPanel Spacing="2" Width="240">
                                             <TextBox Text="{Binding ClockDateFormatHover}" PlaceholderText="u" />
@@ -662,10 +644,8 @@
                             Text="Updates" />
                         <ui:FASettingsExpander
                             Header="Check for updates automatically"
-                            Description="Look for new releases on a schedule">
-                            <ui:FASettingsExpander.IconSource>
-                                <ui:FASymbolIconSource Symbol="Refresh" />
-                            </ui:FASettingsExpander.IconSource>
+                            Description="Look for new releases on a schedule"
+                            IconSource="{Binding ActualThemeVariant, RelativeSource={RelativeSource Self}, Converter={StaticResource LucideIconSource}, ConverterParameter=refresh-cw, x:CompileBindings=False}">
                             <ui:FASettingsExpander.Footer>
                                 <ToggleSwitch IsChecked="{Binding UpdateCheckEnabled}" OnContent="" OffContent="" />
                             </ui:FASettingsExpander.Footer>
@@ -674,16 +654,14 @@
                         <ui:FASettingsExpander
                             Header="Frequency"
                             Description="How often to check for new releases"
-                            IsEnabled="{Binding UpdateCheckEnabled}">
-                            <ui:FASettingsExpander.IconSource>
-                                <ui:FASymbolIconSource Symbol="Clock" />
-                            </ui:FASettingsExpander.IconSource>
+                            IsEnabled="{Binding UpdateCheckEnabled}"
+                            IconSource="{Binding ActualThemeVariant, RelativeSource={RelativeSource Self}, Converter={StaticResource LucideIconSource}, ConverterParameter=timer, x:CompileBindings=False}">
                             <ui:FASettingsExpander.Footer>
                                 <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
                                     <Button Classes="reset" ToolTip.Tip="Restore default"
                                             Command="{Binding RestoreUpdateFrequencyCommand}"
                                             IsVisible="{Binding UpdateFrequencyModified}">
-                                        <PathIcon Width="16" Height="16" Data="{StaticResource UndoIcon}" />
+                                        <v:LucideIcon Width="20" Height="20" Symbol="rotate-ccw" />
                                     </Button>
                                     <ComboBox
                                         MinWidth="180"

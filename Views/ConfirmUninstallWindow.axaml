@@ -3,6 +3,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:v="using:MiniMetrics.Views"
     mc:Ignorable="d"
     x:Class="MiniMetrics.Views.ConfirmUninstallWindow"
     Width="400"
@@ -22,11 +23,11 @@
                 VerticalAlignment="Top"
                 CornerRadius="10"
                 Background="{DynamicResource SystemFillColorCriticalBackgroundBrush}">
-                <PathIcon
+                <v:LucideIcon
                     Width="20"
                     Height="20"
                     Foreground="{DynamicResource SystemFillColorCriticalBrush}"
-                    Data="M6 7 L18 7 M9 7 L9 19 M15 7 L15 19 M7 7 L8 20 L16 20 L17 7 M9 7 L9 4 L15 4 L15 7" />
+                    Symbol="trash-2" />
             </Border>
             <TextBlock
                 VerticalAlignment="Center"
