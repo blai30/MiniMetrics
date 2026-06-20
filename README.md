@@ -77,16 +77,19 @@ anyway".
 
 ## Screenshots
 
-CPU and GPU widgets:
+CPU and GPU widgets, shown in dark and light themes. The CPU card reads usage and RAM; the GPU card reads power,
+temperature, usage, and VRAM, with temperature color coded by threshold:
 
-| CPU                                              | GPU                                              |
-|--------------------------------------------------|--------------------------------------------------|
-| ![CPU widget](docs/screenshots/cpu-metrics.webp) | ![GPU widget](docs/screenshots/gpu-metrics.webp) |
+| Dark                                                                       | Light                                                                        |
+|----------------------------------------------------------------------------|------------------------------------------------------------------------------|
+| ![CPU and GPU widgets in dark theme](docs/screenshots/metrics-dark.png)    | ![CPU and GPU widgets in light theme](docs/screenshots/metrics-light.png)    |
 
-Clock widget:
+Date and time widget:
 
-![Clock widget](docs/screenshots/clock-widget.webp)
+| Dark                                                           | Light                                                            |
+|----------------------------------------------------------------|-----------------------------------------------------------------|
+| ![Clock widget in dark theme](docs/screenshots/clock-dark.png) | ![Clock widget in light theme](docs/screenshots/clock-light.png) |
 
-Settings:
+Settings window, with the navigation rail and per-setting cards:
 
-![Settings window](docs/screenshots/settings-window.webp)
+![Settings window](docs/screenshots/settings-window-fluent.png)
