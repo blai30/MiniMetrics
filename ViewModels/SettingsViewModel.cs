@@ -103,21 +103,25 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(TimeSample))]
     [NotifyPropertyChangedFor(nameof(TimeFormatError))]
+    [NotifyPropertyChangedFor(nameof(ClockTimeFormatModified))]
     public partial string? ClockTimeFormat { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(DateSample))]
     [NotifyPropertyChangedFor(nameof(DateFormatError))]
+    [NotifyPropertyChangedFor(nameof(ClockDateFormatModified))]
     public partial string? ClockDateFormat { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(TimeHoverSample))]
     [NotifyPropertyChangedFor(nameof(TimeHoverFormatError))]
+    [NotifyPropertyChangedFor(nameof(ClockTimeFormatHoverModified))]
     public partial string? ClockTimeFormatHover { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(DateHoverSample))]
     [NotifyPropertyChangedFor(nameof(DateHoverFormatError))]
+    [NotifyPropertyChangedFor(nameof(ClockDateFormatHoverModified))]
     public partial string? ClockDateFormatHover { get; set; }
 
     // A fixed instant so the settings preview stays stable while the user edits.
@@ -256,6 +260,17 @@ public partial class SettingsViewModel : ObservableObject
 
     [RelayCommand] private void RestoreTimeZone() => SelectedTimeZone = _defaultTimeZone;
     [RelayCommand] private void RestoreLocale() => SelectedLocale = _defaultLocale;
+
+    // A null or blank format means "use the built-in default", so blank counts as default and restore clears it.
+    public bool ClockTimeFormatModified => !string.IsNullOrWhiteSpace(ClockTimeFormat);
+    public bool ClockDateFormatModified => !string.IsNullOrWhiteSpace(ClockDateFormat);
+    public bool ClockTimeFormatHoverModified => !string.IsNullOrWhiteSpace(ClockTimeFormatHover);
+    public bool ClockDateFormatHoverModified => !string.IsNullOrWhiteSpace(ClockDateFormatHover);
+
+    [RelayCommand] private void RestoreClockTimeFormat() => ClockTimeFormat = null;
+    [RelayCommand] private void RestoreClockDateFormat() => ClockDateFormat = null;
+    [RelayCommand] private void RestoreClockTimeFormatHover() => ClockTimeFormatHover = null;
+    [RelayCommand] private void RestoreClockDateFormatHover() => ClockDateFormatHover = null;
 
     [RelayCommand]
     private void SelectPreset(string hex) => BackgroundColor = hex;

@@ -674,4 +674,37 @@ public class SettingsViewModelTests
         viewModel.SelectedLocale = null!;
         Assert.IsFalse(viewModel.LocaleModified);
     }
+
+    [TestMethod]
+    public void Clock_formats_unmodified_when_null_or_blank()
+    {
+        var viewModel = new SettingsViewModel(new());
+        Assert.IsFalse(viewModel.ClockTimeFormatModified);
+
+        viewModel.ClockTimeFormat = "   ";
+        Assert.IsFalse(viewModel.ClockTimeFormatModified);
+    }
+
+    [TestMethod]
+    public void Setting_a_clock_format_marks_it_modified()
+    {
+        var viewModel = new SettingsViewModel(new());
+
+        viewModel.ClockDateFormat = "yyyy-MM-dd";
+        Assert.IsTrue(viewModel.ClockDateFormatModified);
+    }
+
+    [TestMethod]
+    public void Restoring_a_clock_format_writes_null_clears_flag_and_raises_a_change()
+    {
+        var viewModel = new SettingsViewModel(new() { ClockDateFormat = "yyyy-MM-dd" });
+        var changes = Capture(viewModel);
+
+        Assert.IsTrue(viewModel.ClockDateFormatModified);
+        viewModel.RestoreClockDateFormatCommand.Execute(null);
+
+        Assert.IsNull(viewModel.ClockDateFormat);
+        Assert.IsFalse(viewModel.ClockDateFormatModified);
+        Assert.IsTrue(changes.Any(change => change.Kind == SettingKind.ClockFormats));
+    }
 }
