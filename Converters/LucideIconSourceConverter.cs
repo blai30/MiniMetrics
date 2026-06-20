@@ -19,6 +19,9 @@ public sealed class LucideIconSourceConverter : IValueConverter
     // Populated and read on the UI thread only (XAML binding evaluation). Not thread-safe.
     private static readonly Dictionary<(string Name, ThemeVariant Variant), FAImageIconSource> Cache = [];
 
+    // Thinner than lucide's default 2.0 so the rasterized card icons read lighter.
+    private const double StrokeWidth = 1.5;
+
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         if (parameter is not string name) return null;
@@ -26,7 +29,8 @@ public sealed class LucideIconSourceConverter : IValueConverter
 
         if (Cache.TryGetValue((name, variant), out var cached)) return cached;
 
-        var iconSource = new FAImageIconSource { Source = MenuIconRenderer.Render(name, ResolveBrush(variant)) };
+        var iconSource = new FAImageIconSource
+            { Source = MenuIconRenderer.Render(name, ResolveBrush(variant), StrokeWidth) };
         Cache[(name, variant)] = iconSource;
         return iconSource;
     }

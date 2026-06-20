@@ -15,11 +15,12 @@ internal static class MenuIconRenderer
     // up to 200% display scaling.
     private const int RenderSize = 32;
 
-    // Stroke width in the 24-unit lucide grid; the menu Viewbox then scales the bitmap to the slot, so the
-    // on-screen stroke lands near lucide's intended weight at that size.
-    private const double StrokeWidth = 2.0;
+    // Default stroke width in the 24-unit lucide grid (lucide's own weight); the menu Viewbox then scales
+    // the bitmap to the slot, so the on-screen stroke lands near that weight at the rendered size. Callers
+    // can pass a thinner value (the settings cards do).
+    private const double DefaultStrokeWidth = 2.0;
 
-    public static Bitmap Render(string iconName, IBrush brush)
+    public static Bitmap Render(string iconName, IBrush brush, double strokeWidth = DefaultStrokeWidth)
     {
         var bitmap = new RenderTargetBitmap(new(RenderSize, RenderSize));
 
@@ -28,7 +29,7 @@ internal static class MenuIconRenderer
         var geometry = LucideIcons.Get(iconName);
         if (geometry is not null)
         {
-            var pen = new Pen(brush, StrokeWidth)
+            var pen = new Pen(brush, strokeWidth)
             {
                 LineCap = PenLineCap.Round,
                 LineJoin = PenLineJoin.Round

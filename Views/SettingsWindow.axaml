@@ -47,6 +47,8 @@
         <Style Selector="Button.reset">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
+            <!-- The icon inherits this Foreground, so the restore glyph renders in the accent color. -->
+            <Setter Property="Foreground" Value="{DynamicResource AccentFillColorDefaultBrush}" />
             <Setter Property="Padding" Value="0" />
             <Setter Property="Width" Value="36" />
             <Setter Property="Height" Value="36" />
