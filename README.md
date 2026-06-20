@@ -29,7 +29,9 @@ a clock floating on your screen, always within view.
 - Date and time widget with time zone and locale selection, custom date/time format strings (with a separate format
   shown on hover), and left, center, or right text alignment
 - Per-metric visibility toggles for CPU, RAM, GPU, and VRAM, so you show only what you care about
-- Customizable background color and opacity, with an always-on-top display
+- Customizable background color (per theme) and opacity, with an always-on-top display
+- Adjustable widget size, font family, and font weight, with the bundled Inter typeface as the default
+- Per-option restore-to-default buttons so any single setting can be reset without touching the rest
 - Edge snapping: widgets snap flush to screen edges and to each other
 - Optional run at Windows startup
 - System tray controls to show and hide widgets
@@ -67,9 +69,11 @@ anyway".
 ## Tech stack
 
 - [Avalonia](https://avaloniaui.net/) 12 for the cross-platform UI toolkit
+- [FluentAvalonia](https://github.com/amwx/FluentAvalonia) for the Fluent app theme, controls, and system accent
 - C# on .NET 10
 - [CommunityToolkit.Mvvm](https://learn.microsoft.com/dotnet/communitytoolkit/mvvm/) for MVVM
 - [LibreHardwareMonitor](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor) for hardware sensors
+- [Velopack](https://velopack.io/) for packaging and in-app updates
 
 ## Screenshots
 
@@ -83,6 +87,6 @@ Clock widget:
 
 ![Clock widget](docs/screenshots/clock-widget.webp)
 
-Settings, with theme, background color, opacity, compact layout, clock format and alignment, and per-metric visibility:
+Settings:
 
 ![Settings window](docs/screenshots/settings-window.webp)
