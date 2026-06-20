@@ -17,6 +17,9 @@ public partial class SettingsViewModel : ObservableObject
     // constructor below.
     private static readonly Settings Defaults = new();
 
+    private readonly TimeZoneInfo _defaultTimeZone;
+    private readonly CultureInfo _defaultLocale;
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(BackgroundColorModified))]
     public partial string BackgroundColor { get; set; }
@@ -53,7 +56,9 @@ public partial class SettingsViewModel : ObservableObject
 
     public IReadOnlyList<TimeZoneInfo> TimeZones { get; } = TimeZoneInfo.GetSystemTimeZones();
 
-    [ObservableProperty] public partial TimeZoneInfo SelectedTimeZone { get; set; }
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(TimeZoneModified))]
+    public partial TimeZoneInfo SelectedTimeZone { get; set; }
     [ObservableProperty] public partial bool UpdateCheckEnabled { get; set; }
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(UpdateFrequencyModified))]
@@ -91,7 +96,9 @@ public partial class SettingsViewModel : ObservableObject
             .OrderBy(culture => culture.DisplayName, StringComparer.CurrentCulture)
             .ToArray();
 
-    [ObservableProperty] public partial CultureInfo SelectedLocale { get; set; }
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(LocaleModified))]
+    public partial CultureInfo SelectedLocale { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(TimeSample))]
@@ -196,7 +203,9 @@ public partial class SettingsViewModel : ObservableObject
         }
 
         MetricGroups = groups;
+        _defaultTimeZone = ResolveZone(null, TimeZones);
         SelectedTimeZone = ResolveZone(settings.TimeZoneId, TimeZones);
+        _defaultLocale = ResolveLocale(null, Locales);
         SelectedLocale = ResolveLocale(settings.ClockLocaleId, Locales);
         return;
 
@@ -230,6 +239,9 @@ public partial class SettingsViewModel : ObservableObject
     public bool BackgroundColorModified =>
         BackgroundColor != (EditingVariantIsDark ? Defaults.BackgroundColor : Defaults.LightBackgroundColor);
 
+    public bool TimeZoneModified => SelectedTimeZone is not null && SelectedTimeZone.Id != _defaultTimeZone.Id;
+    public bool LocaleModified => SelectedLocale is not null && SelectedLocale.Name != _defaultLocale.Name;
+
     [RelayCommand] private void RestoreTheme() => Theme = Defaults.Theme;
     [RelayCommand] private void RestoreOpacity() => Opacity = Defaults.Opacity;
     [RelayCommand] private void RestoreWidgetScale() => WidgetScale = Defaults.WidgetScale;
@@ -241,6 +253,9 @@ public partial class SettingsViewModel : ObservableObject
     [RelayCommand]
     private void RestoreBackgroundColor() =>
         BackgroundColor = EditingVariantIsDark ? Defaults.BackgroundColor : Defaults.LightBackgroundColor;
+
+    [RelayCommand] private void RestoreTimeZone() => SelectedTimeZone = _defaultTimeZone;
+    [RelayCommand] private void RestoreLocale() => SelectedLocale = _defaultLocale;
 
     [RelayCommand]
     private void SelectPreset(string hex) => BackgroundColor = hex;

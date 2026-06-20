@@ -625,4 +625,53 @@ public class SettingsViewModelTests
         Assert.AreEqual("Inter", viewModel.WidgetFontFamily);
         Assert.IsFalse(viewModel.WidgetFontFamilyModified);
     }
+
+    [TestMethod]
+    public void Time_zone_and_locale_unmodified_at_default()
+    {
+        var viewModel = new SettingsViewModel(SampleSettings());
+
+        Assert.IsFalse(viewModel.TimeZoneModified);
+        Assert.IsFalse(viewModel.LocaleModified);
+    }
+
+    [TestMethod]
+    public void Time_zone_modified_when_not_local_and_restore_returns_to_local()
+    {
+        var viewModel = new SettingsViewModel(SampleSettings());
+        var changes = Capture(viewModel);
+
+        var other = viewModel.TimeZones.First(zone => zone.Id != viewModel.SelectedTimeZone.Id);
+        viewModel.SelectedTimeZone = other;
+        Assert.IsTrue(viewModel.TimeZoneModified);
+
+        viewModel.RestoreTimeZoneCommand.Execute(null);
+        Assert.AreEqual(TimeZoneInfo.Local.Id, viewModel.SelectedTimeZone.Id);
+        Assert.IsFalse(viewModel.TimeZoneModified);
+        Assert.IsTrue(changes.Any(change => change.Kind == SettingKind.TimeZone));
+    }
+
+    [TestMethod]
+    public void Locale_modified_when_changed_and_restore_returns_to_current_culture()
+    {
+        var viewModel = new SettingsViewModel(new() { ClockLocaleId = "en-US" });
+        var changes = Capture(viewModel);
+
+        viewModel.SelectedLocale = viewModel.Locales.First(culture => culture.Name == "fr-FR");
+        Assert.IsTrue(viewModel.LocaleModified);
+
+        viewModel.RestoreLocaleCommand.Execute(null);
+        Assert.IsFalse(viewModel.LocaleModified);
+        Assert.IsTrue(changes.Any(change => change.Kind == SettingKind.ClockLocale));
+    }
+
+    [TestMethod]
+    public void Transient_null_selection_does_not_report_modified()
+    {
+        var viewModel = new SettingsViewModel(new() { ClockLocaleId = "en-US" });
+
+        // The AutoCompleteBox clears its selection to null while the user types; the flag getter must not throw.
+        viewModel.SelectedLocale = null!;
+        Assert.IsFalse(viewModel.LocaleModified);
+    }
 }
