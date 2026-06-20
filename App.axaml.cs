@@ -488,34 +488,12 @@ public partial class App : Application
         }
     }
 
-    private void OnAppearanceChanged(SettingsViewModel viewModel)
-    {
-        _settingsController.SetAppearance(viewModel.EditingVariantIsDark, viewModel.BackgroundColor, viewModel.Opacity);
-        ApplyAppearanceToWidgets();
-    }
-
-    private void OnThemeChanged(SettingsViewModel viewModel)
-    {
-        _settingsController.SetTheme(viewModel.Theme);
-        ApplyThemeVariant();
-        ApplyAppearanceToWidgets();
-        RefreshWidgetAccents();
-        _tray.SetIconColor(TrayIconBrush());
-    }
-
     // Pushes the current opacity and the resolved theme's background color to every widget through the
     // shared appearance seam.
     private void ApplyAppearanceToWidgets()
     {
         string background = ResolvedIsDark() ? _settings.BackgroundColor : _settings.LightBackgroundColor;
         foreach (var widget in _widgets) widget.ApplyAppearance(background, _settings.Opacity);
-    }
-
-    private void OnWidgetStyleChanged(SettingsViewModel viewModel)
-    {
-        _settingsController.SetWidgetStyle(
-            viewModel.WidgetFontFamily, viewModel.WidgetScale, viewModel.WidgetFontWeight);
-        ApplyWidgetStyle();
     }
 
     // Resolves one style profile from the current settings and pushes it to every widget through the
@@ -879,9 +857,7 @@ public partial class App : Application
         Action<int, int> persistPosition)
     {
         window.WindowStartupLocation = WindowStartupLocation.Manual;
-        var host = new WidgetHost(
-            window,
-            new(readSavedPosition, persistPosition, _settingsController.Flush));
+        var host = new WidgetHost(window, readSavedPosition, persistPosition, _settingsController.Flush);
         host.Initialize(_settings.Locked, _settings.SnapToEdges, _settings.AlwaysOnTop);
         return host;
     }

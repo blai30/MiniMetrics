@@ -7,25 +7,16 @@ using MiniMetrics.Services;
 
 namespace MiniMetrics.Views;
 
-// One widget window's saved position. Save debounces through the settings controller; SaveNow forces
-// an immediate write, used after an on-screen correction or the GPU's first placement.
-public sealed class PositionSlot(Func<(int X, int Y)?> read, Action<int, int> save, Action flush)
-{
-    public (int X, int Y)? Saved => read();
-
-    public void Save(int x, int y) => save(x, y);
-
-    public void SaveNow(int x, int y)
-    {
-        save(x, y);
-        flush();
-    }
-}
-
 // Bundles one desktop widget: its overlay window, the Win32 desktop integration, position
 // persistence, edge snapping against peers, and on-screen recovery. App holds one host per widget
 // and drives them uniformly through this interface instead of repeating the wiring three times.
-public sealed class WidgetHost(OverlayWindow window, PositionSlot position)
+// readPosition reads the saved position; savePosition debounces through the settings controller; a
+// SaveNow forces an immediate flush, used after an on-screen correction or the GPU's first placement.
+public sealed class WidgetHost(
+    OverlayWindow window,
+    Func<(int X, int Y)?> readPosition,
+    Action<int, int> savePosition,
+    Action flushPosition)
 {
     private readonly DesktopWindow _desktop = new(window);
     private bool _alwaysOnTop;
@@ -53,13 +44,13 @@ public sealed class WidgetHost(OverlayWindow window, PositionSlot position)
         _desktop.Attach();
         _desktop.SetAlwaysOnTop(alwaysOnTop);
 
-        if (position.Saved is { } saved) window.Position = new(saved.X, saved.Y);
+        if (readPosition() is { } saved) window.Position = new(saved.X, saved.Y);
 
-        window.PositionChanged += (_, _) => position.Save(window.Position.X, window.Position.Y);
+        window.PositionChanged += (_, _) => savePosition(window.Position.X, window.Position.Y);
 
         window.Opened += (_, _) =>
         {
-            if (position.Saved is null) OnFirstPlacement?.Invoke();
+            if (readPosition() is null) OnFirstPlacement?.Invoke();
 
             EnsureOnScreen();
             _desktop.SetAlwaysOnTop(_alwaysOnTop);
@@ -108,7 +99,14 @@ public sealed class WidgetHost(OverlayWindow window, PositionSlot position)
     public void MoveTo(int x, int y)
     {
         window.Position = new(x, y);
-        position.SaveNow(window.Position.X, window.Position.Y);
+        SaveNow();
+    }
+
+    // Persists the current position and forces an immediate write, bypassing the debounce.
+    private void SaveNow()
+    {
+        savePosition(window.Position.X, window.Position.Y);
+        flushPosition();
     }
 
     // If the restored position lands off every monitor, pull it onto the primary screen and persist.
@@ -121,7 +119,7 @@ public sealed class WidgetHost(OverlayWindow window, PositionSlot position)
         var primary = screens.Primary ?? screens.All[0];
         var area = primary.WorkingArea;
         window.Position = new(area.X + 48, area.Y + 48);
-        position.SaveNow(window.Position.X, window.Position.Y);
+        SaveNow();
     }
 
     private static EdgeSnap.Rect RectOf(Window window)
