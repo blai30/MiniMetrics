@@ -221,6 +221,17 @@ public partial class App : Application
             if (OperatingSystem.IsWindows())
                 Dispatcher.UIThread.Post(WarmUpTrayMenu, DispatcherPriority.Background);
 
+            // The settings window pays the same kind of one-time first-open cost; warm it off-screen shortly
+            // after launch (see WarmUpSettingsWindow). Deferred a couple seconds so the heavier window build
+            // does not compete with the startup burst.
+            var settingsWarmupTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
+            settingsWarmupTimer.Tick += (_, _) =>
+            {
+                settingsWarmupTimer.Stop();
+                WarmUpSettingsWindow();
+            };
+            settingsWarmupTimer.Start();
+
             desktop.ShutdownRequested += (_, _) =>
             {
                 _settingsController.Flush();
@@ -347,6 +358,30 @@ public partial class App : Application
         window.Show();
 
         // Let one layout pass run so the measure/template/text paths warm, then discard the window.
+        Dispatcher.UIThread.Post(window.Close, DispatcherPriority.Background);
+    }
+
+    // The settings window pays a one-time first-open cost (JIT, FluentAvalonia control themes for the nav
+    // view / settings expanders / combo boxes, font shaping, the card icon rasterization, and creating a
+    // large top-level). Build a throwaway one off-screen and discard it so the first real open is fast.
+    private void WarmUpSettingsWindow()
+    {
+        // If the user already opened settings before this ran, the paths are warm; nothing to do.
+        if (_settingsWindow is not null) return;
+
+        var viewModel = new SettingsViewModel(_settings, ResolvedIsDark(), _fontCatalog);
+        var window = new SettingsWindow
+        {
+            DataContext = viewModel,
+            ShowInTaskbar = false,
+            ShowActivated = false,
+            WindowStartupLocation = WindowStartupLocation.Manual,
+            Position = new(-32000, -32000)
+        };
+
+        window.Show();
+
+        // Let one layout pass run so the templates, text, and card icons warm, then discard the window.
         Dispatcher.UIThread.Post(window.Close, DispatcherPriority.Background);
     }
 
