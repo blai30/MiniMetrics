@@ -12,8 +12,8 @@
     mc:Ignorable="d"
     x:Class="MiniMetrics.Views.SettingsWindow"
     x:DataType="vm:SettingsViewModel"
-    Width="940"
-    Height="680"
+    Width="1000"
+    Height="720"
     MinWidth="540"
     MinHeight="440"
     FontSize="16"
@@ -40,13 +40,24 @@
             <Setter Property="BorderThickness" Value="0" />
         </Style>
         <!-- The per-option restore-default button. Transparent, borderless, and only visible while the
-        option strays from its default (each instance binds IsVisible to that option's *Modified flag). -->
+        option strays from its default (each instance binds IsVisible to that option's *Modified flag).
+        The hover and pressed states recolor the template content presenter with the Fluent subtle fills
+        and a rounded corner, since the base Button theme otherwise paints a flat square fill on hover. -->
         <Style Selector="Button.reset">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="Padding" Value="6,0" />
+            <Setter Property="Padding" Value="8,6" />
+            <Setter Property="CornerRadius" Value="6" />
             <Setter Property="VerticalAlignment" Value="Center" />
             <Setter Property="Focusable" Value="False" />
+        </Style>
+        <Style Selector="Button.reset:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+        </Style>
+        <Style Selector="Button.reset:pressed /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource SubtleFillColorTertiaryBrush}" />
+            <Setter Property="BorderBrush" Value="Transparent" />
         </Style>
     </Window.Styles>
 
@@ -117,7 +128,7 @@
                                 <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
                                     <Button Classes="reset" ToolTip.Tip="Restore default"
                                         Command="{Binding RestoreThemeCommand}" IsVisible="{Binding ThemeModified}">
-                                        <PathIcon Width="13" Height="13" Data="{StaticResource UndoIcon}" />
+                                        <PathIcon Width="16" Height="16" Data="{StaticResource UndoIcon}" />
                                     </Button>
                                     <ComboBox
                                         MinWidth="160"
@@ -159,7 +170,7 @@
                                     <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
                                         <Button Classes="reset" ToolTip.Tip="Restore default"
                                             Command="{Binding RestoreBackgroundColorCommand}" IsVisible="{Binding BackgroundColorModified}">
-                                            <PathIcon Width="13" Height="13" Data="{StaticResource UndoIcon}" />
+                                            <PathIcon Width="16" Height="16" Data="{StaticResource UndoIcon}" />
                                         </Button>
                                         <TextBox
                                             Width="120"
@@ -178,7 +189,7 @@
                                 <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
                                     <Button Classes="reset" ToolTip.Tip="Restore default"
                                         Command="{Binding RestoreOpacityCommand}" IsVisible="{Binding OpacityModified}">
-                                        <PathIcon Width="13" Height="13" Data="{StaticResource UndoIcon}" />
+                                        <PathIcon Width="16" Height="16" Data="{StaticResource UndoIcon}" />
                                     </Button>
                                     <Grid ColumnDefinitions="200,Auto">
                                         <Slider Grid.Column="0" Minimum="0" Maximum="100" Value="{Binding Opacity}" />
@@ -214,7 +225,7 @@
                                 <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
                                     <Button Classes="reset" ToolTip.Tip="Restore default"
                                         Command="{Binding RestoreWidgetScaleCommand}" IsVisible="{Binding WidgetScaleModified}">
-                                        <PathIcon Width="13" Height="13" Data="{StaticResource UndoIcon}" />
+                                        <PathIcon Width="16" Height="16" Data="{StaticResource UndoIcon}" />
                                     </Button>
                                     <Grid ColumnDefinitions="200,Auto">
                                         <Slider Grid.Column="0" Minimum="50" Maximum="200" Value="{Binding WidgetScale}" />
@@ -250,7 +261,7 @@
                                 <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                                     <Button Classes="reset" ToolTip.Tip="Restore default"
                                         Command="{Binding RestoreWidgetFontFamilyCommand}" IsVisible="{Binding WidgetFontFamilyModified}">
-                                        <PathIcon Width="13" Height="13" Data="{StaticResource UndoIcon}" />
+                                        <PathIcon Width="16" Height="16" Data="{StaticResource UndoIcon}" />
                                     </Button>
                                     <Grid Width="200">
                                         <AutoCompleteBox
@@ -288,7 +299,7 @@
                                     </Grid>
                                     <Button Classes="reset" ToolTip.Tip="Restore default"
                                         Command="{Binding RestoreWidgetFontWeightCommand}" IsVisible="{Binding WidgetFontWeightModified}">
-                                        <PathIcon Width="13" Height="13" Data="{StaticResource UndoIcon}" />
+                                        <PathIcon Width="16" Height="16" Data="{StaticResource UndoIcon}" />
                                     </Button>
                                     <ComboBox
                                         MinWidth="140"
@@ -356,7 +367,7 @@
                                 <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
                                     <Button Classes="reset" ToolTip.Tip="Restore default"
                                         Command="{Binding RestoreTimeZoneCommand}" IsVisible="{Binding TimeZoneModified}">
-                                        <PathIcon Width="13" Height="13" Data="{StaticResource UndoIcon}" />
+                                        <PathIcon Width="16" Height="16" Data="{StaticResource UndoIcon}" />
                                     </Button>
                                     <Grid Width="340">
                                         <AutoCompleteBox
@@ -401,7 +412,7 @@
                                 <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
                                     <Button Classes="reset" ToolTip.Tip="Restore default"
                                         Command="{Binding RestoreLocaleCommand}" IsVisible="{Binding LocaleModified}">
-                                        <PathIcon Width="13" Height="13" Data="{StaticResource UndoIcon}" />
+                                        <PathIcon Width="16" Height="16" Data="{StaticResource UndoIcon}" />
                                     </Button>
                                     <Grid Width="340">
                                         <AutoCompleteBox
@@ -446,7 +457,7 @@
                                 <StackPanel Orientation="Horizontal" Spacing="16">
                                     <Button Classes="reset" ToolTip.Tip="Restore default"
                                         Command="{Binding RestoreClockAlignmentCommand}" IsVisible="{Binding ClockAlignmentModified}">
-                                        <PathIcon Width="13" Height="13" Data="{StaticResource UndoIcon}" />
+                                        <PathIcon Width="16" Height="16" Data="{StaticResource UndoIcon}" />
                                     </Button>
                                     <RadioButton
                                         GroupName="ClockAlignment"
@@ -473,7 +484,7 @@
                                     <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Top">
                                         <Button Classes="reset" ToolTip.Tip="Restore default" VerticalAlignment="Top"
                                             Command="{Binding RestoreClockTimeFormatCommand}" IsVisible="{Binding ClockTimeFormatModified}">
-                                            <PathIcon Width="13" Height="13" Data="{StaticResource UndoIcon}" />
+                                            <PathIcon Width="16" Height="16" Data="{StaticResource UndoIcon}" />
                                         </Button>
                                         <StackPanel Spacing="2" Width="240">
                                             <TextBox Text="{Binding ClockTimeFormat}" PlaceholderText="T" />
@@ -495,7 +506,7 @@
                                     <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Top">
                                         <Button Classes="reset" ToolTip.Tip="Restore default" VerticalAlignment="Top"
                                             Command="{Binding RestoreClockDateFormatCommand}" IsVisible="{Binding ClockDateFormatModified}">
-                                            <PathIcon Width="13" Height="13" Data="{StaticResource UndoIcon}" />
+                                            <PathIcon Width="16" Height="16" Data="{StaticResource UndoIcon}" />
                                         </Button>
                                         <StackPanel Spacing="2" Width="240">
                                             <TextBox Text="{Binding ClockDateFormat}" PlaceholderText="D" />
@@ -525,7 +536,7 @@
                                     <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Top">
                                         <Button Classes="reset" ToolTip.Tip="Restore default" VerticalAlignment="Top"
                                             Command="{Binding RestoreClockTimeFormatHoverCommand}" IsVisible="{Binding ClockTimeFormatHoverModified}">
-                                            <PathIcon Width="13" Height="13" Data="{StaticResource UndoIcon}" />
+                                            <PathIcon Width="16" Height="16" Data="{StaticResource UndoIcon}" />
                                         </Button>
                                         <StackPanel Spacing="2" Width="240">
                                             <TextBox Text="{Binding ClockTimeFormatHover}" PlaceholderText="HH:mm:ss" />
@@ -547,7 +558,7 @@
                                     <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Top">
                                         <Button Classes="reset" ToolTip.Tip="Restore default" VerticalAlignment="Top"
                                             Command="{Binding RestoreClockDateFormatHoverCommand}" IsVisible="{Binding ClockDateFormatHoverModified}">
-                                            <PathIcon Width="13" Height="13" Data="{StaticResource UndoIcon}" />
+                                            <PathIcon Width="16" Height="16" Data="{StaticResource UndoIcon}" />
                                         </Button>
                                         <StackPanel Spacing="2" Width="240">
                                             <TextBox Text="{Binding ClockDateFormatHover}" PlaceholderText="u" />
@@ -658,7 +669,7 @@
                                 <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
                                     <Button Classes="reset" ToolTip.Tip="Restore default"
                                         Command="{Binding RestoreUpdateFrequencyCommand}" IsVisible="{Binding UpdateFrequencyModified}">
-                                        <PathIcon Width="13" Height="13" Data="{StaticResource UndoIcon}" />
+                                        <PathIcon Width="16" Height="16" Data="{StaticResource UndoIcon}" />
                                     </Button>
                                     <ComboBox
                                         MinWidth="180"
