@@ -1,67 +1,72 @@
-<views:OverlayWindow xmlns="https://github.com/avaloniaui"
-                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                     xmlns:vm="using:MiniMetrics.ViewModels"
-                     xmlns:conv="using:MiniMetrics.Converters"
-                     xmlns:views="using:MiniMetrics.Views"
-                     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-                     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-                     mc:Ignorable="d"
-                     x:Class="MiniMetrics.Views.DateTimeWindow"
-                     x:DataType="vm:DateTimeWidgetViewModel"
-                     Title="MiniMetrics Clock"
-                     WindowDecorations="None"
-                     Background="Transparent"
-                     TransparencyLevelHint="Transparent"
-                     ShowInTaskbar="False"
-                     Topmost="False"
-                     CanResize="False"
-                     Width="{Binding ScaledWidth}"
-                     Height="{Binding ScaledHeight}"
-                     TextOptions.TextRenderingMode="Antialias"
-                     FontFamily="{Binding FontFamily}">
+<views:OverlayWindow
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="using:MiniMetrics.ViewModels"
+    xmlns:conv="using:MiniMetrics.Converters"
+    xmlns:views="using:MiniMetrics.Views"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    x:Class="MiniMetrics.Views.DateTimeWindow"
+    x:DataType="vm:DateTimeWidgetViewModel"
+    Width="{Binding ScaledWidth}"
+    Height="{Binding ScaledHeight}"
+    Background="Transparent"
+    TransparencyLevelHint="Transparent"
+    TextOptions.TextRenderingMode="Antialias"
+    FontFamily="{Binding FontFamily}"
+    Title="MiniMetrics Clock"
+    WindowDecorations="None"
+    ShowInTaskbar="False"
+    Topmost="False"
+    CanResize="False">
 
     <Window.Resources>
         <conv:ScaleConverter x:Key="Scale" />
         <conv:ThicknessScaleConverter x:Key="ThicknessScale" />
     </Window.Resources>
 
-    <Border BorderThickness="0"
-            CornerRadius="0"
-            Background="{Binding CardBackground}">
+    <Border BorderThickness="0" CornerRadius="0" Background="{Binding CardBackground}">
         <Panel>
             <!-- Full layout: time over date. -->
-            <StackPanel VerticalAlignment="Center"
-                        Margin="{Binding Scale, Converter={StaticResource ThicknessScale}, ConverterParameter='28,0,28,0'}"
-                        IsVisible="{Binding !IsCompact}">
-                <TextBlock Text="{Binding TimeText}"
-                           FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=80}"
-                           FontWeight="{Binding ClockWeight}"
-                           TextAlignment="{Binding TextAlignment}"
-                           Foreground="{DynamicResource Widget.Text.Primary}" />
-                <TextBlock Text="{Binding DateText}"
-                           FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=28}"
-                           FontWeight="{Binding ClockWeight}"
-                           TextAlignment="{Binding TextAlignment}"
-                           Foreground="{DynamicResource Widget.Text.Label}" />
+            <StackPanel
+                VerticalAlignment="Center"
+                Margin="{Binding Scale, Converter={StaticResource ThicknessScale}, ConverterParameter='28,0,28,0'}"
+                IsVisible="{Binding !IsCompact}">
+                <TextBlock
+                    FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=80}"
+                    FontWeight="{Binding ClockWeight}"
+                    TextAlignment="{Binding TextAlignment}"
+                    Foreground="{DynamicResource Widget.Text.Primary}"
+                    Text="{Binding TimeText}" />
+                <TextBlock
+                    FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=28}"
+                    FontWeight="{Binding ClockWeight}"
+                    TextAlignment="{Binding TextAlignment}"
+                    Foreground="{DynamicResource Widget.Text.Label}"
+                    Text="{Binding DateText}" />
             </StackPanel>
 
             <!-- Compact layout: time and date on one line. -->
-            <StackPanel Orientation="Horizontal"
-                        VerticalAlignment="Center"
-                        HorizontalAlignment="{Binding BlockAlignment}"
-                        Margin="{Binding Scale, Converter={StaticResource ThicknessScale}, ConverterParameter='20,0'}"
-                        Spacing="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=16}"
-                        IsVisible="{Binding IsCompact}">
-                <TextBlock Text="{Binding TimeText}"
-                           FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=46}"
-                           FontWeight="{Binding ClockWeight}"
-                           VerticalAlignment="Center"
-                           Foreground="{DynamicResource Widget.Text.Primary}" />
-                <TextBlock Text="{Binding DateText}"
-                           FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=28}"
-                           FontWeight="{Binding ClockWeight}"
-                           VerticalAlignment="Center"
-                           Foreground="{DynamicResource Widget.Text.Label}" />
+            <StackPanel
+                Orientation="Horizontal"
+                VerticalAlignment="Center"
+                HorizontalAlignment="{Binding BlockAlignment}"
+                Margin="{Binding Scale, Converter={StaticResource ThicknessScale}, ConverterParameter='20,0'}"
+                Spacing="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=16}"
+                IsVisible="{Binding IsCompact}">
+                <TextBlock
+                    VerticalAlignment="Center"
+                    FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=46}"
+                    FontWeight="{Binding ClockWeight}"
+                    Foreground="{DynamicResource Widget.Text.Primary}"
+                    Text="{Binding TimeText}" />
+                <TextBlock
+                    VerticalAlignment="Center"
+                    FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=28}"
+                    FontWeight="{Binding ClockWeight}"
+                    Foreground="{DynamicResource Widget.Text.Label}"
+                    Text="{Binding DateText}" />
             </StackPanel>
         </Panel>
     </Border>

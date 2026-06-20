@@ -77,7 +77,7 @@ public sealed class TempLevelToBrushConverter : IValueConverter
 public sealed class StringToFontFamilyConverter : IValueConverter
 {
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
-        value is string name && !string.IsNullOrWhiteSpace(name) ? new FontFamily(name) : FontFamily.Default;
+        value is string name && !string.IsNullOrWhiteSpace(name) ? new(name) : FontFamily.Default;
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => throw new NotSupportedException();

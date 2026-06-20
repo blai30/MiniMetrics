@@ -1,28 +1,29 @@
-<Window xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:ui="using:FluentAvalonia.UI.Controls"
-        xmlns:vm="using:MiniMetrics.ViewModels"
-        xmlns:conv="using:MiniMetrics.Converters"
-        xmlns:models="using:MiniMetrics.Models"
-        xmlns:sys="using:System"
-        xmlns:glob="using:System.Globalization"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d"
-        x:Class="MiniMetrics.Views.SettingsWindow"
-        x:DataType="vm:SettingsViewModel"
-        Title="Mini Metrics Settings"
-        Icon="avares://MiniMetrics/Assets/minimetrics.ico"
-        Width="940"
-        Height="680"
-        CanResize="True"
-        MinWidth="540"
-        MinHeight="440"
-        FontSize="16"
-        TransparencyLevelHint="Mica"
-        Background="Transparent"
-        PointerPressed="OnSettingsPointerPressed"
-        WindowStartupLocation="CenterScreen">
+<Window
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="using:FluentAvalonia.UI.Controls"
+    xmlns:vm="using:MiniMetrics.ViewModels"
+    xmlns:conv="using:MiniMetrics.Converters"
+    xmlns:models="using:MiniMetrics.Models"
+    xmlns:sys="using:System"
+    xmlns:glob="using:System.Globalization"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    x:Class="MiniMetrics.Views.SettingsWindow"
+    x:DataType="vm:SettingsViewModel"
+    Width="940"
+    Height="680"
+    MinWidth="540"
+    MinHeight="440"
+    FontSize="16"
+    TransparencyLevelHint="Mica"
+    Background="Transparent"
+    Title="Mini Metrics Settings"
+    Icon="avares://MiniMetrics/Assets/minimetrics.ico"
+    CanResize="True"
+    WindowStartupLocation="CenterScreen"
+    PointerPressed="OnSettingsPointerPressed">
 
     <Window.Resources>
         <conv:UpdateFrequencyLabelConverter x:Key="FrequencyLabel" />
@@ -40,12 +41,13 @@
     </Window.Styles>
 
     <Grid x:Name="RootArea" Focusable="True">
-        <ui:FANavigationView x:Name="Nav"
-                             PaneDisplayMode="Left"
-                             IsSettingsVisible="False"
-                             IsBackButtonVisible="False"
-                             OpenPaneLength="200"
-                             SelectionChanged="OnNavSelectionChanged">
+        <ui:FANavigationView
+            x:Name="Nav"
+            PaneDisplayMode="Left"
+            IsSettingsVisible="False"
+            IsBackButtonVisible="False"
+            OpenPaneLength="200"
+            SelectionChanged="OnNavSelectionChanged">
             <ui:FANavigationView.MenuItems>
                 <ui:FANavigationViewItem Content="Appearance" Tag="Appearance" IsSelected="True">
                     <ui:FANavigationViewItem.IconSource>
@@ -70,36 +72,48 @@
             </ui:FANavigationView.MenuItems>
 
             <ui:FANavigationView.PaneFooter>
-                <HyperlinkButton NavigateUri="https://github.com/blai30/MiniMetrics"
-                                 HorizontalAlignment="Stretch"
-                                 HorizontalContentAlignment="Left"
-                                 Margin="4,0,4,4"
-                                 Padding="12,8"
-                                 ToolTip.Tip="View MiniMetrics on GitHub">
+                <HyperlinkButton
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Left"
+                    Margin="4,0,4,4"
+                    Padding="12,8"
+                    NavigateUri="https://github.com/blai30/MiniMetrics"
+                    ToolTip.Tip="View MiniMetrics on GitHub">
                     <StackPanel Orientation="Horizontal" Spacing="10">
-                        <PathIcon Width="16" Height="16"
-                                  Data="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />
-                        <TextBlock Text="GitHub" VerticalAlignment="Center" />
+                        <PathIcon
+                            Width="16"
+                            Height="16"
+                            Data="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />
+                        <TextBlock VerticalAlignment="Center" Text="GitHub" />
                     </StackPanel>
                 </HyperlinkButton>
             </ui:FANavigationView.PaneFooter>
 
             <Grid>
                 <!-- Appearance page -->
-                <ScrollViewer x:Name="AppearancePage" VerticalScrollBarVisibility="Auto" Padding="28,20,28,28">
+                <ScrollViewer x:Name="AppearancePage" Padding="28,20,28,28" VerticalScrollBarVisibility="Auto">
                     <StackPanel Spacing="6" MaxWidth="720">
-                        <TextBlock Text="Appearance" FontSize="28" FontWeight="SemiBold" Margin="0,0,0,12" />
+                        <TextBlock
+                            Margin="0,0,0,12"
+                            FontSize="28"
+                            FontWeight="SemiBold"
+                            Text="Appearance" />
 
                         <ui:FASettingsExpander Header="Theme" Description="Color mode for the app and widgets">
                             <ui:FASettingsExpander.IconSource>
                                 <ui:FASymbolIconSource Symbol="Setting" />
                             </ui:FASettingsExpander.IconSource>
                             <ui:FASettingsExpander.Footer>
-                                <ComboBox ItemsSource="{Binding Themes}" SelectedItem="{Binding Theme}" MinWidth="160" />
+                                <ComboBox
+                                    MinWidth="160"
+                                    ItemsSource="{Binding Themes}"
+                                    SelectedItem="{Binding Theme}" />
                             </ui:FASettingsExpander.Footer>
                         </ui:FASettingsExpander>
 
-                        <ui:FASettingsExpander Header="Background color" Description="Translucent fill behind every widget">
+                        <ui:FASettingsExpander
+                            Header="Background color"
+                            Description="Translucent fill behind every widget">
                             <ui:FASettingsExpander.IconSource>
                                 <ui:FASymbolIconSource Symbol="Edit" />
                             </ui:FASettingsExpander.IconSource>
@@ -112,17 +126,24 @@
                                     </ItemsControl.ItemsPanel>
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate x:DataType="sys:String">
-                                            <Button Width="34" Height="34" Margin="0,0,8,8" CornerRadius="8"
-                                                    Background="{Binding}"
-                                                    Command="{Binding $parent[ItemsControl].((vm:SettingsViewModel)DataContext).SelectPresetCommand}"
-                                                    CommandParameter="{Binding}" />
+                                            <Button
+                                                Width="34"
+                                                Height="34"
+                                                Margin="0,0,8,8"
+                                                CornerRadius="8"
+                                                Background="{Binding}"
+                                                Command="{Binding $parent[ItemsControl].((vm:SettingsViewModel)DataContext).SelectPresetCommand}"
+                                                CommandParameter="{Binding}" />
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
                             </ui:FASettingsExpanderItem>
                             <ui:FASettingsExpanderItem Content="Custom hex">
                                 <ui:FASettingsExpanderItem.Footer>
-                                    <TextBox Text="{Binding BackgroundColor}" PlaceholderText="#RRGGBB" Width="120" />
+                                    <TextBox
+                                        Width="120"
+                                        Text="{Binding BackgroundColor}"
+                                        PlaceholderText="#RRGGBB" />
                                 </ui:FASettingsExpanderItem.Footer>
                             </ui:FASettingsExpanderItem>
                         </ui:FASettingsExpander>
@@ -134,15 +155,23 @@
                             <ui:FASettingsExpander.Footer>
                                 <Grid ColumnDefinitions="200,Auto">
                                     <Slider Grid.Column="0" Minimum="0" Maximum="100" Value="{Binding Opacity}" />
-                                    <NumericUpDown Grid.Column="1" x:Name="OpacityInput"
-                                                   Minimum="0" Maximum="100" Increment="1"
-                                                   Value="{Binding Opacity, Mode=OneWay}"
-                                                   ShowButtonSpinner="False" ClipValueToMinMax="True"
-                                                   TextAlignment="Right" Width="96" Margin="8,0,0,0"
-                                                   VerticalAlignment="Center"
-                                                   KeyDown="OnPercentInputKeyDown" LostFocus="OnPercentInputLostFocus">
+                                    <NumericUpDown
+                                        Grid.Column="1"
+                                        x:Name="OpacityInput"
+                                        Width="96"
+                                        Margin="8,0,0,0"
+                                        VerticalAlignment="Center"
+                                        TextAlignment="Right"
+                                        Minimum="0"
+                                        Maximum="100"
+                                        Increment="1"
+                                        Value="{Binding Opacity, Mode=OneWay}"
+                                        ShowButtonSpinner="False"
+                                        ClipValueToMinMax="True"
+                                        KeyDown="OnPercentInputKeyDown"
+                                        LostFocus="OnPercentInputLostFocus">
                                         <NumericUpDown.InnerRightContent>
-                                            <TextBlock Text="%" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                            <TextBlock VerticalAlignment="Center" Margin="0,0,8,0" Text="%" />
                                         </NumericUpDown.InnerRightContent>
                                     </NumericUpDown>
                                 </Grid>
@@ -156,15 +185,23 @@
                             <ui:FASettingsExpander.Footer>
                                 <Grid ColumnDefinitions="200,Auto">
                                     <Slider Grid.Column="0" Minimum="50" Maximum="200" Value="{Binding WidgetScale}" />
-                                    <NumericUpDown Grid.Column="1" x:Name="WidgetScaleInput"
-                                                   Minimum="50" Maximum="200" Increment="1"
-                                                   Value="{Binding WidgetScale, Mode=OneWay}"
-                                                   ShowButtonSpinner="False" ClipValueToMinMax="True"
-                                                   TextAlignment="Right" Width="96" Margin="8,0,0,0"
-                                                   VerticalAlignment="Center"
-                                                   KeyDown="OnPercentInputKeyDown" LostFocus="OnPercentInputLostFocus">
+                                    <NumericUpDown
+                                        Grid.Column="1"
+                                        x:Name="WidgetScaleInput"
+                                        Width="96"
+                                        Margin="8,0,0,0"
+                                        VerticalAlignment="Center"
+                                        TextAlignment="Right"
+                                        Minimum="50"
+                                        Maximum="200"
+                                        Increment="1"
+                                        Value="{Binding WidgetScale, Mode=OneWay}"
+                                        ShowButtonSpinner="False"
+                                        ClipValueToMinMax="True"
+                                        KeyDown="OnPercentInputKeyDown"
+                                        LostFocus="OnPercentInputLostFocus">
                                         <NumericUpDown.InnerRightContent>
-                                            <TextBlock Text="%" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                            <TextBlock VerticalAlignment="Center" Margin="0,0,8,0" Text="%" />
                                         </NumericUpDown.InnerRightContent>
                                     </NumericUpDown>
                                 </Grid>
@@ -178,34 +215,50 @@
                             <ui:FASettingsExpander.Footer>
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <Grid Width="200">
-                                        <AutoCompleteBox x:Name="FontBox"
-                                                         ItemsSource="{Binding AvailableFonts}"
-                                                         SelectedItem="{Binding WidgetFontFamily}"
-                                                         FontFamily="{Binding WidgetFontFamily, Converter={StaticResource StringToFontFamily}}"
-                                                         FilterMode="Custom" MinimumPrefixLength="0" MaxDropDownHeight="280"
-                                                         HorizontalAlignment="Stretch" PlaceholderText="Search font...">
+                                        <AutoCompleteBox
+                                            x:Name="FontBox"
+                                            HorizontalAlignment="Stretch"
+                                            FontFamily="{Binding WidgetFontFamily, Converter={StaticResource StringToFontFamily}}"
+                                            ItemsSource="{Binding AvailableFonts}"
+                                            SelectedItem="{Binding WidgetFontFamily}"
+                                            FilterMode="Custom"
+                                            MinimumPrefixLength="0"
+                                            MaxDropDownHeight="280"
+                                            PlaceholderText="Search font...">
                                             <AutoCompleteBox.ItemTemplate>
                                                 <!-- Each name is drawn in the font it names. TextTrimming keeps a
                                                 long name from widening the fixed-width dropdown popup. -->
                                                 <DataTemplate x:DataType="sys:String">
-                                                    <TextBlock Text="{Binding}"
-                                                               FontFamily="{Binding Converter={StaticResource StringToFontFamily}}"
-                                                               TextTrimming="CharacterEllipsis" MaxWidth="168" />
+                                                    <TextBlock
+                                                        MaxWidth="168"
+                                                        FontFamily="{Binding Converter={StaticResource StringToFontFamily}}"
+                                                        TextTrimming="CharacterEllipsis"
+                                                        Text="{Binding}" />
                                                 </DataTemplate>
                                             </AutoCompleteBox.ItemTemplate>
                                         </AutoCompleteBox>
-                                        <Button x:Name="FontChevron"
-                                                HorizontalAlignment="Right" VerticalAlignment="Stretch"
-                                                Background="Transparent" BorderThickness="0" Padding="9,0" Focusable="False">
+                                        <Button
+                                            x:Name="FontChevron"
+                                            HorizontalAlignment="Right"
+                                            VerticalAlignment="Stretch"
+                                            Padding="9,0"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            Focusable="False">
                                             <PathIcon Width="11" Height="11" Data="M0,0 L4,4 L8,0 Z" />
                                         </Button>
                                     </Grid>
-                                    <ComboBox ItemsSource="{Binding WidgetFontWeights}" SelectedItem="{Binding WidgetFontWeight}" MinWidth="140" />
+                                    <ComboBox
+                                        MinWidth="140"
+                                        ItemsSource="{Binding WidgetFontWeights}"
+                                        SelectedItem="{Binding WidgetFontWeight}" />
                                 </StackPanel>
                             </ui:FASettingsExpander.Footer>
                         </ui:FASettingsExpander>
 
-                        <ui:FASettingsExpander Header="Compact layout" Description="Use the condensed single-line widget layout">
+                        <ui:FASettingsExpander
+                            Header="Compact layout"
+                            Description="Use the condensed single-line widget layout">
                             <ui:FASettingsExpander.IconSource>
                                 <ui:FASymbolIconSource Symbol="List" />
                             </ui:FASettingsExpander.IconSource>
@@ -229,11 +282,21 @@
                 </ScrollViewer>
 
                 <!-- Clock page -->
-                <ScrollViewer x:Name="ClockPage" VerticalScrollBarVisibility="Auto" Padding="28,20,28,28" IsVisible="False">
+                <ScrollViewer
+                    x:Name="ClockPage"
+                    Padding="28,20,28,28"
+                    VerticalScrollBarVisibility="Auto"
+                    IsVisible="False">
                     <StackPanel Spacing="6" MaxWidth="720">
-                        <TextBlock Text="Clock" FontSize="28" FontWeight="SemiBold" Margin="0,0,0,12" />
+                        <TextBlock
+                            Margin="0,0,0,12"
+                            FontSize="28"
+                            FontWeight="SemiBold"
+                            Text="Clock" />
 
-                        <ui:FASettingsExpander Header="Use local time" Description="Follow the system clock and time zone">
+                        <ui:FASettingsExpander
+                            Header="Use local time"
+                            Description="Follow the system clock and time zone">
                             <ui:FASettingsExpander.IconSource>
                                 <ui:FASymbolIconSource Symbol="Clock" />
                             </ui:FASettingsExpander.IconSource>
@@ -249,11 +312,15 @@
                             </ui:FASettingsExpander.IconSource>
                             <ui:FASettingsExpander.Footer>
                                 <Grid Width="340">
-                                    <AutoCompleteBox x:Name="TimeZoneBox"
-                                                     ItemsSource="{Binding TimeZones}"
-                                                     SelectedItem="{Binding SelectedTimeZone}"
-                                                     FilterMode="Custom" MinimumPrefixLength="0" MaxDropDownHeight="280"
-                                                     HorizontalAlignment="Stretch" PlaceholderText="Search time zone...">
+                                    <AutoCompleteBox
+                                        x:Name="TimeZoneBox"
+                                        HorizontalAlignment="Stretch"
+                                        ItemsSource="{Binding TimeZones}"
+                                        SelectedItem="{Binding SelectedTimeZone}"
+                                        FilterMode="Custom"
+                                        MinimumPrefixLength="0"
+                                        MaxDropDownHeight="280"
+                                        PlaceholderText="Search time zone...">
                                         <AutoCompleteBox.ValueMemberBinding>
                                             <ReflectionBinding Path="DisplayName" />
                                         </AutoCompleteBox.ValueMemberBinding>
@@ -263,8 +330,14 @@
                                             </DataTemplate>
                                         </AutoCompleteBox.ItemTemplate>
                                     </AutoCompleteBox>
-                                    <Button x:Name="TimeZoneChevron" HorizontalAlignment="Right" VerticalAlignment="Stretch"
-                                            Background="Transparent" BorderThickness="0" Padding="9,0" Focusable="False">
+                                    <Button
+                                        x:Name="TimeZoneChevron"
+                                        HorizontalAlignment="Right"
+                                        VerticalAlignment="Stretch"
+                                        Padding="9,0"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Focusable="False">
                                         <PathIcon Width="11" Height="11" Data="M0,0 L4,4 L8,0 Z" />
                                     </Button>
                                 </Grid>
@@ -278,11 +351,15 @@
                             </ui:FASettingsExpander.IconSource>
                             <ui:FASettingsExpander.Footer>
                                 <Grid Width="340">
-                                    <AutoCompleteBox x:Name="LocaleBox"
-                                                     ItemsSource="{Binding Locales}"
-                                                     SelectedItem="{Binding SelectedLocale}"
-                                                     FilterMode="Custom" MinimumPrefixLength="0" MaxDropDownHeight="280"
-                                                     HorizontalAlignment="Stretch" PlaceholderText="Search locale...">
+                                    <AutoCompleteBox
+                                        x:Name="LocaleBox"
+                                        HorizontalAlignment="Stretch"
+                                        ItemsSource="{Binding Locales}"
+                                        SelectedItem="{Binding SelectedLocale}"
+                                        FilterMode="Custom"
+                                        MinimumPrefixLength="0"
+                                        MaxDropDownHeight="280"
+                                        PlaceholderText="Search locale...">
                                         <AutoCompleteBox.ValueMemberBinding>
                                             <ReflectionBinding Path="DisplayName" />
                                         </AutoCompleteBox.ValueMemberBinding>
@@ -292,8 +369,14 @@
                                             </DataTemplate>
                                         </AutoCompleteBox.ItemTemplate>
                                     </AutoCompleteBox>
-                                    <Button x:Name="LocaleChevron" HorizontalAlignment="Right" VerticalAlignment="Stretch"
-                                            Background="Transparent" BorderThickness="0" Padding="9,0" Focusable="False">
+                                    <Button
+                                        x:Name="LocaleChevron"
+                                        HorizontalAlignment="Right"
+                                        VerticalAlignment="Stretch"
+                                        Padding="9,0"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Focusable="False">
                                         <PathIcon Width="11" Height="11" Data="M0,0 L4,4 L8,0 Z" />
                                     </Button>
                                 </Grid>
@@ -307,12 +390,18 @@
                             </ui:FASettingsExpander.IconSource>
                             <ui:FASettingsExpander.Footer>
                                 <StackPanel Orientation="Horizontal" Spacing="16">
-                                    <RadioButton Content="Left" GroupName="ClockAlignment"
-                                                 IsChecked="{Binding ClockAlignment, Converter={StaticResource EnumToBool}, ConverterParameter={x:Static models:ClockAlignment.Left}}" />
-                                    <RadioButton Content="Centered" GroupName="ClockAlignment"
-                                                 IsChecked="{Binding ClockAlignment, Converter={StaticResource EnumToBool}, ConverterParameter={x:Static models:ClockAlignment.Center}}" />
-                                    <RadioButton Content="Right" GroupName="ClockAlignment"
-                                                 IsChecked="{Binding ClockAlignment, Converter={StaticResource EnumToBool}, ConverterParameter={x:Static models:ClockAlignment.Right}}" />
+                                    <RadioButton
+                                        GroupName="ClockAlignment"
+                                        Content="Left"
+                                        IsChecked="{Binding ClockAlignment, Converter={StaticResource EnumToBool}, ConverterParameter={x:Static models:ClockAlignment.Left}}" />
+                                    <RadioButton
+                                        GroupName="ClockAlignment"
+                                        Content="Centered"
+                                        IsChecked="{Binding ClockAlignment, Converter={StaticResource EnumToBool}, ConverterParameter={x:Static models:ClockAlignment.Center}}" />
+                                    <RadioButton
+                                        GroupName="ClockAlignment"
+                                        Content="Right"
+                                        IsChecked="{Binding ClockAlignment, Converter={StaticResource EnumToBool}, ConverterParameter={x:Static models:ClockAlignment.Right}}" />
                                 </StackPanel>
                             </ui:FASettingsExpander.Footer>
                         </ui:FASettingsExpander>
@@ -325,9 +414,15 @@
                                 <ui:FASettingsExpanderItem.Footer>
                                     <StackPanel Spacing="2" Width="240">
                                         <TextBox Text="{Binding ClockTimeFormat}" PlaceholderText="T" />
-                                        <TextBlock Text="{Binding TimeSample}" FontSize="13" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
-                                        <TextBlock Text="{Binding TimeFormatError}" FontSize="13" Foreground="{DynamicResource SystemFillColorCriticalBrush}"
-                                                   IsVisible="{Binding TimeFormatError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                        <TextBlock
+                                            FontSize="13"
+                                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                            Text="{Binding TimeSample}" />
+                                        <TextBlock
+                                            FontSize="13"
+                                            Foreground="{DynamicResource SystemFillColorCriticalBrush}"
+                                            Text="{Binding TimeFormatError}"
+                                            IsVisible="{Binding TimeFormatError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                                     </StackPanel>
                                 </ui:FASettingsExpanderItem.Footer>
                             </ui:FASettingsExpanderItem>
@@ -335,15 +430,23 @@
                                 <ui:FASettingsExpanderItem.Footer>
                                     <StackPanel Spacing="2" Width="240">
                                         <TextBox Text="{Binding ClockDateFormat}" PlaceholderText="D" />
-                                        <TextBlock Text="{Binding DateSample}" FontSize="13" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
-                                        <TextBlock Text="{Binding DateFormatError}" FontSize="13" Foreground="{DynamicResource SystemFillColorCriticalBrush}"
-                                                   IsVisible="{Binding DateFormatError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                        <TextBlock
+                                            FontSize="13"
+                                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                            Text="{Binding DateSample}" />
+                                        <TextBlock
+                                            FontSize="13"
+                                            Foreground="{DynamicResource SystemFillColorCriticalBrush}"
+                                            Text="{Binding DateFormatError}"
+                                            IsVisible="{Binding DateFormatError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                                     </StackPanel>
                                 </ui:FASettingsExpanderItem.Footer>
                             </ui:FASettingsExpanderItem>
                         </ui:FASettingsExpander>
 
-                        <ui:FASettingsExpander Header="Display format on hover" Description="Time and date shown while hovering the widget">
+                        <ui:FASettingsExpander
+                            Header="Display format on hover"
+                            Description="Time and date shown while hovering the widget">
                             <ui:FASettingsExpander.IconSource>
                                 <ui:FASymbolIconSource Symbol="Calendar" />
                             </ui:FASettingsExpander.IconSource>
@@ -351,9 +454,15 @@
                                 <ui:FASettingsExpanderItem.Footer>
                                     <StackPanel Spacing="2" Width="240">
                                         <TextBox Text="{Binding ClockTimeFormatHover}" PlaceholderText="HH:mm:ss" />
-                                        <TextBlock Text="{Binding TimeHoverSample}" FontSize="13" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
-                                        <TextBlock Text="{Binding TimeHoverFormatError}" FontSize="13" Foreground="{DynamicResource SystemFillColorCriticalBrush}"
-                                                   IsVisible="{Binding TimeHoverFormatError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                        <TextBlock
+                                            FontSize="13"
+                                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                            Text="{Binding TimeHoverSample}" />
+                                        <TextBlock
+                                            FontSize="13"
+                                            Foreground="{DynamicResource SystemFillColorCriticalBrush}"
+                                            Text="{Binding TimeHoverFormatError}"
+                                            IsVisible="{Binding TimeHoverFormatError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                                     </StackPanel>
                                 </ui:FASettingsExpanderItem.Footer>
                             </ui:FASettingsExpanderItem>
@@ -361,40 +470,66 @@
                                 <ui:FASettingsExpanderItem.Footer>
                                     <StackPanel Spacing="2" Width="240">
                                         <TextBox Text="{Binding ClockDateFormatHover}" PlaceholderText="u" />
-                                        <TextBlock Text="{Binding DateHoverSample}" FontSize="13" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
-                                        <TextBlock Text="{Binding DateHoverFormatError}" FontSize="13" Foreground="{DynamicResource SystemFillColorCriticalBrush}"
-                                                   IsVisible="{Binding DateHoverFormatError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                        <TextBlock
+                                            FontSize="13"
+                                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                            Text="{Binding DateHoverSample}" />
+                                        <TextBlock
+                                            FontSize="13"
+                                            Foreground="{DynamicResource SystemFillColorCriticalBrush}"
+                                            Text="{Binding DateHoverFormatError}"
+                                            IsVisible="{Binding DateHoverFormatError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                                     </StackPanel>
                                 </ui:FASettingsExpanderItem.Footer>
                             </ui:FASettingsExpanderItem>
                         </ui:FASettingsExpander>
 
                         <StackPanel Spacing="4" Margin="0,8,0,0">
-                            <TextBlock Text="Tokens: HH h mm ss tt dddd ddd MMMM MMM d yyyy zzz"
-                                       FontSize="13" Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
-                            <HyperlinkButton NavigateUri="https://learn.microsoft.com/dotnet/standard/base-types/custom-date-and-time-format-strings"
-                                             HorizontalContentAlignment="Left" Padding="0">
-                                <TextBlock Text="Reference: Date and time format strings" TextWrapping="Wrap" />
+                            <TextBlock
+                                FontSize="13"
+                                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                TextWrapping="Wrap"
+                                Text="Tokens: HH h mm ss tt dddd ddd MMMM MMM d yyyy zzz" />
+                            <HyperlinkButton
+                                HorizontalContentAlignment="Left"
+                                Padding="0"
+                                NavigateUri="https://learn.microsoft.com/dotnet/standard/base-types/custom-date-and-time-format-strings">
+                                <TextBlock TextWrapping="Wrap" Text="Reference: Date and time format strings" />
                             </HyperlinkButton>
                         </StackPanel>
                     </StackPanel>
                 </ScrollViewer>
 
                 <!-- Metrics page -->
-                <ScrollViewer x:Name="MetricsPage" VerticalScrollBarVisibility="Auto" Padding="28,20,28,28" IsVisible="False">
+                <ScrollViewer
+                    x:Name="MetricsPage"
+                    Padding="28,20,28,28"
+                    VerticalScrollBarVisibility="Auto"
+                    IsVisible="False">
                     <StackPanel Spacing="6" MaxWidth="720">
-                        <TextBlock Text="Metrics" FontSize="28" FontWeight="SemiBold" Margin="0,0,0,12" />
+                        <TextBlock
+                            Margin="0,0,0,12"
+                            FontSize="28"
+                            FontWeight="SemiBold"
+                            Text="Metrics" />
                         <ItemsControl ItemsSource="{Binding MetricGroups}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate x:DataType="vm:MetricGroupViewModel">
                                     <StackPanel Spacing="6" Margin="0,0,0,14">
-                                        <TextBlock Text="{Binding Header}" FontSize="16" FontWeight="SemiBold" Margin="2,4,0,2" />
+                                        <TextBlock
+                                            Margin="2,4,0,2"
+                                            FontSize="16"
+                                            FontWeight="SemiBold"
+                                            Text="{Binding Header}" />
                                         <ItemsControl ItemsSource="{Binding Toggles}">
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate x:DataType="vm:MetricToggleViewModel">
-                                                    <ui:FASettingsExpander Header="{Binding Label}" Margin="0,0,0,6">
+                                                    <ui:FASettingsExpander Margin="0,0,0,6" Header="{Binding Label}">
                                                         <ui:FASettingsExpander.Footer>
-                                                            <ToggleSwitch IsChecked="{Binding IsVisible}" OnContent="" OffContent="" />
+                                                            <ToggleSwitch
+                                                                IsChecked="{Binding IsVisible}"
+                                                                OnContent=""
+                                                                OffContent="" />
                                                         </ui:FASettingsExpander.Footer>
                                                     </ui:FASettingsExpander>
                                                 </DataTemplate>
@@ -408,10 +543,20 @@
                 </ScrollViewer>
 
                 <!-- Updates page -->
-                <ScrollViewer x:Name="UpdatesPage" VerticalScrollBarVisibility="Auto" Padding="28,20,28,28" IsVisible="False">
+                <ScrollViewer
+                    x:Name="UpdatesPage"
+                    Padding="28,20,28,28"
+                    VerticalScrollBarVisibility="Auto"
+                    IsVisible="False">
                     <StackPanel Spacing="6" MaxWidth="720">
-                        <TextBlock Text="Updates" FontSize="28" FontWeight="SemiBold" Margin="0,0,0,12" />
-                        <ui:FASettingsExpander Header="Check for updates automatically" Description="Look for new releases on a schedule">
+                        <TextBlock
+                            Margin="0,0,0,12"
+                            FontSize="28"
+                            FontWeight="SemiBold"
+                            Text="Updates" />
+                        <ui:FASettingsExpander
+                            Header="Check for updates automatically"
+                            Description="Look for new releases on a schedule">
                             <ui:FASettingsExpander.IconSource>
                                 <ui:FASymbolIconSource Symbol="Refresh" />
                             </ui:FASettingsExpander.IconSource>
@@ -420,13 +565,18 @@
                             </ui:FASettingsExpander.Footer>
                         </ui:FASettingsExpander>
 
-                        <ui:FASettingsExpander Header="Frequency" Description="How often to check for new releases"
-                                               IsEnabled="{Binding UpdateCheckEnabled}">
+                        <ui:FASettingsExpander
+                            Header="Frequency"
+                            Description="How often to check for new releases"
+                            IsEnabled="{Binding UpdateCheckEnabled}">
                             <ui:FASettingsExpander.IconSource>
                                 <ui:FASymbolIconSource Symbol="Clock" />
                             </ui:FASettingsExpander.IconSource>
                             <ui:FASettingsExpander.Footer>
-                                <ComboBox ItemsSource="{Binding UpdateFrequencies}" SelectedItem="{Binding UpdateFrequency}" MinWidth="180">
+                                <ComboBox
+                                    MinWidth="180"
+                                    ItemsSource="{Binding UpdateFrequencies}"
+                                    SelectedItem="{Binding UpdateFrequency}">
                                     <ComboBox.ItemTemplate>
                                         <DataTemplate x:DataType="models:UpdateCheckFrequency">
                                             <TextBlock Text="{Binding Converter={StaticResource FrequencyLabel}}" />

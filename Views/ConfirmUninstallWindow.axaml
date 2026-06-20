@@ -1,36 +1,49 @@
-<Window xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d"
-        x:Class="MiniMetrics.Views.ConfirmUninstallWindow"
-        Title="Uninstall MiniMetrics"
-        Icon="avares://MiniMetrics/Assets/minimetrics.ico"
-        Width="400"
-        SizeToContent="Height"
-        CanResize="False"
-        WindowStartupLocation="CenterScreen"
-        TransparencyLevelHint="Mica"
-        Background="Transparent">
+<Window
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    x:Class="MiniMetrics.Views.ConfirmUninstallWindow"
+    Width="400"
+    SizeToContent="Height"
+    TransparencyLevelHint="Mica"
+    Background="Transparent"
+    Title="Uninstall MiniMetrics"
+    Icon="avares://MiniMetrics/Assets/minimetrics.ico"
+    CanResize="False"
+    WindowStartupLocation="CenterScreen">
 
     <StackPanel Margin="24,22" Spacing="16">
         <StackPanel Orientation="Horizontal" Spacing="14">
-            <Border Width="44" Height="44" CornerRadius="10"
-                    Background="{DynamicResource SystemFillColorCriticalBackgroundBrush}" VerticalAlignment="Top">
-                <PathIcon Width="20" Height="20"
-                          Foreground="{DynamicResource SystemFillColorCriticalBrush}"
-                          Data="M6 7 L18 7 M9 7 L9 19 M15 7 L15 19 M7 7 L8 20 L16 20 L17 7 M9 7 L9 4 L15 4 L15 7" />
+            <Border
+                Width="44"
+                Height="44"
+                VerticalAlignment="Top"
+                CornerRadius="10"
+                Background="{DynamicResource SystemFillColorCriticalBackgroundBrush}">
+                <PathIcon
+                    Width="20"
+                    Height="20"
+                    Foreground="{DynamicResource SystemFillColorCriticalBrush}"
+                    Data="M6 7 L18 7 M9 7 L9 19 M15 7 L15 19 M7 7 L8 20 L16 20 L17 7 M9 7 L9 4 L15 4 L15 7" />
             </Border>
-            <TextBlock Text="Uninstall MiniMetrics?" FontSize="17" FontWeight="SemiBold"
-                       TextWrapping="Wrap" VerticalAlignment="Center" />
+            <TextBlock
+                VerticalAlignment="Center"
+                FontSize="17"
+                FontWeight="SemiBold"
+                TextWrapping="Wrap"
+                Text="Uninstall MiniMetrics?" />
         </StackPanel>
 
-        <TextBlock TextWrapping="Wrap" LineHeight="20"
-                   Text="This removes MiniMetrics and its startup entries. If CPU temperature or power was enabled, you will see one UAC prompt to remove the elevated startup task; declining it cancels the uninstall." />
+        <TextBlock
+            LineHeight="20"
+            TextWrapping="Wrap"
+            Text="This removes MiniMetrics and its startup entries. If CPU temperature or power was enabled, you will see one UAC prompt to remove the elevated startup task; declining it cancels the uninstall." />
 
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
-            <Button Content="Cancel" Click="OnCancel" IsCancel="True" />
-            <Button Content="Uninstall" Click="OnConfirm" Classes="accent" />
+            <Button Content="Cancel" IsCancel="True" Click="OnCancel" />
+            <Button Content="Uninstall" Classes="accent" Click="OnConfirm" />
         </StackPanel>
     </StackPanel>
 </Window>
