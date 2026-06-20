@@ -17,7 +17,9 @@ public partial class SettingsViewModel : ObservableObject
     // constructor below.
     private static readonly Settings Defaults = new();
 
-    [ObservableProperty] public partial string BackgroundColor { get; set; }
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(BackgroundColorModified))]
+    public partial string BackgroundColor { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(OpacityModified))]
@@ -25,6 +27,7 @@ public partial class SettingsViewModel : ObservableObject
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ThemeModified))]
+    [NotifyPropertyChangedFor(nameof(BackgroundColorModified))]
     public partial AppTheme Theme { get; set; }
     public IReadOnlyList<AppTheme> Themes { get; } = [AppTheme.System, AppTheme.Light, AppTheme.Dark];
 
@@ -220,12 +223,20 @@ public partial class SettingsViewModel : ObservableObject
     public bool ClockAlignmentModified => ClockAlignment != Defaults.ClockAlignment;
     public bool UpdateFrequencyModified => UpdateFrequency != Defaults.UpdateFrequency;
 
+    // The editor writes one theme variant at a time, so compare against and restore that variant's default.
+    public bool BackgroundColorModified =>
+        BackgroundColor != (EditingVariantIsDark ? Defaults.BackgroundColor : Defaults.LightBackgroundColor);
+
     [RelayCommand] private void RestoreTheme() => Theme = Defaults.Theme;
     [RelayCommand] private void RestoreOpacity() => Opacity = Defaults.Opacity;
     [RelayCommand] private void RestoreWidgetScale() => WidgetScale = Defaults.WidgetScale;
     [RelayCommand] private void RestoreWidgetFontWeight() => WidgetFontWeight = Defaults.WidgetFontWeight;
     [RelayCommand] private void RestoreClockAlignment() => ClockAlignment = Defaults.ClockAlignment;
     [RelayCommand] private void RestoreUpdateFrequency() => UpdateFrequency = Defaults.UpdateFrequency;
+
+    [RelayCommand]
+    private void RestoreBackgroundColor() =>
+        BackgroundColor = EditingVariantIsDark ? Defaults.BackgroundColor : Defaults.LightBackgroundColor;
 
     [RelayCommand]
     private void SelectPreset(string hex) => BackgroundColor = hex;

@@ -565,4 +565,43 @@ public class SettingsViewModelTests
         viewModel.WidgetScale = 100;
         Assert.IsFalse(viewModel.WidgetScaleModified);
     }
+
+    [TestMethod]
+    public void Background_color_unmodified_at_default_for_each_variant()
+    {
+        var settings = new Settings { BackgroundColor = "#0F121D", LightBackgroundColor = "#EEF1F5" };
+
+        var darkVm = new SettingsViewModel(settings, true);
+        Assert.IsFalse(darkVm.BackgroundColorModified);
+
+        var lightVm = new SettingsViewModel(settings, false);
+        Assert.IsFalse(lightVm.BackgroundColorModified);
+    }
+
+    [TestMethod]
+    public void Background_color_modified_compares_against_the_current_variant_default()
+    {
+        var settings = new Settings { BackgroundColor = "#101010", LightBackgroundColor = "#EEF1F5" };
+
+        var darkVm = new SettingsViewModel(settings, true);
+        Assert.IsTrue(darkVm.BackgroundColorModified);
+
+        // Light variant default is untouched, so under light the flag is clear.
+        var lightVm = new SettingsViewModel(settings, false);
+        Assert.IsFalse(lightVm.BackgroundColorModified);
+    }
+
+    [TestMethod]
+    public void Restoring_background_color_resets_the_current_variant_only()
+    {
+        var settings = new Settings { BackgroundColor = "#101010", LightBackgroundColor = "#EEF1F5" };
+        var viewModel = new SettingsViewModel(settings, true);
+        var changes = Capture(viewModel);
+
+        viewModel.RestoreBackgroundColorCommand.Execute(null);
+
+        Assert.AreEqual("#0F121D", viewModel.BackgroundColor);
+        Assert.IsFalse(viewModel.BackgroundColorModified);
+        Assert.IsTrue(changes.Any(change => change.Kind == SettingKind.Appearance));
+    }
 }
