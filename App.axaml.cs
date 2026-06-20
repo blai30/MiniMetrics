@@ -34,8 +34,7 @@ public partial class App : Application
     private WidgetCoordinator _widgetCoordinator = null!;
     private MetricActivator _metricActivator = null!;
     private DateTimeWidgetViewModel _dateTimeViewModel = null!;
-    private IWidgetAppearance[] _appearances = [];
-    private IWidgetStyle[] _styledWidgets = [];
+    private IWidgetDisplay[] _widgets = [];
     private IFontCatalog _fontCatalog = null!;
     private WidgetHost _cpuHost = null!;
     private WidgetHost _gpuHost = null!;
@@ -110,11 +109,10 @@ public partial class App : Application
             _dateTimeViewModel.IsCompact = _settings.DateTimeCompact;
             _dateTimeViewModel.SetAlignment(_settings.ClockAlignment);
 
-            _appearances = [_cpuViewModel, _gpuViewModel, _dateTimeViewModel];
+            _widgets = [_cpuViewModel, _gpuViewModel, _dateTimeViewModel];
             ApplyAppearanceToWidgets();
 
             _fontCatalog = new SystemFontCatalog();
-            _styledWidgets = [_cpuViewModel, _gpuViewModel, _dateTimeViewModel];
             ApplyWidgetStyle();
 
             _source = OperatingSystem.IsWindows()
@@ -500,7 +498,7 @@ public partial class App : Application
     private void ApplyAppearanceToWidgets()
     {
         string background = ResolvedIsDark() ? _settings.BackgroundColor : _settings.LightBackgroundColor;
-        foreach (var widget in _appearances) widget.ApplyAppearance(background, _settings.Opacity);
+        foreach (var widget in _widgets) widget.ApplyAppearance(background, _settings.Opacity);
     }
 
     private void OnWidgetStyleChanged(SettingsViewModel viewModel)
@@ -516,7 +514,7 @@ public partial class App : Application
     {
         var profile = WidgetStyleProfile.Resolve(
             _settings.WidgetFontFamily, _settings.WidgetScale, _settings.WidgetFontWeight);
-        foreach (var widget in _styledWidgets) widget.ApplyStyle(profile);
+        foreach (var widget in _widgets) widget.ApplyStyle(profile);
     }
 
     // The effective variant resolved by Avalonia (Default resolves to Light or Dark). Dark is the
