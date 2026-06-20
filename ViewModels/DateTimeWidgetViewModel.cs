@@ -8,7 +8,7 @@ using MiniMetrics.Models;
 
 namespace MiniMetrics.ViewModels;
 
-public partial class DateTimeWidgetViewModel : ObservableObject, IWidgetDisplay
+public partial class DateTimeWidgetViewModel : ObservableObject, IWidgetDisplay, ICompactWidget
 {
     private DateTimeOffset _instant;
     private TimeZoneInfo _zone = TimeZoneInfo.Local;
