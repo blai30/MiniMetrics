@@ -676,6 +676,16 @@ public class SettingsViewModelTests
     }
 
     [TestMethod]
+    public void Transient_null_time_zone_selection_does_not_report_modified()
+    {
+        var viewModel = new SettingsViewModel(new() { TimeZoneId = "UTC" });
+
+        // The time zone AutoCompleteBox clears its selection to null while the user types; the getter must not throw.
+        viewModel.SelectedTimeZone = null!;
+        Assert.IsFalse(viewModel.TimeZoneModified);
+    }
+
+    [TestMethod]
     public void Clock_formats_unmodified_when_null_or_blank()
     {
         var viewModel = new SettingsViewModel(new());
