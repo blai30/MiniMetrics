@@ -78,7 +78,7 @@ public class SettingsViewModelTests
         viewModel.BackgroundColor = "#1A1F2B";
 
         Assert.AreEqual(1, changes.Count);
-        Assert.AreEqual(SettingKind.Appearance, changes[0].Kind);
+        Assert.IsTrue(changes[0] is SettingChange.Appearance);
     }
 
     [TestMethod]
@@ -90,7 +90,7 @@ public class SettingsViewModelTests
         viewModel.Opacity = 50;
 
         Assert.AreEqual(1, changes.Count);
-        Assert.AreEqual(SettingKind.Appearance, changes[0].Kind);
+        Assert.IsTrue(changes[0] is SettingChange.Appearance);
     }
 
     [TestMethod]
@@ -102,9 +102,7 @@ public class SettingsViewModelTests
         viewModel.ToggleFor("ram.usage").IsVisible = true;
 
         Assert.AreEqual(1, changes.Count);
-        Assert.AreEqual(SettingKind.MetricVisibility, changes[0].Kind);
-        Assert.AreEqual("ram.usage", changes[0].Key);
-        Assert.IsTrue(changes[0].Flag);
+        Assert.IsTrue(changes[0] is SettingChange.MetricVisibility { Key: "ram.usage", Visible: true });
     }
 
     [TestMethod]
@@ -116,9 +114,7 @@ public class SettingsViewModelTests
         viewModel.ToggleFor("gpu.power").IsVisible = false;
 
         Assert.AreEqual(1, changes.Count);
-        Assert.AreEqual(SettingKind.MetricVisibility, changes[0].Kind);
-        Assert.AreEqual("gpu.power", changes[0].Key);
-        Assert.IsFalse(changes[0].Flag);
+        Assert.IsTrue(changes[0] is SettingChange.MetricVisibility { Key: "gpu.power", Visible: false });
     }
 
     [TestMethod]
@@ -164,7 +160,7 @@ public class SettingsViewModelTests
 
         viewModel.Theme = AppTheme.Light;
 
-        Assert.IsTrue(changes.Any(change => change.Kind == SettingKind.Theme));
+        Assert.IsTrue(changes.Any(change => change is SettingChange.Theme));
         Assert.IsFalse(viewModel.EditingVariantIsDark);
         Assert.AreEqual("#EEF1F5", viewModel.BackgroundColor);
         Assert.AreEqual("#FFFFFF", viewModel.Swatches[2]);
@@ -212,7 +208,7 @@ public class SettingsViewModelTests
         viewModel.SelectedTimeZone = target;
 
         Assert.AreEqual(1, changes.Count);
-        Assert.AreEqual(SettingKind.TimeZone, changes[0].Kind);
+        Assert.IsTrue(changes[0] is SettingChange.TimeZone);
     }
 
     [TestMethod]
@@ -240,7 +236,7 @@ public class SettingsViewModelTests
         viewModel.UseLocalTime = true;
 
         Assert.AreEqual(1, changes.Count);
-        Assert.AreEqual(SettingKind.TimeZone, changes[0].Kind);
+        Assert.IsTrue(changes[0] is SettingChange.TimeZone);
     }
 
     [TestMethod]
@@ -265,7 +261,7 @@ public class SettingsViewModelTests
         viewModel.UpdateFrequency = UpdateCheckFrequency.Monthly;
 
         Assert.AreEqual(2, changes.Count);
-        Assert.IsTrue(changes.All(change => change.Kind == SettingKind.UpdatePreferences));
+        Assert.IsTrue(changes.All(change => change is SettingChange.UpdatePreferences));
     }
 
     [TestMethod]
@@ -289,9 +285,7 @@ public class SettingsViewModelTests
         viewModel.CpuCompact = true;
 
         Assert.AreEqual(1, changes.Count);
-        Assert.AreEqual(SettingKind.Compact, changes[0].Kind);
-        Assert.AreEqual("cpu", changes[0].Key);
-        Assert.IsTrue(changes[0].Flag);
+        Assert.IsTrue(changes[0] is SettingChange.Compact { Widget: "cpu", IsCompact: true });
     }
 
     [TestMethod]
@@ -303,9 +297,7 @@ public class SettingsViewModelTests
         viewModel.GpuCompact = true;
 
         Assert.AreEqual(1, changes.Count);
-        Assert.AreEqual(SettingKind.Compact, changes[0].Kind);
-        Assert.AreEqual("gpu", changes[0].Key);
-        Assert.IsTrue(changes[0].Flag);
+        Assert.IsTrue(changes[0] is SettingChange.Compact { Widget: "gpu", IsCompact: true });
     }
 
     [TestMethod]
@@ -317,9 +309,7 @@ public class SettingsViewModelTests
         viewModel.DateTimeCompact = true;
 
         Assert.AreEqual(1, changes.Count);
-        Assert.AreEqual(SettingKind.Compact, changes[0].Kind);
-        Assert.AreEqual("clock", changes[0].Key);
-        Assert.IsTrue(changes[0].Flag);
+        Assert.IsTrue(changes[0] is SettingChange.Compact { Widget: "clock", IsCompact: true });
     }
 
     [TestMethod]
@@ -341,8 +331,7 @@ public class SettingsViewModelTests
         viewModel.ClockAlignment = ClockAlignment.Center;
 
         Assert.AreEqual(1, changes.Count);
-        Assert.AreEqual(SettingKind.ClockAlignment, changes[0].Kind);
-        Assert.AreEqual(ClockAlignment.Center, changes[0].Alignment);
+        Assert.IsTrue(changes[0] is SettingChange.Alignment { Value: ClockAlignment.Center });
     }
 
     [TestMethod]
@@ -376,7 +365,7 @@ public class SettingsViewModelTests
         viewModel.ClockDateFormat = "yyyy-MM-dd";
 
         Assert.AreEqual(1, changes.Count);
-        Assert.AreEqual(SettingKind.ClockFormats, changes[0].Kind);
+        Assert.IsTrue(changes[0] is SettingChange.ClockFormats);
     }
 
     [TestMethod]
@@ -388,7 +377,7 @@ public class SettingsViewModelTests
         viewModel.SelectedLocale = viewModel.Locales.First(culture => culture.Name == "fr-FR");
 
         Assert.AreEqual(1, changes.Count);
-        Assert.AreEqual(SettingKind.ClockLocale, changes[0].Kind);
+        Assert.IsTrue(changes[0] is SettingChange.ClockLocale);
     }
 
     [TestMethod]
@@ -478,7 +467,7 @@ public class SettingsViewModelTests
         viewModel.WidgetFontFamily = "Arial";
 
         Assert.AreEqual(1, changes.Count);
-        Assert.AreEqual(SettingKind.WidgetStyle, changes[0].Kind);
+        Assert.IsTrue(changes[0] is SettingChange.WidgetStyle);
     }
 
     [TestMethod]
@@ -490,7 +479,7 @@ public class SettingsViewModelTests
         viewModel.WidgetScale = 120;
 
         Assert.AreEqual(1, changes.Count);
-        Assert.AreEqual(SettingKind.WidgetStyle, changes[0].Kind);
+        Assert.IsTrue(changes[0] is SettingChange.WidgetStyle);
     }
 
     [TestMethod]
@@ -502,7 +491,7 @@ public class SettingsViewModelTests
         viewModel.WidgetFontWeight = WidgetFontWeight.Light;
 
         Assert.AreEqual(1, changes.Count);
-        Assert.AreEqual(SettingKind.WidgetStyle, changes[0].Kind);
+        Assert.IsTrue(changes[0] is SettingChange.WidgetStyle);
     }
 
     [TestMethod]
@@ -550,8 +539,8 @@ public class SettingsViewModelTests
         Assert.IsFalse(viewModel.UpdateFrequencyModified);
 
         // restore routes through the normal change pipeline
-        Assert.IsTrue(changes.Any(change => change.Kind == SettingKind.Appearance));
-        Assert.IsTrue(changes.Any(change => change.Kind == SettingKind.UpdatePreferences));
+        Assert.IsTrue(changes.Any(change => change is SettingChange.Appearance));
+        Assert.IsTrue(changes.Any(change => change is SettingChange.UpdatePreferences));
     }
 
     [TestMethod]
@@ -602,7 +591,7 @@ public class SettingsViewModelTests
 
         Assert.AreEqual("#0F121D", viewModel.BackgroundColor);
         Assert.IsFalse(viewModel.BackgroundColorModified);
-        Assert.IsTrue(changes.Any(change => change.Kind == SettingKind.Appearance));
+        Assert.IsTrue(changes.Any(change => change is SettingChange.Appearance));
     }
 
     [TestMethod]
@@ -648,7 +637,7 @@ public class SettingsViewModelTests
         viewModel.RestoreTimeZoneCommand.Execute(null);
         Assert.AreEqual(TimeZoneInfo.Local.Id, viewModel.SelectedTimeZone.Id);
         Assert.IsFalse(viewModel.TimeZoneModified);
-        Assert.IsTrue(changes.Any(change => change.Kind == SettingKind.TimeZone));
+        Assert.IsTrue(changes.Any(change => change is SettingChange.TimeZone));
     }
 
     [TestMethod]
@@ -662,7 +651,7 @@ public class SettingsViewModelTests
 
         viewModel.RestoreLocaleCommand.Execute(null);
         Assert.IsFalse(viewModel.LocaleModified);
-        Assert.IsTrue(changes.Any(change => change.Kind == SettingKind.ClockLocale));
+        Assert.IsTrue(changes.Any(change => change is SettingChange.ClockLocale));
     }
 
     [TestMethod]
@@ -715,6 +704,6 @@ public class SettingsViewModelTests
 
         Assert.IsNull(viewModel.ClockDateFormat);
         Assert.IsFalse(viewModel.ClockDateFormatModified);
-        Assert.IsTrue(changes.Any(change => change.Kind == SettingKind.ClockFormats));
+        Assert.IsTrue(changes.Any(change => change is SettingChange.ClockFormats));
     }
 }

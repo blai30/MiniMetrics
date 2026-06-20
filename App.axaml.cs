@@ -432,48 +432,58 @@ public partial class App : Application
         }
 
         var viewModel = new SettingsViewModel(_settings, ResolvedIsDark(), _fontCatalog);
-        viewModel.SettingChanged += change => OnSettingChanged(viewModel, change);
+        viewModel.SettingChanged += OnSettingChanged;
 
         _settingsWindow = new() { DataContext = viewModel };
         _settingsWindow.Closed += (_, _) => _settingsWindow = null;
         _settingsWindow.Show();
     }
 
-    // Routes one settings change to its handler. The per-key facets carry their payload; the rest read
-    // the current value back off the view model.
-    private void OnSettingChanged(SettingsViewModel viewModel, SettingChange change)
+    // Routes one settings change to its effect. Each record carries its own payload, so this reads
+    // nothing back off the view model.
+    private void OnSettingChanged(SettingChange change)
     {
-        switch (change.Kind)
+        switch (change)
         {
-            case SettingKind.Appearance:
-                OnAppearanceChanged(viewModel);
+            case SettingChange.Appearance appearance:
+                _settingsController.SetAppearance(appearance.IsDark, appearance.Color, appearance.Opacity);
+                ApplyAppearanceToWidgets();
                 break;
-            case SettingKind.Theme:
-                OnThemeChanged(viewModel);
+            case SettingChange.Theme theme:
+                _settingsController.SetTheme(theme.Value);
+                ApplyThemeVariant();
+                ApplyAppearanceToWidgets();
+                RefreshWidgetAccents();
+                _tray.SetIconColor(TrayIconBrush());
                 break;
-            case SettingKind.MetricVisibility:
-                OnMetricVisibilityChanged(change.Key!, change.Flag);
+            case SettingChange.MetricVisibility metric:
+                OnMetricVisibilityChanged(metric.Key, metric.Visible);
                 break;
-            case SettingKind.Compact:
-                OnCompactChanged(change.Key!, change.Flag);
+            case SettingChange.Compact compact:
+                OnCompactChanged(compact.Widget, compact.IsCompact);
                 break;
-            case SettingKind.ClockAlignment:
-                OnClockAlignmentChanged(change.Alignment);
+            case SettingChange.Alignment alignment:
+                OnClockAlignmentChanged(alignment.Value);
                 break;
-            case SettingKind.TimeZone:
-                OnTimeZoneChanged(viewModel);
+            case SettingChange.TimeZone timeZone:
+                // ResolveTimeZone(null) maps a null id back to the machine zone, matching the startup path.
+                _settingsController.SetTimeZone(timeZone.ZoneId);
+                _dateTimeViewModel.SetTimeZone(ResolveTimeZone(timeZone.ZoneId));
                 break;
-            case SettingKind.ClockFormats:
-                OnClockFormatsChanged(viewModel);
+            case SettingChange.ClockFormats formats:
+                _settingsController.SetClockFormats(formats.Time, formats.Date, formats.TimeHover, formats.DateHover);
+                _dateTimeViewModel.SetFormats(formats.Time, formats.Date, formats.TimeHover, formats.DateHover);
                 break;
-            case SettingKind.ClockLocale:
-                OnClockLocaleChanged(viewModel);
+            case SettingChange.ClockLocale locale:
+                _settingsController.SetClockLocale(locale.Locale.Name);
+                _dateTimeViewModel.SetLocale(locale.Locale);
                 break;
-            case SettingKind.UpdatePreferences:
-                _settingsController.SetUpdatePreferences(viewModel.UpdateCheckEnabled, viewModel.UpdateFrequency);
+            case SettingChange.UpdatePreferences updates:
+                _settingsController.SetUpdatePreferences(updates.Enabled, updates.Frequency);
                 break;
-            case SettingKind.WidgetStyle:
-                OnWidgetStyleChanged(viewModel);
+            case SettingChange.WidgetStyle style:
+                _settingsController.SetWidgetStyle(style.Family, style.Scale, style.Weight);
+                ApplyWidgetStyle();
                 break;
         }
     }
@@ -552,35 +562,6 @@ public partial class App : Application
     {
         _cpuViewModel.RefreshThemeColors();
         _gpuViewModel.RefreshThemeColors();
-    }
-
-    private void OnTimeZoneChanged(SettingsViewModel viewModel)
-    {
-        // Local time persists as a null id; ResolveTimeZone(null) maps back to the machine zone,
-        // keeping this consistent with the startup path. SelectedTimeZone can be momentarily null while
-        // the user types in the search box, which also maps to local.
-        string? id = viewModel.UseLocalTime
-            ? null
-            : viewModel.SelectedTimeZone.Id;
-        _settingsController.SetTimeZone(id);
-        _dateTimeViewModel.SetTimeZone(ResolveTimeZone(id));
-    }
-
-    private void OnClockFormatsChanged(SettingsViewModel viewModel)
-    {
-        _settingsController.SetClockFormats(
-            viewModel.ClockTimeFormat, viewModel.ClockDateFormat,
-            viewModel.ClockTimeFormatHover, viewModel.ClockDateFormatHover);
-        _dateTimeViewModel.SetFormats(
-            viewModel.ClockTimeFormat, viewModel.ClockDateFormat,
-            viewModel.ClockTimeFormatHover, viewModel.ClockDateFormatHover);
-    }
-
-    private void OnClockLocaleChanged(SettingsViewModel viewModel)
-    {
-        // SelectedLocale always comes from the list, so its Name is a valid culture name to persist.
-        _settingsController.SetClockLocale(viewModel.SelectedLocale.Name);
-        _dateTimeViewModel.SetLocale(viewModel.SelectedLocale);
     }
 
     // Persists a per-widget compact toggle and pushes it onto the affected widget so it reflows live.

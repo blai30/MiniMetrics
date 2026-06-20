@@ -202,7 +202,7 @@ public partial class SettingsViewModel : ObservableObject
                     entry.Key,
                     entry.Label,
                     Seed(entry.Key, card),
-                    (key, value) => SettingChanged?.Invoke(SettingChange.Metric(key, value)));
+                    (key, value) => SettingChanged?.Invoke(new SettingChange.MetricVisibility(key, value)));
                 toggles.Add(toggle);
                 _togglesByKey[entry.Key] = toggle;
             }
@@ -225,9 +225,9 @@ public partial class SettingsViewModel : ObservableObject
                 : settings.Visibility.GetValueOrDefault(legacy, true);
     }
 
-    // Raised whenever any setting changes, carrying which facet changed and, for the per-key facets
-    // (metric visibility, compact toggles, clock alignment), its payload. One channel so the host routes
-    // on a single value instead of subscribing to a separate event per setting.
+    // Raised whenever any setting changes, carrying the changed facet and its payload as one of the
+    // SettingChange records. One channel so the host routes on a single value instead of subscribing to a
+    // separate event per setting.
     public event Action<SettingChange>? SettingChanged;
 
     // The toggle for a metric key.
@@ -309,16 +309,16 @@ public partial class SettingsViewModel : ObservableObject
         else
             _lightColor = value;
 
-        SettingChanged?.Invoke(SettingChange.Of(SettingKind.Appearance));
+        RaiseAppearance();
     }
 
-    partial void OnOpacityChanged(int value) => SettingChanged?.Invoke(SettingChange.Of(SettingKind.Appearance));
+    partial void OnOpacityChanged(int value) => RaiseAppearance();
 
     partial void OnThemeChanged(AppTheme value)
     {
         // Apply the variant first so the host resolves the new theme, then load that theme's stored
         // color and swatch set into the editor.
-        SettingChanged?.Invoke(SettingChange.Of(SettingKind.Theme));
+        SettingChanged?.Invoke(new SettingChange.Theme(value));
         BackgroundColor = EditingVariantIsDark ? _darkColor : _lightColor;
         OnPropertyChanged(nameof(Swatches));
     }
@@ -329,22 +329,22 @@ public partial class SettingsViewModel : ObservableObject
         // that so we never persist or dereference a null zone.
         if (value is null) return;
 
-        SettingChanged?.Invoke(SettingChange.Of(SettingKind.TimeZone));
+        RaiseTimeZone();
     }
 
-    partial void OnUseLocalTimeChanged(bool value) => SettingChanged?.Invoke(SettingChange.Of(SettingKind.TimeZone));
+    partial void OnUseLocalTimeChanged(bool value) => RaiseTimeZone();
 
     partial void OnClockTimeFormatChanged(string? value) =>
-        SettingChanged?.Invoke(SettingChange.Of(SettingKind.ClockFormats));
+        RaiseClockFormats();
 
     partial void OnClockDateFormatChanged(string? value) =>
-        SettingChanged?.Invoke(SettingChange.Of(SettingKind.ClockFormats));
+        RaiseClockFormats();
 
     partial void OnClockTimeFormatHoverChanged(string? value) =>
-        SettingChanged?.Invoke(SettingChange.Of(SettingKind.ClockFormats));
+        RaiseClockFormats();
 
     partial void OnClockDateFormatHoverChanged(string? value) =>
-        SettingChanged?.Invoke(SettingChange.Of(SettingKind.ClockFormats));
+        RaiseClockFormats();
 
     partial void OnSelectedLocaleChanged(CultureInfo value)
     {
@@ -361,32 +361,50 @@ public partial class SettingsViewModel : ObservableObject
         OnPropertyChanged(nameof(DateFormatError));
         OnPropertyChanged(nameof(TimeHoverFormatError));
         OnPropertyChanged(nameof(DateHoverFormatError));
-        SettingChanged?.Invoke(SettingChange.Of(SettingKind.ClockLocale));
+        SettingChanged?.Invoke(new SettingChange.ClockLocale(value));
     }
 
     partial void OnUpdateCheckEnabledChanged(bool value) =>
-        SettingChanged?.Invoke(SettingChange.Of(SettingKind.UpdatePreferences));
+        RaiseUpdatePreferences();
 
     partial void OnUpdateFrequencyChanged(UpdateCheckFrequency value) =>
-        SettingChanged?.Invoke(SettingChange.Of(SettingKind.UpdatePreferences));
+        RaiseUpdatePreferences();
 
-    partial void OnCpuCompactChanged(bool value) => SettingChanged?.Invoke(SettingChange.Compact("cpu", value));
+    partial void OnCpuCompactChanged(bool value) => SettingChanged?.Invoke(new SettingChange.Compact("cpu", value));
 
-    partial void OnGpuCompactChanged(bool value) => SettingChanged?.Invoke(SettingChange.Compact("gpu", value));
+    partial void OnGpuCompactChanged(bool value) => SettingChanged?.Invoke(new SettingChange.Compact("gpu", value));
 
-    partial void OnDateTimeCompactChanged(bool value) => SettingChanged?.Invoke(SettingChange.Compact("clock", value));
+    partial void OnDateTimeCompactChanged(bool value) =>
+        SettingChanged?.Invoke(new SettingChange.Compact("clock", value));
 
     partial void OnWidgetFontFamilyChanged(string value) =>
-        SettingChanged?.Invoke(SettingChange.Of(SettingKind.WidgetStyle));
+        RaiseWidgetStyle();
 
     partial void OnWidgetScaleChanged(int value) =>
-        SettingChanged?.Invoke(SettingChange.Of(SettingKind.WidgetStyle));
+        RaiseWidgetStyle();
 
     partial void OnWidgetFontWeightChanged(WidgetFontWeight value) =>
-        SettingChanged?.Invoke(SettingChange.Of(SettingKind.WidgetStyle));
+        RaiseWidgetStyle();
 
     partial void OnClockAlignmentChanged(ClockAlignment value) =>
-        SettingChanged?.Invoke(SettingChange.ForAlignment(value));
+        SettingChanged?.Invoke(new SettingChange.Alignment(value));
+
+    // The read-back facets bundle the view model's current values so the host never reaches back in.
+    private void RaiseAppearance() =>
+        SettingChanged?.Invoke(new SettingChange.Appearance(EditingVariantIsDark, BackgroundColor, Opacity));
+
+    private void RaiseTimeZone() =>
+        SettingChanged?.Invoke(new SettingChange.TimeZone(UseLocalTime ? null : SelectedTimeZone?.Id));
+
+    private void RaiseClockFormats() =>
+        SettingChanged?.Invoke(new SettingChange.ClockFormats(
+            ClockTimeFormat, ClockDateFormat, ClockTimeFormatHover, ClockDateFormatHover));
+
+    private void RaiseUpdatePreferences() =>
+        SettingChanged?.Invoke(new SettingChange.UpdatePreferences(UpdateCheckEnabled, UpdateFrequency));
+
+    private void RaiseWidgetStyle() =>
+        SettingChanged?.Invoke(new SettingChange.WidgetStyle(WidgetFontFamily, WidgetScale, WidgetFontWeight));
 
     // Picks the saved zone by id, else the machine's local zone (matched from the list so the
     // dropdown highlights it), else local as a last resort.
