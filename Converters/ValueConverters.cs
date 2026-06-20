@@ -71,6 +71,18 @@ public sealed class TempLevelToBrushConverter : IValueConverter
         => throw new NotSupportedException();
 }
 
+// Turns a font-family name into a FontFamily so a list item can be drawn in the font it names. Compiled
+// bindings do not run the implicit string-to-FontFamily conversion, so binding FontFamily to a raw string
+// silently falls back to the default font; this makes the conversion explicit.
+public sealed class StringToFontFamilyConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+        value is string name && !string.IsNullOrWhiteSpace(name) ? new FontFamily(name) : FontFamily.Default;
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => throw new NotSupportedException();
+}
+
 // Renders a UpdateCheckFrequency enum value as a friendly label for the settings dropdown.
 public sealed class UpdateFrequencyLabelConverter : IValueConverter
 {

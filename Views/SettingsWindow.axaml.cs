@@ -22,7 +22,11 @@ public partial class SettingsWindow : Window
 
         SetUpSearchableDropDown(LocaleBox, LocaleChevron, LocaleParts);
         SetUpSearchableDropDown(TimeZoneBox, TimeZoneChevron, TimeZoneParts);
+        SetUpSearchableDropDown(FontBox, FontChevron, FontParts);
     }
+
+    private static (string Display, string Key)? FontParts(object? item) =>
+        item is string font ? (font, font) : null;
 
     // Shows the page whose name matches the selected nav item's Tag, hiding the others. Keeping all four
     // pages in one tree (toggled by visibility) preserves every binding's DataContext without a Frame.
