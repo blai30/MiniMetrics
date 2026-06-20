@@ -1,47 +1,75 @@
-<Window xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="using:MiniMetrics.ViewModels"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d"
-        x:Class="MiniMetrics.Views.UpdatePromptWindow"
-        x:DataType="vm:UpdatePromptViewModel"
-        Title="MiniMetrics update"
-        Icon="avares://MiniMetrics/Assets/minimetrics.ico"
-        Width="480"
-        SizeToContent="Height"
-        CanResize="False"
-        WindowStartupLocation="CenterScreen">
+<Window
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="using:MiniMetrics.ViewModels"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    x:Class="MiniMetrics.Views.UpdatePromptWindow"
+    x:DataType="vm:UpdatePromptViewModel"
+    Width="480"
+    SizeToContent="Height"
+    TransparencyLevelHint="Mica"
+    Background="Transparent"
+    Title="MiniMetrics update"
+    Icon="avares://MiniMetrics/Assets/minimetrics.ico"
+    CanResize="False"
+    WindowStartupLocation="CenterScreen">
 
-    <StackPanel Margin="22" Spacing="14">
+    <StackPanel Margin="24,22" Spacing="16">
+        <StackPanel Orientation="Horizontal" Spacing="14">
+            <Border
+                Width="44"
+                Height="44"
+                VerticalAlignment="Top"
+                CornerRadius="10"
+                Background="{DynamicResource AccentFillColorDefaultBrush}">
+                <PathIcon
+                    Width="20"
+                    Height="20"
+                    Foreground="{DynamicResource TextOnAccentFillColorPrimaryBrush}"
+                    Data="M12 4 L12 14 M8 10 L12 14 L16 10 M5 18 L19 18" />
+            </Border>
+            <TextBlock
+                VerticalAlignment="Center"
+                FontSize="17"
+                FontWeight="SemiBold"
+                TextWrapping="Wrap"
+                Text="{Binding Heading}" />
+        </StackPanel>
 
-        <TextBlock Text="{Binding Heading}"
-                   FontSize="15"
-                   FontWeight="SemiBold"
-                   TextWrapping="Wrap" />
+        <TextBlock TextWrapping="Wrap" LineHeight="20" Text="{Binding Body}" />
 
-        <TextBlock Text="{Binding Body}"
-                   TextWrapping="Wrap"
-                   LineHeight="20" />
-
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,4,0,0"
-                    IsVisible="{Binding IsActionable}">
+        <StackPanel
+            Orientation="Horizontal"
+            HorizontalAlignment="Right"
+            Spacing="8"
+            IsVisible="{Binding IsActionable}">
             <Button Content="Remind me later" Click="OnDismiss" />
             <Button Content="Skip this version" Click="OnSkip" />
-            <Button Content="View release" Click="OnViewRelease" Classes="accent"
-                    IsVisible="{Binding !CanInstall}" />
-            <Button Content="Install and restart" Click="OnInstall" Classes="accent"
-                    IsVisible="{Binding CanInstall}" />
+            <Button
+                Content="View release"
+                Classes="accent"
+                IsVisible="{Binding !CanInstall}"
+                Click="OnViewRelease" />
+            <Button
+                Content="Install and restart"
+                Classes="accent"
+                IsVisible="{Binding CanInstall}"
+                Click="OnInstall" />
         </StackPanel>
 
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,4,0,0"
-                    IsVisible="{Binding IsInformational}">
-            <Button Content="Close"
-                    Click="OnClose"
-                    IsDefault="True"
-                    IsCancel="True"
-                    Classes="accent" />
+        <StackPanel
+            Orientation="Horizontal"
+            HorizontalAlignment="Right"
+            Spacing="8"
+            IsVisible="{Binding IsInformational}">
+            <Button
+                Content="Close"
+                IsDefault="True"
+                IsCancel="True"
+                Classes="accent"
+                Click="OnClose" />
         </StackPanel>
-
     </StackPanel>
 </Window>
