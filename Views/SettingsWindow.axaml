@@ -29,6 +29,7 @@
         <conv:UpdateFrequencyLabelConverter x:Key="FrequencyLabel" />
         <conv:EnumToBoolConverter x:Key="EnumToBool" />
         <conv:StringToFontFamilyConverter x:Key="StringToFontFamily" />
+        <StreamGeometry x:Key="UndoIcon">M8 3a5 5 0 1 1-4.546 2.914.5.5 0 0 0-.908-.417A6 6 0 1 0 8 2z M8 4.466V.534a.25.25 0 0 0-.41-.192L5.23 2.308a.25.25 0 0 0 0 .384l2.36 1.966A.25.25 0 0 0 8 4.466z</StreamGeometry>
     </Window.Resources>
 
     <Window.Styles>
@@ -37,6 +38,15 @@
         card grows ~1px. Zeroing that border on :empty cards makes the stray click have no layout effect. -->
         <Style Selector="ui|FASettingsExpander:empty /template/ Expander#Expander">
             <Setter Property="BorderThickness" Value="0" />
+        </Style>
+        <!-- The per-option restore-default button. Transparent, borderless, and only visible while the
+        option strays from its default (each instance binds IsVisible to that option's *Modified flag). -->
+        <Style Selector="Button.reset">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="6,0" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Focusable" Value="False" />
         </Style>
     </Window.Styles>
 
@@ -104,10 +114,16 @@
                                 <ui:FASymbolIconSource Symbol="Setting" />
                             </ui:FASettingsExpander.IconSource>
                             <ui:FASettingsExpander.Footer>
-                                <ComboBox
-                                    MinWidth="160"
-                                    ItemsSource="{Binding Themes}"
-                                    SelectedItem="{Binding Theme}" />
+                                <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                    <Button Classes="reset" ToolTip.Tip="Restore default"
+                                        Command="{Binding RestoreThemeCommand}" IsVisible="{Binding ThemeModified}">
+                                        <PathIcon Width="13" Height="13" Data="{StaticResource UndoIcon}" />
+                                    </Button>
+                                    <ComboBox
+                                        MinWidth="160"
+                                        ItemsSource="{Binding Themes}"
+                                        SelectedItem="{Binding Theme}" />
+                                </StackPanel>
                             </ui:FASettingsExpander.Footer>
                         </ui:FASettingsExpander>
 
@@ -140,10 +156,16 @@
                             </ui:FASettingsExpanderItem>
                             <ui:FASettingsExpanderItem Content="Custom hex">
                                 <ui:FASettingsExpanderItem.Footer>
-                                    <TextBox
-                                        Width="120"
-                                        Text="{Binding BackgroundColor}"
-                                        PlaceholderText="#RRGGBB" />
+                                    <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                        <Button Classes="reset" ToolTip.Tip="Restore default"
+                                            Command="{Binding RestoreBackgroundColorCommand}" IsVisible="{Binding BackgroundColorModified}">
+                                            <PathIcon Width="13" Height="13" Data="{StaticResource UndoIcon}" />
+                                        </Button>
+                                        <TextBox
+                                            Width="120"
+                                            Text="{Binding BackgroundColor}"
+                                            PlaceholderText="#RRGGBB" />
+                                    </StackPanel>
                                 </ui:FASettingsExpanderItem.Footer>
                             </ui:FASettingsExpanderItem>
                         </ui:FASettingsExpander>
@@ -153,28 +175,34 @@
                                 <ui:FASymbolIconSource Symbol="Highlight" />
                             </ui:FASettingsExpander.IconSource>
                             <ui:FASettingsExpander.Footer>
-                                <Grid ColumnDefinitions="200,Auto">
-                                    <Slider Grid.Column="0" Minimum="0" Maximum="100" Value="{Binding Opacity}" />
-                                    <NumericUpDown
-                                        Grid.Column="1"
-                                        x:Name="OpacityInput"
-                                        Width="96"
-                                        Margin="8,0,0,0"
-                                        VerticalAlignment="Center"
-                                        TextAlignment="Right"
-                                        Minimum="0"
-                                        Maximum="100"
-                                        Increment="1"
-                                        Value="{Binding Opacity, Mode=OneWay}"
-                                        ShowButtonSpinner="False"
-                                        ClipValueToMinMax="True"
-                                        KeyDown="OnPercentInputKeyDown"
-                                        LostFocus="OnPercentInputLostFocus">
-                                        <NumericUpDown.InnerRightContent>
-                                            <TextBlock VerticalAlignment="Center" Margin="0,0,8,0" Text="%" />
-                                        </NumericUpDown.InnerRightContent>
-                                    </NumericUpDown>
-                                </Grid>
+                                <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                    <Button Classes="reset" ToolTip.Tip="Restore default"
+                                        Command="{Binding RestoreOpacityCommand}" IsVisible="{Binding OpacityModified}">
+                                        <PathIcon Width="13" Height="13" Data="{StaticResource UndoIcon}" />
+                                    </Button>
+                                    <Grid ColumnDefinitions="200,Auto">
+                                        <Slider Grid.Column="0" Minimum="0" Maximum="100" Value="{Binding Opacity}" />
+                                        <NumericUpDown
+                                            Grid.Column="1"
+                                            x:Name="OpacityInput"
+                                            Width="96"
+                                            Margin="8,0,0,0"
+                                            VerticalAlignment="Center"
+                                            TextAlignment="Right"
+                                            Minimum="0"
+                                            Maximum="100"
+                                            Increment="1"
+                                            Value="{Binding Opacity, Mode=OneWay}"
+                                            ShowButtonSpinner="False"
+                                            ClipValueToMinMax="True"
+                                            KeyDown="OnPercentInputKeyDown"
+                                            LostFocus="OnPercentInputLostFocus">
+                                            <NumericUpDown.InnerRightContent>
+                                                <TextBlock VerticalAlignment="Center" Margin="0,0,8,0" Text="%" />
+                                            </NumericUpDown.InnerRightContent>
+                                        </NumericUpDown>
+                                    </Grid>
+                                </StackPanel>
                             </ui:FASettingsExpander.Footer>
                         </ui:FASettingsExpander>
 
@@ -183,28 +211,34 @@
                                 <ui:FASymbolIconSource Symbol="FullScreen" />
                             </ui:FASettingsExpander.IconSource>
                             <ui:FASettingsExpander.Footer>
-                                <Grid ColumnDefinitions="200,Auto">
-                                    <Slider Grid.Column="0" Minimum="50" Maximum="200" Value="{Binding WidgetScale}" />
-                                    <NumericUpDown
-                                        Grid.Column="1"
-                                        x:Name="WidgetScaleInput"
-                                        Width="96"
-                                        Margin="8,0,0,0"
-                                        VerticalAlignment="Center"
-                                        TextAlignment="Right"
-                                        Minimum="50"
-                                        Maximum="200"
-                                        Increment="1"
-                                        Value="{Binding WidgetScale, Mode=OneWay}"
-                                        ShowButtonSpinner="False"
-                                        ClipValueToMinMax="True"
-                                        KeyDown="OnPercentInputKeyDown"
-                                        LostFocus="OnPercentInputLostFocus">
-                                        <NumericUpDown.InnerRightContent>
-                                            <TextBlock VerticalAlignment="Center" Margin="0,0,8,0" Text="%" />
-                                        </NumericUpDown.InnerRightContent>
-                                    </NumericUpDown>
-                                </Grid>
+                                <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                    <Button Classes="reset" ToolTip.Tip="Restore default"
+                                        Command="{Binding RestoreWidgetScaleCommand}" IsVisible="{Binding WidgetScaleModified}">
+                                        <PathIcon Width="13" Height="13" Data="{StaticResource UndoIcon}" />
+                                    </Button>
+                                    <Grid ColumnDefinitions="200,Auto">
+                                        <Slider Grid.Column="0" Minimum="50" Maximum="200" Value="{Binding WidgetScale}" />
+                                        <NumericUpDown
+                                            Grid.Column="1"
+                                            x:Name="WidgetScaleInput"
+                                            Width="96"
+                                            Margin="8,0,0,0"
+                                            VerticalAlignment="Center"
+                                            TextAlignment="Right"
+                                            Minimum="50"
+                                            Maximum="200"
+                                            Increment="1"
+                                            Value="{Binding WidgetScale, Mode=OneWay}"
+                                            ShowButtonSpinner="False"
+                                            ClipValueToMinMax="True"
+                                            KeyDown="OnPercentInputKeyDown"
+                                            LostFocus="OnPercentInputLostFocus">
+                                            <NumericUpDown.InnerRightContent>
+                                                <TextBlock VerticalAlignment="Center" Margin="0,0,8,0" Text="%" />
+                                            </NumericUpDown.InnerRightContent>
+                                        </NumericUpDown>
+                                    </Grid>
+                                </StackPanel>
                             </ui:FASettingsExpander.Footer>
                         </ui:FASettingsExpander>
 
@@ -213,7 +247,11 @@
                                 <ui:FASymbolIconSource Symbol="Font" />
                             </ui:FASettingsExpander.IconSource>
                             <ui:FASettingsExpander.Footer>
-                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                    <Button Classes="reset" ToolTip.Tip="Restore default"
+                                        Command="{Binding RestoreWidgetFontFamilyCommand}" IsVisible="{Binding WidgetFontFamilyModified}">
+                                        <PathIcon Width="13" Height="13" Data="{StaticResource UndoIcon}" />
+                                    </Button>
                                     <Grid Width="200">
                                         <AutoCompleteBox
                                             x:Name="FontBox"
@@ -248,6 +286,10 @@
                                             <PathIcon Width="11" Height="11" Data="M0,0 L4,4 L8,0 Z" />
                                         </Button>
                                     </Grid>
+                                    <Button Classes="reset" ToolTip.Tip="Restore default"
+                                        Command="{Binding RestoreWidgetFontWeightCommand}" IsVisible="{Binding WidgetFontWeightModified}">
+                                        <PathIcon Width="13" Height="13" Data="{StaticResource UndoIcon}" />
+                                    </Button>
                                     <ComboBox
                                         MinWidth="140"
                                         ItemsSource="{Binding WidgetFontWeights}"
@@ -311,36 +353,42 @@
                                 <ui:FASymbolIconSource Symbol="Calendar" />
                             </ui:FASettingsExpander.IconSource>
                             <ui:FASettingsExpander.Footer>
-                                <Grid Width="340">
-                                    <AutoCompleteBox
-                                        x:Name="TimeZoneBox"
-                                        HorizontalAlignment="Stretch"
-                                        ItemsSource="{Binding TimeZones}"
-                                        SelectedItem="{Binding SelectedTimeZone}"
-                                        FilterMode="Custom"
-                                        MinimumPrefixLength="0"
-                                        MaxDropDownHeight="280"
-                                        PlaceholderText="Search time zone...">
-                                        <AutoCompleteBox.ValueMemberBinding>
-                                            <ReflectionBinding Path="DisplayName" />
-                                        </AutoCompleteBox.ValueMemberBinding>
-                                        <AutoCompleteBox.ItemTemplate>
-                                            <DataTemplate x:DataType="sys:TimeZoneInfo">
-                                                <TextBlock Text="{Binding DisplayName}" />
-                                            </DataTemplate>
-                                        </AutoCompleteBox.ItemTemplate>
-                                    </AutoCompleteBox>
-                                    <Button
-                                        x:Name="TimeZoneChevron"
-                                        HorizontalAlignment="Right"
-                                        VerticalAlignment="Stretch"
-                                        Padding="9,0"
-                                        Background="Transparent"
-                                        BorderThickness="0"
-                                        Focusable="False">
-                                        <PathIcon Width="11" Height="11" Data="M0,0 L4,4 L8,0 Z" />
+                                <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                    <Button Classes="reset" ToolTip.Tip="Restore default"
+                                        Command="{Binding RestoreTimeZoneCommand}" IsVisible="{Binding TimeZoneModified}">
+                                        <PathIcon Width="13" Height="13" Data="{StaticResource UndoIcon}" />
                                     </Button>
-                                </Grid>
+                                    <Grid Width="340">
+                                        <AutoCompleteBox
+                                            x:Name="TimeZoneBox"
+                                            HorizontalAlignment="Stretch"
+                                            ItemsSource="{Binding TimeZones}"
+                                            SelectedItem="{Binding SelectedTimeZone}"
+                                            FilterMode="Custom"
+                                            MinimumPrefixLength="0"
+                                            MaxDropDownHeight="280"
+                                            PlaceholderText="Search time zone...">
+                                            <AutoCompleteBox.ValueMemberBinding>
+                                                <ReflectionBinding Path="DisplayName" />
+                                            </AutoCompleteBox.ValueMemberBinding>
+                                            <AutoCompleteBox.ItemTemplate>
+                                                <DataTemplate x:DataType="sys:TimeZoneInfo">
+                                                    <TextBlock Text="{Binding DisplayName}" />
+                                                </DataTemplate>
+                                            </AutoCompleteBox.ItemTemplate>
+                                        </AutoCompleteBox>
+                                        <Button
+                                            x:Name="TimeZoneChevron"
+                                            HorizontalAlignment="Right"
+                                            VerticalAlignment="Stretch"
+                                            Padding="9,0"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            Focusable="False">
+                                            <PathIcon Width="11" Height="11" Data="M0,0 L4,4 L8,0 Z" />
+                                        </Button>
+                                    </Grid>
+                                </StackPanel>
                             </ui:FASettingsExpander.Footer>
                         </ui:FASettingsExpander>
 
@@ -350,36 +398,42 @@
                                 <ui:FASymbolIconSource Symbol="Calendar" />
                             </ui:FASettingsExpander.IconSource>
                             <ui:FASettingsExpander.Footer>
-                                <Grid Width="340">
-                                    <AutoCompleteBox
-                                        x:Name="LocaleBox"
-                                        HorizontalAlignment="Stretch"
-                                        ItemsSource="{Binding Locales}"
-                                        SelectedItem="{Binding SelectedLocale}"
-                                        FilterMode="Custom"
-                                        MinimumPrefixLength="0"
-                                        MaxDropDownHeight="280"
-                                        PlaceholderText="Search locale...">
-                                        <AutoCompleteBox.ValueMemberBinding>
-                                            <ReflectionBinding Path="DisplayName" />
-                                        </AutoCompleteBox.ValueMemberBinding>
-                                        <AutoCompleteBox.ItemTemplate>
-                                            <DataTemplate x:DataType="glob:CultureInfo">
-                                                <TextBlock Text="{Binding DisplayName}" />
-                                            </DataTemplate>
-                                        </AutoCompleteBox.ItemTemplate>
-                                    </AutoCompleteBox>
-                                    <Button
-                                        x:Name="LocaleChevron"
-                                        HorizontalAlignment="Right"
-                                        VerticalAlignment="Stretch"
-                                        Padding="9,0"
-                                        Background="Transparent"
-                                        BorderThickness="0"
-                                        Focusable="False">
-                                        <PathIcon Width="11" Height="11" Data="M0,0 L4,4 L8,0 Z" />
+                                <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                    <Button Classes="reset" ToolTip.Tip="Restore default"
+                                        Command="{Binding RestoreLocaleCommand}" IsVisible="{Binding LocaleModified}">
+                                        <PathIcon Width="13" Height="13" Data="{StaticResource UndoIcon}" />
                                     </Button>
-                                </Grid>
+                                    <Grid Width="340">
+                                        <AutoCompleteBox
+                                            x:Name="LocaleBox"
+                                            HorizontalAlignment="Stretch"
+                                            ItemsSource="{Binding Locales}"
+                                            SelectedItem="{Binding SelectedLocale}"
+                                            FilterMode="Custom"
+                                            MinimumPrefixLength="0"
+                                            MaxDropDownHeight="280"
+                                            PlaceholderText="Search locale...">
+                                            <AutoCompleteBox.ValueMemberBinding>
+                                                <ReflectionBinding Path="DisplayName" />
+                                            </AutoCompleteBox.ValueMemberBinding>
+                                            <AutoCompleteBox.ItemTemplate>
+                                                <DataTemplate x:DataType="glob:CultureInfo">
+                                                    <TextBlock Text="{Binding DisplayName}" />
+                                                </DataTemplate>
+                                            </AutoCompleteBox.ItemTemplate>
+                                        </AutoCompleteBox>
+                                        <Button
+                                            x:Name="LocaleChevron"
+                                            HorizontalAlignment="Right"
+                                            VerticalAlignment="Stretch"
+                                            Padding="9,0"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            Focusable="False">
+                                            <PathIcon Width="11" Height="11" Data="M0,0 L4,4 L8,0 Z" />
+                                        </Button>
+                                    </Grid>
+                                </StackPanel>
                             </ui:FASettingsExpander.Footer>
                         </ui:FASettingsExpander>
 
@@ -390,6 +444,10 @@
                             </ui:FASettingsExpander.IconSource>
                             <ui:FASettingsExpander.Footer>
                                 <StackPanel Orientation="Horizontal" Spacing="16">
+                                    <Button Classes="reset" ToolTip.Tip="Restore default"
+                                        Command="{Binding RestoreClockAlignmentCommand}" IsVisible="{Binding ClockAlignmentModified}">
+                                        <PathIcon Width="13" Height="13" Data="{StaticResource UndoIcon}" />
+                                    </Button>
                                     <RadioButton
                                         GroupName="ClockAlignment"
                                         Content="Left"
@@ -412,33 +470,45 @@
                             </ui:FASettingsExpander.IconSource>
                             <ui:FASettingsExpanderItem Content="Time format">
                                 <ui:FASettingsExpanderItem.Footer>
-                                    <StackPanel Spacing="2" Width="240">
-                                        <TextBox Text="{Binding ClockTimeFormat}" PlaceholderText="T" />
-                                        <TextBlock
-                                            FontSize="13"
-                                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                                            Text="{Binding TimeSample}" />
-                                        <TextBlock
-                                            FontSize="13"
-                                            Foreground="{DynamicResource SystemFillColorCriticalBrush}"
-                                            Text="{Binding TimeFormatError}"
-                                            IsVisible="{Binding TimeFormatError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                    <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Top">
+                                        <Button Classes="reset" ToolTip.Tip="Restore default" VerticalAlignment="Top"
+                                            Command="{Binding RestoreClockTimeFormatCommand}" IsVisible="{Binding ClockTimeFormatModified}">
+                                            <PathIcon Width="13" Height="13" Data="{StaticResource UndoIcon}" />
+                                        </Button>
+                                        <StackPanel Spacing="2" Width="240">
+                                            <TextBox Text="{Binding ClockTimeFormat}" PlaceholderText="T" />
+                                            <TextBlock
+                                                FontSize="13"
+                                                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                Text="{Binding TimeSample}" />
+                                            <TextBlock
+                                                FontSize="13"
+                                                Foreground="{DynamicResource SystemFillColorCriticalBrush}"
+                                                Text="{Binding TimeFormatError}"
+                                                IsVisible="{Binding TimeFormatError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                        </StackPanel>
                                     </StackPanel>
                                 </ui:FASettingsExpanderItem.Footer>
                             </ui:FASettingsExpanderItem>
                             <ui:FASettingsExpanderItem Content="Date format">
                                 <ui:FASettingsExpanderItem.Footer>
-                                    <StackPanel Spacing="2" Width="240">
-                                        <TextBox Text="{Binding ClockDateFormat}" PlaceholderText="D" />
-                                        <TextBlock
-                                            FontSize="13"
-                                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                                            Text="{Binding DateSample}" />
-                                        <TextBlock
-                                            FontSize="13"
-                                            Foreground="{DynamicResource SystemFillColorCriticalBrush}"
-                                            Text="{Binding DateFormatError}"
-                                            IsVisible="{Binding DateFormatError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                    <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Top">
+                                        <Button Classes="reset" ToolTip.Tip="Restore default" VerticalAlignment="Top"
+                                            Command="{Binding RestoreClockDateFormatCommand}" IsVisible="{Binding ClockDateFormatModified}">
+                                            <PathIcon Width="13" Height="13" Data="{StaticResource UndoIcon}" />
+                                        </Button>
+                                        <StackPanel Spacing="2" Width="240">
+                                            <TextBox Text="{Binding ClockDateFormat}" PlaceholderText="D" />
+                                            <TextBlock
+                                                FontSize="13"
+                                                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                Text="{Binding DateSample}" />
+                                            <TextBlock
+                                                FontSize="13"
+                                                Foreground="{DynamicResource SystemFillColorCriticalBrush}"
+                                                Text="{Binding DateFormatError}"
+                                                IsVisible="{Binding DateFormatError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                        </StackPanel>
                                     </StackPanel>
                                 </ui:FASettingsExpanderItem.Footer>
                             </ui:FASettingsExpanderItem>
@@ -452,33 +522,45 @@
                             </ui:FASettingsExpander.IconSource>
                             <ui:FASettingsExpanderItem Content="Time format">
                                 <ui:FASettingsExpanderItem.Footer>
-                                    <StackPanel Spacing="2" Width="240">
-                                        <TextBox Text="{Binding ClockTimeFormatHover}" PlaceholderText="HH:mm:ss" />
-                                        <TextBlock
-                                            FontSize="13"
-                                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                                            Text="{Binding TimeHoverSample}" />
-                                        <TextBlock
-                                            FontSize="13"
-                                            Foreground="{DynamicResource SystemFillColorCriticalBrush}"
-                                            Text="{Binding TimeHoverFormatError}"
-                                            IsVisible="{Binding TimeHoverFormatError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                    <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Top">
+                                        <Button Classes="reset" ToolTip.Tip="Restore default" VerticalAlignment="Top"
+                                            Command="{Binding RestoreClockTimeFormatHoverCommand}" IsVisible="{Binding ClockTimeFormatHoverModified}">
+                                            <PathIcon Width="13" Height="13" Data="{StaticResource UndoIcon}" />
+                                        </Button>
+                                        <StackPanel Spacing="2" Width="240">
+                                            <TextBox Text="{Binding ClockTimeFormatHover}" PlaceholderText="HH:mm:ss" />
+                                            <TextBlock
+                                                FontSize="13"
+                                                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                Text="{Binding TimeHoverSample}" />
+                                            <TextBlock
+                                                FontSize="13"
+                                                Foreground="{DynamicResource SystemFillColorCriticalBrush}"
+                                                Text="{Binding TimeHoverFormatError}"
+                                                IsVisible="{Binding TimeHoverFormatError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                        </StackPanel>
                                     </StackPanel>
                                 </ui:FASettingsExpanderItem.Footer>
                             </ui:FASettingsExpanderItem>
                             <ui:FASettingsExpanderItem Content="Date format">
                                 <ui:FASettingsExpanderItem.Footer>
-                                    <StackPanel Spacing="2" Width="240">
-                                        <TextBox Text="{Binding ClockDateFormatHover}" PlaceholderText="u" />
-                                        <TextBlock
-                                            FontSize="13"
-                                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                                            Text="{Binding DateHoverSample}" />
-                                        <TextBlock
-                                            FontSize="13"
-                                            Foreground="{DynamicResource SystemFillColorCriticalBrush}"
-                                            Text="{Binding DateHoverFormatError}"
-                                            IsVisible="{Binding DateHoverFormatError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                    <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Top">
+                                        <Button Classes="reset" ToolTip.Tip="Restore default" VerticalAlignment="Top"
+                                            Command="{Binding RestoreClockDateFormatHoverCommand}" IsVisible="{Binding ClockDateFormatHoverModified}">
+                                            <PathIcon Width="13" Height="13" Data="{StaticResource UndoIcon}" />
+                                        </Button>
+                                        <StackPanel Spacing="2" Width="240">
+                                            <TextBox Text="{Binding ClockDateFormatHover}" PlaceholderText="u" />
+                                            <TextBlock
+                                                FontSize="13"
+                                                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                Text="{Binding DateHoverSample}" />
+                                            <TextBlock
+                                                FontSize="13"
+                                                Foreground="{DynamicResource SystemFillColorCriticalBrush}"
+                                                Text="{Binding DateHoverFormatError}"
+                                                IsVisible="{Binding DateHoverFormatError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                        </StackPanel>
                                     </StackPanel>
                                 </ui:FASettingsExpanderItem.Footer>
                             </ui:FASettingsExpanderItem>
@@ -573,16 +655,22 @@
                                 <ui:FASymbolIconSource Symbol="Clock" />
                             </ui:FASettingsExpander.IconSource>
                             <ui:FASettingsExpander.Footer>
-                                <ComboBox
-                                    MinWidth="180"
-                                    ItemsSource="{Binding UpdateFrequencies}"
-                                    SelectedItem="{Binding UpdateFrequency}">
-                                    <ComboBox.ItemTemplate>
-                                        <DataTemplate x:DataType="models:UpdateCheckFrequency">
-                                            <TextBlock Text="{Binding Converter={StaticResource FrequencyLabel}}" />
-                                        </DataTemplate>
-                                    </ComboBox.ItemTemplate>
-                                </ComboBox>
+                                <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                    <Button Classes="reset" ToolTip.Tip="Restore default"
+                                        Command="{Binding RestoreUpdateFrequencyCommand}" IsVisible="{Binding UpdateFrequencyModified}">
+                                        <PathIcon Width="13" Height="13" Data="{StaticResource UndoIcon}" />
+                                    </Button>
+                                    <ComboBox
+                                        MinWidth="180"
+                                        ItemsSource="{Binding UpdateFrequencies}"
+                                        SelectedItem="{Binding UpdateFrequency}">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate x:DataType="models:UpdateCheckFrequency">
+                                                <TextBlock Text="{Binding Converter={StaticResource FrequencyLabel}}" />
+                                            </DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                </StackPanel>
                             </ui:FASettingsExpander.Footer>
                         </ui:FASettingsExpander>
                     </StackPanel>
