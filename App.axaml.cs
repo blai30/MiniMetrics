@@ -8,6 +8,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using Avalonia.Media;
 using Avalonia.Platform;
 using Avalonia.Styling;
 using Avalonia.Threading;
@@ -215,6 +216,11 @@ public partial class App : Application
 
             BuildTray();
 
+            // Warm the tray menu's code paths so the first right-click is instant; see WarmUpTrayMenu.
+            // Windows only, where the tray menu is a managed Avalonia popup.
+            if (OperatingSystem.IsWindows())
+                Dispatcher.UIThread.Post(WarmUpTrayMenu, DispatcherPriority.Background);
+
             desktop.ShutdownRequested += (_, _) =>
             {
                 _settingsController.Flush();
@@ -272,15 +278,16 @@ public partial class App : Application
         }
 
         _tray = new(new(
-            !_settings.Hidden,
-            !_settings.GpuHidden,
-            !_settings.DateTimeHidden,
-            _settings.Locked,
-            _settings.AlwaysOnTop,
-            _settings.SnapToEdges,
-            showRunAtStartup,
-            runAtStartupChecked,
-            OperatingSystem.IsWindows() && _isInstalled));
+                !_settings.Hidden,
+                !_settings.GpuHidden,
+                !_settings.DateTimeHidden,
+                _settings.Locked,
+                _settings.AlwaysOnTop,
+                _settings.SnapToEdges,
+                showRunAtStartup,
+                runAtStartupChecked,
+                OperatingSystem.IsWindows() && _isInstalled),
+            TrayIconBrush());
 
         _tray.ToggleCpuRequested += OnToggleCpuShowHide;
         _tray.ToggleGpuRequested += OnToggleGpuShowHide;
@@ -307,6 +314,40 @@ public partial class App : Application
             this,
             new(AssetLoader.Open(new("avares://MiniMetrics/Assets/minimetrics.ico"))),
             "Mini Metrics");
+    }
+
+    // The tray context menu is a managed Avalonia popup that Avalonia rebuilds on each right-click, and the
+    // first build pays a one-time cost (JIT, Fluent menu control themes resolving, font shaping, top-level
+    // creation) of a few hundred milliseconds. Build an equivalent menu once in an off-screen, non-activating
+    // window and discard it, so the first real right-click hits warm code paths. Posted at Background priority
+    // so it runs after startup layout has settled rather than competing with warmup.
+    private void WarmUpTrayMenu()
+    {
+        var presenter = new MenuFlyoutPresenter
+        {
+            ItemsSource = new[]
+            {
+                new MenuItem
+                {
+                    Header = "Warmup", Icon = new Image { Source = MenuIconRenderer.Render("M12 2v20", Brushes.Gray) }
+                },
+                new MenuItem { Header = "Warmup" }
+            }
+        };
+
+        var window = new Window
+        {
+            SizeToContent = SizeToContent.WidthAndHeight,
+            ShowInTaskbar = false,
+            ShowActivated = false,
+            Position = new(-32000, -32000),
+            Content = presenter
+        };
+
+        window.Show();
+
+        // Let one layout pass run so the measure/template/text paths warm, then discard the window.
+        Dispatcher.UIThread.Post(window.Close, DispatcherPriority.Background);
     }
 
     private void OnToggleCpuShowHide()
@@ -416,6 +457,7 @@ public partial class App : Application
         ApplyThemeVariant();
         ApplyAppearanceToWidgets();
         RefreshWidgetAccents();
+        _tray.SetIconColor(TrayIconBrush());
     }
 
     // Pushes the current opacity and the resolved theme's background color to every widget through the
@@ -446,6 +488,11 @@ public partial class App : Application
     // default when no app exists (design time) so the original look is preserved.
     private bool ResolvedIsDark() => ActualThemeVariant != ThemeVariant.Light;
 
+    // Tray menu glyph color, baked into each icon bitmap to match the managed menu's text in the resolved
+    // theme. Re-applied through TrayMenuController.SetIconColor when the variant changes.
+    private IBrush TrayIconBrush() =>
+        new SolidColorBrush(ResolvedIsDark() ? Color.FromRgb(0xE8, 0xE8, 0xE8) : Color.FromRgb(0x1A, 0x1A, 0x1A));
+
     private void ApplyThemeVariant()
     {
         RequestedThemeVariant = _settings.Theme switch
@@ -464,6 +511,7 @@ public partial class App : Application
         {
             ApplyAppearanceToWidgets();
             RefreshWidgetAccents();
+            _tray.SetIconColor(TrayIconBrush());
         }
     }
 

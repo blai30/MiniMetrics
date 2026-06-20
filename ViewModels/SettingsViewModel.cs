@@ -32,6 +32,7 @@ public partial class SettingsViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(ThemeModified))]
     [NotifyPropertyChangedFor(nameof(BackgroundColorModified))]
     public partial AppTheme Theme { get; set; }
+
     public IReadOnlyList<AppTheme> Themes { get; } = [AppTheme.System, AppTheme.Light, AppTheme.Dark];
 
     private static readonly string[] DarkSwatches =
@@ -59,7 +60,9 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(TimeZoneModified))]
     public partial TimeZoneInfo SelectedTimeZone { get; set; }
+
     [ObservableProperty] public partial bool UpdateCheckEnabled { get; set; }
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(UpdateFrequencyModified))]
     public partial UpdateCheckFrequency UpdateFrequency { get; set; }
@@ -88,6 +91,7 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(WidgetFontWeightModified))]
     public partial WidgetFontWeight WidgetFontWeight { get; set; }
+
     [ObservableProperty] public partial bool UseLocalTime { get; set; }
 
     // The full set of specific cultures for the locale picker, ordered by display name.
@@ -246,20 +250,36 @@ public partial class SettingsViewModel : ObservableObject
     public bool TimeZoneModified => SelectedTimeZone is not null && SelectedTimeZone.Id != _defaultTimeZone.Id;
     public bool LocaleModified => SelectedLocale is not null && SelectedLocale.Name != _defaultLocale.Name;
 
-    [RelayCommand] private void RestoreTheme() => Theme = Defaults.Theme;
-    [RelayCommand] private void RestoreOpacity() => Opacity = Defaults.Opacity;
-    [RelayCommand] private void RestoreWidgetScale() => WidgetScale = Defaults.WidgetScale;
-    [RelayCommand] private void RestoreWidgetFontFamily() => WidgetFontFamily = WidgetStyleProfile.DefaultFamilyName;
-    [RelayCommand] private void RestoreWidgetFontWeight() => WidgetFontWeight = Defaults.WidgetFontWeight;
-    [RelayCommand] private void RestoreClockAlignment() => ClockAlignment = Defaults.ClockAlignment;
-    [RelayCommand] private void RestoreUpdateFrequency() => UpdateFrequency = Defaults.UpdateFrequency;
+    [RelayCommand]
+    private void RestoreTheme() => Theme = Defaults.Theme;
+
+    [RelayCommand]
+    private void RestoreOpacity() => Opacity = Defaults.Opacity;
+
+    [RelayCommand]
+    private void RestoreWidgetScale() => WidgetScale = Defaults.WidgetScale;
+
+    [RelayCommand]
+    private void RestoreWidgetFontFamily() => WidgetFontFamily = WidgetStyleProfile.DefaultFamilyName;
+
+    [RelayCommand]
+    private void RestoreWidgetFontWeight() => WidgetFontWeight = Defaults.WidgetFontWeight;
+
+    [RelayCommand]
+    private void RestoreClockAlignment() => ClockAlignment = Defaults.ClockAlignment;
+
+    [RelayCommand]
+    private void RestoreUpdateFrequency() => UpdateFrequency = Defaults.UpdateFrequency;
 
     [RelayCommand]
     private void RestoreBackgroundColor() =>
         BackgroundColor = EditingVariantIsDark ? Defaults.BackgroundColor : Defaults.LightBackgroundColor;
 
-    [RelayCommand] private void RestoreTimeZone() => SelectedTimeZone = _defaultTimeZone;
-    [RelayCommand] private void RestoreLocale() => SelectedLocale = _defaultLocale;
+    [RelayCommand]
+    private void RestoreTimeZone() => SelectedTimeZone = _defaultTimeZone;
+
+    [RelayCommand]
+    private void RestoreLocale() => SelectedLocale = _defaultLocale;
 
     // A null or blank format means "use the built-in default", so blank counts as default and restore clears it.
     public bool ClockTimeFormatModified => !string.IsNullOrWhiteSpace(ClockTimeFormat);
@@ -267,10 +287,17 @@ public partial class SettingsViewModel : ObservableObject
     public bool ClockTimeFormatHoverModified => !string.IsNullOrWhiteSpace(ClockTimeFormatHover);
     public bool ClockDateFormatHoverModified => !string.IsNullOrWhiteSpace(ClockDateFormatHover);
 
-    [RelayCommand] private void RestoreClockTimeFormat() => ClockTimeFormat = null;
-    [RelayCommand] private void RestoreClockDateFormat() => ClockDateFormat = null;
-    [RelayCommand] private void RestoreClockTimeFormatHover() => ClockTimeFormatHover = null;
-    [RelayCommand] private void RestoreClockDateFormatHover() => ClockDateFormatHover = null;
+    [RelayCommand]
+    private void RestoreClockTimeFormat() => ClockTimeFormat = null;
+
+    [RelayCommand]
+    private void RestoreClockDateFormat() => ClockDateFormat = null;
+
+    [RelayCommand]
+    private void RestoreClockTimeFormatHover() => ClockTimeFormatHover = null;
+
+    [RelayCommand]
+    private void RestoreClockDateFormatHover() => ClockDateFormatHover = null;
 
     [RelayCommand]
     private void SelectPreset(string hex) => BackgroundColor = hex;
