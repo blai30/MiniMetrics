@@ -80,6 +80,22 @@ public class UpdateServiceTests
     }
 
     [TestMethod]
+    public void Cannot_apply_in_app_because_a_loose_exe_cannot_self_replace()
+    {
+        var (service, _) = NewService(new FakeReleaseSource { Release = null });
+
+        Assert.IsFalse(service.CanApplyInApp);
+    }
+
+    [TestMethod]
+    public async Task ApplyAndRestart_throws_for_the_portable_flow()
+    {
+        var (service, _) = NewService(new FakeReleaseSource { Release = null });
+
+        await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => service.ApplyAndRestartAsync());
+    }
+
+    [TestMethod]
     public async Task A_second_check_while_one_is_in_flight_is_busy()
     {
         var gated = new GatedReleaseSource();

@@ -89,8 +89,8 @@ public partial class App : Application
 
             _updateFlow = _isInstalled
                 ? new VelopackUpdateFlow(updateManager, _settingsController, () => DateTimeOffset.UtcNow)
-                : new NotifyUpdateFlow(new(
-                    new GitHubReleaseSource(), _currentVersion, _settingsController, () => DateTimeOffset.UtcNow));
+                : new UpdateService(
+                    new GitHubReleaseSource(), _currentVersion, _settingsController, () => DateTimeOffset.UtcNow);
 
             _cpuViewModel = new("cpu", "ram");
             _cpuViewModel.BindVisibility(_settings.Visibility);
