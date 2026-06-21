@@ -204,6 +204,7 @@ public partial class SettingsViewModel : ObservableObject
                 var toggle = new MetricToggleViewModel(
                     entry.Key,
                     entry.Label,
+                    entry.RequiresElevation,
                     Seed(entry.Key, card),
                     (key, value) => SettingChanged?.Invoke(new SettingChange.MetricVisibility(key, value)));
                 toggles.Add(toggle);

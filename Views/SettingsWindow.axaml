@@ -13,7 +13,7 @@
     x:DataType="vm:SettingsViewModel"
     Width="800"
     Height="720"
-    MinWidth="540"
+    MinWidth="640"
     MinHeight="440"
     Title="Mini Metrics Settings"
     Icon="avares://MiniMetrics/Assets/minimetrics.ico"
@@ -786,7 +786,13 @@
                                                                 <Path Classes="rowIcon"
                                                                       Data="{Binding Key, Converter={StaticResource MetricIcon}}" />
                                                             </Viewbox>
-                                                            <TextBlock Classes="settingLabel" Text="{Binding Label}" />
+                                                            <StackPanel>
+                                                                <TextBlock Classes="settingLabel"
+                                                                           Text="{Binding Label}" />
+                                                                <TextBlock Classes="settingDesc"
+                                                                           Text="Requires elevation and the PawnIO driver"
+                                                                           IsVisible="{Binding RequiresElevation}" />
+                                                            </StackPanel>
                                                         </StackPanel>
                                                         <ToggleSwitch Grid.Column="1" VerticalAlignment="Center"
                                                                       IsChecked="{Binding IsVisible}"

@@ -9,12 +9,14 @@ namespace MiniMetrics.ViewModels;
 public sealed partial class MetricToggleViewModel(
     string key,
     string label,
+    bool requiresElevation,
     bool isVisible,
     Action<string, bool> onChanged)
     : ObservableObject
 {
     public string Key { get; } = key;
     public string Label { get; } = label;
+    public bool RequiresElevation { get; } = requiresElevation;
 
     [ObservableProperty] public partial bool IsVisible { get; set; } = isVisible;
 
