@@ -5,6 +5,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     x:Class="MiniMetrics.Views.ConfirmUninstallWindow"
+    Classes="dialog"
     Width="400"
     SizeToContent="Height"
     Title="Uninstall MiniMetrics"
@@ -12,21 +13,27 @@
     CanResize="False"
     WindowStartupLocation="CenterScreen">
 
+    <Window.Styles>
+        <StyleInclude Source="avares://MiniMetrics/Views/DialogStyles.axaml" />
+    </Window.Styles>
+
     <StackPanel Margin="24,22" Spacing="16">
         <TextBlock
+            Classes="dialogTitle"
             FontSize="17"
             FontWeight="SemiBold"
             TextWrapping="Wrap"
             Text="Uninstall MiniMetrics?" />
 
         <TextBlock
+            Classes="dialogBody"
             LineHeight="20"
             TextWrapping="Wrap"
             Text="This removes MiniMetrics and its startup entries. If CPU temperature or power was enabled, you will see one UAC prompt to remove the elevated startup task; declining it cancels the uninstall." />
 
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
             <Button Content="Cancel" IsCancel="True" Click="OnCancel" />
-            <Button Content="Uninstall" Click="OnConfirm" />
+            <Button Classes="primary" Content="Uninstall" Click="OnConfirm" />
         </StackPanel>
     </StackPanel>
 </Window>

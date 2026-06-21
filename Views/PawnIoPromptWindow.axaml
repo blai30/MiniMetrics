@@ -5,6 +5,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     x:Class="MiniMetrics.Views.PawnIoPromptWindow"
+    Classes="dialog"
     Width="400"
     SizeToContent="Height"
     Title="Driver required"
@@ -12,21 +13,27 @@
     CanResize="False"
     WindowStartupLocation="CenterScreen">
 
+    <Window.Styles>
+        <StyleInclude Source="avares://MiniMetrics/Views/DialogStyles.axaml" />
+    </Window.Styles>
+
     <StackPanel Margin="24,22" Spacing="16">
         <TextBlock
+            Classes="dialogTitle"
             FontSize="17"
             FontWeight="SemiBold"
             TextWrapping="Wrap"
             Text="CPU temperature and power need a driver" />
 
         <TextBlock
+            Classes="dialogBody"
             LineHeight="20"
             TextWrapping="Wrap"
             Text="MiniMetrics reads CPU temperature and power through the PawnIO kernel driver, which is not installed on this machine. Until it is, those two metrics stay blank. Installing PawnIO is a one-time step; afterwards the app asks for elevation only when it needs to read the sensors." />
 
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
             <Button Content="Not now" Click="OnClose" />
-            <Button Content="Install PawnIO" Click="OnInstall" />
+            <Button Classes="primary" Content="Install PawnIO" Click="OnInstall" />
         </StackPanel>
     </StackPanel>
 </Window>

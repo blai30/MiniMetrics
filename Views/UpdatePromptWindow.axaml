@@ -7,6 +7,7 @@
     mc:Ignorable="d"
     x:Class="MiniMetrics.Views.UpdatePromptWindow"
     x:DataType="vm:UpdatePromptViewModel"
+    Classes="dialog"
     Width="480"
     SizeToContent="Height"
     Title="MiniMetrics update"
@@ -14,14 +15,19 @@
     CanResize="False"
     WindowStartupLocation="CenterScreen">
 
+    <Window.Styles>
+        <StyleInclude Source="avares://MiniMetrics/Views/DialogStyles.axaml" />
+    </Window.Styles>
+
     <StackPanel Margin="24,22" Spacing="16">
         <TextBlock
+            Classes="dialogTitle"
             FontSize="17"
             FontWeight="SemiBold"
             TextWrapping="Wrap"
             Text="{Binding Heading}" />
 
-        <TextBlock TextWrapping="Wrap" LineHeight="20" Text="{Binding Body}" />
+        <TextBlock Classes="dialogBody" TextWrapping="Wrap" LineHeight="20" Text="{Binding Body}" />
 
         <StackPanel
             Orientation="Horizontal"
@@ -31,9 +37,11 @@
             <Button Content="Remind me later" Click="OnDismiss" />
             <Button Content="Skip this version" Click="OnSkip" />
             <Button
+                Classes="primary"
                 Content="View release" IsVisible="{Binding !CanInstall}"
                 Click="OnViewRelease" />
             <Button
+                Classes="primary"
                 Content="Install and restart" IsVisible="{Binding CanInstall}"
                 Click="OnInstall" />
         </StackPanel>
@@ -44,6 +52,7 @@
             Spacing="8"
             IsVisible="{Binding IsInformational}">
             <Button
+                Classes="primary"
                 Content="Close"
                 IsDefault="True"
                 IsCancel="True" Click="OnClose" />

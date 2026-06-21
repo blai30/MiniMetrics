@@ -1,0 +1,77 @@
+<Styles
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Styles.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.ThemeDictionaries>
+                <!-- Primary action = inverse fill; steps walk down the zinc ramp (200 -> 300 -> 400) so hover and
+                     pressed are each a clear, even step rather than a near-white plateau. -->
+                <ResourceDictionary x:Key="Dark">
+                    <SolidColorBrush x:Key="Dialog.Primary.Background" Color="#E4E4E7" />
+                    <SolidColorBrush x:Key="Dialog.Primary.BackgroundPointerOver" Color="#D4D4D8" />
+                    <SolidColorBrush x:Key="Dialog.Primary.BackgroundPressed" Color="#A1A1AA" />
+                    <SolidColorBrush x:Key="Dialog.Primary.Foreground" Color="#09090B" />
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="Light">
+                    <SolidColorBrush x:Key="Dialog.Primary.Background" Color="#18181B" />
+                    <SolidColorBrush x:Key="Dialog.Primary.BackgroundPointerOver" Color="#27272A" />
+                    <SolidColorBrush x:Key="Dialog.Primary.BackgroundPressed" Color="#3F3F46" />
+                    <SolidColorBrush x:Key="Dialog.Primary.Foreground" Color="#FAFAFA" />
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+        </ResourceDictionary>
+    </Styles.Resources>
+
+    <!-- Zinc client surface, matching Settings.Background. -->
+    <Style Selector="Window.dialog">
+        <Setter Property="Background" Value="{DynamicResource Settings.Background}" />
+    </Style>
+
+    <!-- Heading and body text follow the settings primary/secondary text ramp. -->
+    <Style Selector="Window.dialog TextBlock.dialogTitle">
+        <Setter Property="Foreground" Value="{DynamicResource Settings.Text.Primary}" />
+    </Style>
+    <Style Selector="Window.dialog TextBlock.dialogBody">
+        <Setter Property="Foreground" Value="{DynamicResource Settings.Text.Secondary}" />
+    </Style>
+
+    <!-- Secondary (ghost) button: transparent with a zinc hairline, lifts to the muted surface on hover. -->
+    <Style Selector="Window.dialog Button">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Settings.Border}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Foreground" Value="{DynamicResource Settings.Text.Primary}" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="Padding" Value="14,7" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="FontWeight" Value="Medium" />
+    </Style>
+    <Style Selector="Window.dialog Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource Settings.Muted}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Settings.Border}" />
+        <Setter Property="TextElement.Foreground" Value="{DynamicResource Settings.Text.Primary}" />
+    </Style>
+    <Style Selector="Window.dialog Button:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource Settings.Tab.Active}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Settings.Border}" />
+        <Setter Property="TextElement.Foreground" Value="{DynamicResource Settings.Text.Primary}" />
+    </Style>
+
+    <!-- Primary (solid) button: the inverse fill, no border. -->
+    <Style Selector="Window.dialog Button.primary">
+        <Setter Property="Background" Value="{DynamicResource Dialog.Primary.Background}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Dialog.Primary.Background}" />
+        <Setter Property="Foreground" Value="{DynamicResource Dialog.Primary.Foreground}" />
+    </Style>
+    <Style Selector="Window.dialog Button.primary:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource Dialog.Primary.BackgroundPointerOver}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Dialog.Primary.BackgroundPointerOver}" />
+        <Setter Property="TextElement.Foreground" Value="{DynamicResource Dialog.Primary.Foreground}" />
+    </Style>
+    <Style Selector="Window.dialog Button.primary:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource Dialog.Primary.BackgroundPressed}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Dialog.Primary.BackgroundPressed}" />
+        <Setter Property="TextElement.Foreground" Value="{DynamicResource Dialog.Primary.Foreground}" />
+    </Style>
+</Styles>
