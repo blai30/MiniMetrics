@@ -10,14 +10,11 @@
     Title="Uninstall MiniMetrics"
     Icon="avares://MiniMetrics/Assets/minimetrics.ico"
     CanResize="False"
-    WindowStartupLocation="CenterScreen"
-    Background="Transparent"
-    TransparencyLevelHint="Mica"
-    TransparencyBackgroundFallback="{DynamicResource Chrome.Surface}">
+    WindowStartupLocation="CenterScreen">
 
     <StackPanel Margin="24,22" Spacing="16">
         <TextBlock
-            FontSize="20"
+            FontSize="17"
             FontWeight="SemiBold"
             TextWrapping="Wrap"
             Text="Uninstall MiniMetrics?" />
@@ -29,7 +26,7 @@
 
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
             <Button Content="Cancel" IsCancel="True" Click="OnCancel" />
-            <Button Content="Uninstall" IsDefault="True" Classes="accent" Click="OnConfirm" />
+            <Button Content="Uninstall" Click="OnConfirm" />
         </StackPanel>
     </StackPanel>
 </Window>

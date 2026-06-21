@@ -19,9 +19,6 @@
     Icon="avares://MiniMetrics/Assets/minimetrics.ico"
     CanResize="True"
     WindowStartupLocation="CenterScreen"
-    Background="Transparent"
-    TransparencyLevelHint="Mica"
-    TransparencyBackgroundFallback="{DynamicResource Chrome.Surface}"
     PointerPressed="OnSettingsPointerPressed">
 
     <Window.Resources>
@@ -30,209 +27,137 @@
         <conv:StringToFontFamilyConverter x:Key="StringToFontFamily" />
     </Window.Resources>
 
-    <Window.Styles>
-        <Style Selector="TabControl.sidebar > TabItem">
-            <Setter Property="MinWidth" Value="190" />
-        </Style>
-        <Style Selector="TextBlock.description">
-            <Setter Property="FontSize" Value="12" />
-            <Setter Property="Foreground" Value="{DynamicResource Chrome.TextMuted}" />
-            <Setter Property="TextWrapping" Value="Wrap" />
-        </Style>
-        <Style Selector="TextBlock.error">
-            <Setter Property="FontSize" Value="12" />
-            <Setter Property="Foreground" Value="{DynamicResource Chrome.Error}" />
-            <Setter Property="TextWrapping" Value="Wrap" />
-        </Style>
-    </Window.Styles>
-
     <Grid x:Name="RootArea" Focusable="True">
-        <TabControl Classes="sidebar" TabStripPlacement="Left">
+        <TabControl>
             <!-- Appearance -->
             <TabItem Header="Appearance">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel Margin="24,8,24,24" Spacing="0">
+                    <StackPanel Margin="12" Spacing="16">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Theme" />
+                            <TextBlock Text="Color mode for the app and widgets" />
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <ComboBox MinWidth="160" ItemsSource="{Binding Themes}" SelectedItem="{Binding Theme}" />
+                                <Button Content="Reset" Command="{Binding RestoreThemeCommand}" IsVisible="{Binding ThemeModified}" />
+                            </StackPanel>
+                        </StackPanel>
 
-                        <TextBlock Classes="page-title" Text="Appearance" />
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Background color" />
+                            <TextBlock Text="Translucent fill behind every widget" />
+                            <ItemsControl ItemsSource="{Binding Swatches}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="sys:String">
+                                        <Button
+                                            Width="34"
+                                            Height="34"
+                                            Margin="0,0,8,8"
+                                            Background="{Binding}"
+                                            Command="{Binding $parent[ItemsControl].((vm:SettingsViewModel)DataContext).SelectPresetCommand}"
+                                            CommandParameter="{Binding}" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="Custom hex" VerticalAlignment="Center" />
+                                <TextBox Width="120" Text="{Binding BackgroundColor}" PlaceholderText="#RRGGBB" />
+                                <Button Content="Reset" Command="{Binding RestoreBackgroundColorCommand}" IsVisible="{Binding BackgroundColorModified}" />
+                            </StackPanel>
+                        </StackPanel>
 
-                        <TextBlock Classes="section first" Text="Theme and color" />
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Opacity" />
+                            <TextBlock Text="How opaque the widget background is" />
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Slider Width="200" Minimum="0" Maximum="100" Value="{Binding Opacity}" />
+                                <NumericUpDown
+                                    x:Name="OpacityInput"
+                                    Width="96"
+                                    VerticalAlignment="Center"
+                                    Minimum="0"
+                                    Maximum="100"
+                                    Increment="1"
+                                    Value="{Binding Opacity, Mode=OneWay}"
+                                    ShowButtonSpinner="False"
+                                    ClipValueToMinMax="True"
+                                    KeyDown="OnPercentInputKeyDown"
+                                    LostFocus="OnPercentInputLostFocus" />
+                                <Button Content="Reset" Command="{Binding RestoreOpacityCommand}" IsVisible="{Binding OpacityModified}" />
+                            </StackPanel>
+                        </StackPanel>
 
-                        <Border Classes="card">
-                            <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
-                                    <TextBlock Text="Theme" />
-                                    <TextBlock Classes="description" Text="Color mode for the app and widgets" />
-                                </StackPanel>
-                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8"
-                                            VerticalAlignment="Center">
-                                    <Button Classes="reset-link" Content="Reset"
-                                            Command="{Binding RestoreThemeCommand}" IsVisible="{Binding ThemeModified}" />
-                                    <ComboBox MinWidth="160" ItemsSource="{Binding Themes}"
-                                              SelectedItem="{Binding Theme}" />
-                                </StackPanel>
-                            </Grid>
-                        </Border>
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Widget size" />
+                            <TextBlock Text="Scale of every widget on screen" />
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Slider Width="200" Minimum="50" Maximum="200" Value="{Binding WidgetScale}" />
+                                <NumericUpDown
+                                    x:Name="WidgetScaleInput"
+                                    Width="96"
+                                    VerticalAlignment="Center"
+                                    Minimum="50"
+                                    Maximum="200"
+                                    Increment="1"
+                                    Value="{Binding WidgetScale, Mode=OneWay}"
+                                    ShowButtonSpinner="False"
+                                    ClipValueToMinMax="True"
+                                    KeyDown="OnPercentInputKeyDown"
+                                    LostFocus="OnPercentInputLostFocus" />
+                                <Button Content="Reset" Command="{Binding RestoreWidgetScaleCommand}" IsVisible="{Binding WidgetScaleModified}" />
+                            </StackPanel>
+                        </StackPanel>
 
-                        <Border Classes="card">
-                            <Grid ColumnDefinitions="*,Auto">
-                                <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
-                                    <TextBlock Text="Background color" />
-                                    <TextBlock Classes="description" Text="Translucent fill behind every widget" />
-                                </StackPanel>
-                                <StackPanel Grid.Column="1" Spacing="8" HorizontalAlignment="Right">
-                                    <ItemsControl ItemsSource="{Binding Swatches}">
-                                        <ItemsControl.ItemsPanel>
-                                            <ItemsPanelTemplate>
-                                                <WrapPanel HorizontalAlignment="Right" />
-                                            </ItemsPanelTemplate>
-                                        </ItemsControl.ItemsPanel>
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate x:DataType="sys:String">
-                                                <Button
-                                                    Width="28"
-                                                    Height="28"
-                                                    Margin="6,0,0,6"
-                                                    Background="{Binding}"
-                                                    Command="{Binding $parent[ItemsControl].((vm:SettingsViewModel)DataContext).SelectPresetCommand}"
-                                                    CommandParameter="{Binding}" />
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-                                    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
-                                        <Button Classes="reset-link" Content="Reset"
-                                                Command="{Binding RestoreBackgroundColorCommand}"
-                                                IsVisible="{Binding BackgroundColorModified}" />
-                                        <TextBox Width="120" Text="{Binding BackgroundColor}" PlaceholderText="#RRGGBB" />
-                                    </StackPanel>
-                                </StackPanel>
-                            </Grid>
-                        </Border>
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Font" />
+                            <TextBlock Text="Typeface and weight used by the widgets" />
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <AutoCompleteBox
+                                    x:Name="FontBox"
+                                    Width="200"
+                                    FontFamily="{Binding WidgetFontFamily, Converter={StaticResource StringToFontFamily}}"
+                                    ItemsSource="{Binding AvailableFonts}"
+                                    SelectedItem="{Binding WidgetFontFamily}"
+                                    FilterMode="Custom"
+                                    MinimumPrefixLength="0"
+                                    MaxDropDownHeight="280"
+                                    PlaceholderText="Search font...">
+                                    <AutoCompleteBox.ItemTemplate>
+                                        <DataTemplate x:DataType="sys:String">
+                                            <TextBlock
+                                                MaxWidth="168"
+                                                FontFamily="{Binding Converter={StaticResource StringToFontFamily}}"
+                                                TextTrimming="CharacterEllipsis"
+                                                Text="{Binding}" />
+                                        </DataTemplate>
+                                    </AutoCompleteBox.ItemTemplate>
+                                </AutoCompleteBox>
+                                <Button Content="Reset" Command="{Binding RestoreWidgetFontFamilyCommand}" IsVisible="{Binding WidgetFontFamilyModified}" />
+                                <ComboBox MinWidth="140" ItemsSource="{Binding WidgetFontWeights}" SelectedItem="{Binding WidgetFontWeight}" />
+                                <Button Content="Reset" Command="{Binding RestoreWidgetFontWeightCommand}" IsVisible="{Binding WidgetFontWeightModified}" />
+                            </StackPanel>
+                        </StackPanel>
 
-                        <Border Classes="card">
-                            <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                <TextBlock Grid.Column="0" Text="Opacity" VerticalAlignment="Center" />
-                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8"
-                                            VerticalAlignment="Center">
-                                    <Button Classes="reset-link" Content="Reset"
-                                            Command="{Binding RestoreOpacityCommand}"
-                                            IsVisible="{Binding OpacityModified}" />
-                                    <Slider Width="180" Minimum="0" Maximum="100" Value="{Binding Opacity}" />
-                                    <NumericUpDown
-                                        x:Name="OpacityInput"
-                                        Width="84"
-                                        VerticalAlignment="Center"
-                                        Minimum="0"
-                                        Maximum="100"
-                                        Increment="1"
-                                        Value="{Binding Opacity, Mode=OneWay}"
-                                        ShowButtonSpinner="False"
-                                        ClipValueToMinMax="True"
-                                        KeyDown="OnPercentInputKeyDown"
-                                        LostFocus="OnPercentInputLostFocus" />
-                                </StackPanel>
-                            </Grid>
-                        </Border>
-
-                        <Border Classes="card">
-                            <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                <TextBlock Grid.Column="0" Text="Widget size" VerticalAlignment="Center" />
-                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8"
-                                            VerticalAlignment="Center">
-                                    <Button Classes="reset-link" Content="Reset"
-                                            Command="{Binding RestoreWidgetScaleCommand}"
-                                            IsVisible="{Binding WidgetScaleModified}" />
-                                    <Slider Width="180" Minimum="50" Maximum="200" Value="{Binding WidgetScale}" />
-                                    <NumericUpDown
-                                        x:Name="WidgetScaleInput"
-                                        Width="84"
-                                        VerticalAlignment="Center"
-                                        Minimum="50"
-                                        Maximum="200"
-                                        Increment="1"
-                                        Value="{Binding WidgetScale, Mode=OneWay}"
-                                        ShowButtonSpinner="False"
-                                        ClipValueToMinMax="True"
-                                        KeyDown="OnPercentInputKeyDown"
-                                        LostFocus="OnPercentInputLostFocus" />
-                                </StackPanel>
-                            </Grid>
-                        </Border>
-
-                        <TextBlock Classes="section" Text="Typography" />
-
-                        <Border Classes="card">
-                            <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
-                                    <TextBlock Text="Font" />
-                                    <TextBlock Classes="description" Text="Typeface used by the widgets" />
-                                </StackPanel>
-                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8"
-                                            VerticalAlignment="Center">
-                                    <Button Classes="reset-link" Content="Reset"
-                                            Command="{Binding RestoreWidgetFontFamilyCommand}"
-                                            IsVisible="{Binding WidgetFontFamilyModified}" />
-                                    <AutoCompleteBox
-                                        x:Name="FontBox"
-                                        Width="200"
-                                        FontFamily="{Binding WidgetFontFamily, Converter={StaticResource StringToFontFamily}}"
-                                        ItemsSource="{Binding AvailableFonts}"
-                                        SelectedItem="{Binding WidgetFontFamily}"
-                                        FilterMode="Custom"
-                                        MinimumPrefixLength="0"
-                                        MaxDropDownHeight="280"
-                                        PlaceholderText="Search font...">
-                                        <AutoCompleteBox.ItemTemplate>
-                                            <DataTemplate x:DataType="sys:String">
-                                                <TextBlock
-                                                    MaxWidth="188"
-                                                    FontFamily="{Binding Converter={StaticResource StringToFontFamily}}"
-                                                    TextTrimming="CharacterEllipsis"
-                                                    Text="{Binding}" />
-                                            </DataTemplate>
-                                        </AutoCompleteBox.ItemTemplate>
-                                    </AutoCompleteBox>
-                                </StackPanel>
-                            </Grid>
-                        </Border>
-
-                        <Border Classes="card">
-                            <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                <TextBlock Grid.Column="0" Text="Font weight" VerticalAlignment="Center" />
-                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8"
-                                            VerticalAlignment="Center">
-                                    <Button Classes="reset-link" Content="Reset"
-                                            Command="{Binding RestoreWidgetFontWeightCommand}"
-                                            IsVisible="{Binding WidgetFontWeightModified}" />
-                                    <ComboBox MinWidth="160" ItemsSource="{Binding WidgetFontWeights}"
-                                              SelectedItem="{Binding WidgetFontWeight}" />
-                                </StackPanel>
-                            </Grid>
-                        </Border>
-
-                        <TextBlock Classes="section" Text="Compact layout" />
-
-                        <Border Classes="card">
-                            <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                <TextBlock Grid.Column="0" Text="CPU widget" VerticalAlignment="Center" />
-                                <ToggleSwitch Grid.Column="1" IsChecked="{Binding CpuCompact}" OnContent=""
-                                              OffContent="" />
-                            </Grid>
-                        </Border>
-                        <Border Classes="card">
-                            <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                <TextBlock Grid.Column="0" Text="GPU widget" VerticalAlignment="Center" />
-                                <ToggleSwitch Grid.Column="1" IsChecked="{Binding GpuCompact}" OnContent=""
-                                              OffContent="" />
-                            </Grid>
-                        </Border>
-                        <Border Classes="card">
-                            <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                <TextBlock Grid.Column="0" Text="Clock widget" VerticalAlignment="Center" />
-                                <ToggleSwitch Grid.Column="1" IsChecked="{Binding DateTimeCompact}" OnContent=""
-                                              OffContent="" />
-                            </Grid>
-                        </Border>
-
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Compact layout" />
+                            <TextBlock Text="Use the condensed single-line widget layout" />
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="CPU widget" VerticalAlignment="Center" />
+                                <ToggleSwitch IsChecked="{Binding CpuCompact}" OnContent="" OffContent="" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="GPU widget" VerticalAlignment="Center" />
+                                <ToggleSwitch IsChecked="{Binding GpuCompact}" OnContent="" OffContent="" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="Clock widget" VerticalAlignment="Center" />
+                                <ToggleSwitch IsChecked="{Binding DateTimeCompact}" OnContent="" OffContent="" />
+                            </StackPanel>
+                        </StackPanel>
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
@@ -240,186 +165,128 @@
             <!-- Clock -->
             <TabItem Header="Clock">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel Margin="24,8,24,24" Spacing="0">
+                    <StackPanel Margin="12" Spacing="16">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Use local time" />
+                            <TextBlock Text="Follow the system clock and time zone" />
+                            <ToggleSwitch IsChecked="{Binding UseLocalTime}" OnContent="" OffContent="" />
+                        </StackPanel>
 
-                        <TextBlock Classes="page-title" Text="Clock" />
+                        <StackPanel Spacing="4" IsEnabled="{Binding !UseLocalTime}">
+                            <TextBlock Text="Time zone" />
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <AutoCompleteBox
+                                    x:Name="TimeZoneBox"
+                                    Width="340"
+                                    ItemsSource="{Binding TimeZones}"
+                                    SelectedItem="{Binding SelectedTimeZone}"
+                                    FilterMode="Custom"
+                                    MinimumPrefixLength="0"
+                                    MaxDropDownHeight="280"
+                                    PlaceholderText="Search time zone...">
+                                    <AutoCompleteBox.ValueMemberBinding>
+                                        <ReflectionBinding Path="DisplayName" />
+                                    </AutoCompleteBox.ValueMemberBinding>
+                                    <AutoCompleteBox.ItemTemplate>
+                                        <DataTemplate x:DataType="sys:TimeZoneInfo">
+                                            <TextBlock Text="{Binding DisplayName}" />
+                                        </DataTemplate>
+                                    </AutoCompleteBox.ItemTemplate>
+                                </AutoCompleteBox>
+                                <Button Content="Reset" Command="{Binding RestoreTimeZoneCommand}" IsVisible="{Binding TimeZoneModified}" />
+                            </StackPanel>
+                        </StackPanel>
 
-                        <TextBlock Classes="section first" Text="Time source" />
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Locale" />
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <AutoCompleteBox
+                                    x:Name="LocaleBox"
+                                    Width="340"
+                                    ItemsSource="{Binding Locales}"
+                                    SelectedItem="{Binding SelectedLocale}"
+                                    FilterMode="Custom"
+                                    MinimumPrefixLength="0"
+                                    MaxDropDownHeight="280"
+                                    PlaceholderText="Search locale...">
+                                    <AutoCompleteBox.ValueMemberBinding>
+                                        <ReflectionBinding Path="DisplayName" />
+                                    </AutoCompleteBox.ValueMemberBinding>
+                                    <AutoCompleteBox.ItemTemplate>
+                                        <DataTemplate x:DataType="glob:CultureInfo">
+                                            <TextBlock Text="{Binding DisplayName}" />
+                                        </DataTemplate>
+                                    </AutoCompleteBox.ItemTemplate>
+                                </AutoCompleteBox>
+                                <Button Content="Reset" Command="{Binding RestoreLocaleCommand}" IsVisible="{Binding LocaleModified}" />
+                            </StackPanel>
+                        </StackPanel>
 
-                        <Border Classes="card">
-                            <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
-                                    <TextBlock Text="Use local time" />
-                                    <TextBlock Classes="description" Text="Follow the system clock and time zone" />
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Text alignment" />
+                            <StackPanel Orientation="Horizontal" Spacing="16">
+                                <RadioButton GroupName="ClockAlignment" Content="Left"
+                                    IsChecked="{Binding ClockAlignment, Converter={StaticResource EnumToBool}, ConverterParameter={x:Static models:ClockAlignment.Left}}" />
+                                <RadioButton GroupName="ClockAlignment" Content="Centered"
+                                    IsChecked="{Binding ClockAlignment, Converter={StaticResource EnumToBool}, ConverterParameter={x:Static models:ClockAlignment.Center}}" />
+                                <RadioButton GroupName="ClockAlignment" Content="Right"
+                                    IsChecked="{Binding ClockAlignment, Converter={StaticResource EnumToBool}, ConverterParameter={x:Static models:ClockAlignment.Right}}" />
+                                <Button Content="Reset" Command="{Binding RestoreClockAlignmentCommand}" IsVisible="{Binding ClockAlignmentModified}" />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Display format" />
+                            <TextBlock Text="Time and date shown by default" />
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="Time format" Width="90" VerticalAlignment="Top" />
+                                <StackPanel Spacing="2" Width="240">
+                                    <TextBox Text="{Binding ClockTimeFormat}" PlaceholderText="T" />
+                                    <TextBlock Text="{Binding TimeSample}" />
+                                    <TextBlock Text="{Binding TimeFormatError}"
+                                               IsVisible="{Binding TimeFormatError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                                 </StackPanel>
-                                <ToggleSwitch Grid.Column="1" IsChecked="{Binding UseLocalTime}" OnContent=""
-                                              OffContent="" />
-                            </Grid>
-                        </Border>
-
-                        <Border Classes="card" IsEnabled="{Binding !UseLocalTime}">
-                            <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                <TextBlock Grid.Column="0" Text="Time zone" VerticalAlignment="Center" />
-                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8"
-                                            VerticalAlignment="Center">
-                                    <Button Classes="reset-link" Content="Reset"
-                                            Command="{Binding RestoreTimeZoneCommand}"
-                                            IsVisible="{Binding TimeZoneModified}" />
-                                    <AutoCompleteBox
-                                        x:Name="TimeZoneBox"
-                                        Width="300"
-                                        ItemsSource="{Binding TimeZones}"
-                                        SelectedItem="{Binding SelectedTimeZone}"
-                                        FilterMode="Custom"
-                                        MinimumPrefixLength="0"
-                                        MaxDropDownHeight="280"
-                                        PlaceholderText="Search time zone...">
-                                        <AutoCompleteBox.ValueMemberBinding>
-                                            <ReflectionBinding Path="DisplayName" />
-                                        </AutoCompleteBox.ValueMemberBinding>
-                                        <AutoCompleteBox.ItemTemplate>
-                                            <DataTemplate x:DataType="sys:TimeZoneInfo">
-                                                <TextBlock Text="{Binding DisplayName}" />
-                                            </DataTemplate>
-                                        </AutoCompleteBox.ItemTemplate>
-                                    </AutoCompleteBox>
+                                <Button Content="Reset" VerticalAlignment="Top" Command="{Binding RestoreClockTimeFormatCommand}" IsVisible="{Binding ClockTimeFormatModified}" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="Date format" Width="90" VerticalAlignment="Top" />
+                                <StackPanel Spacing="2" Width="240">
+                                    <TextBox Text="{Binding ClockDateFormat}" PlaceholderText="D" />
+                                    <TextBlock Text="{Binding DateSample}" />
+                                    <TextBlock Text="{Binding DateFormatError}"
+                                               IsVisible="{Binding DateFormatError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                                 </StackPanel>
-                            </Grid>
-                        </Border>
+                                <Button Content="Reset" VerticalAlignment="Top" Command="{Binding RestoreClockDateFormatCommand}" IsVisible="{Binding ClockDateFormatModified}" />
+                            </StackPanel>
+                        </StackPanel>
 
-                        <Border Classes="card">
-                            <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                <TextBlock Grid.Column="0" Text="Locale" VerticalAlignment="Center" />
-                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8"
-                                            VerticalAlignment="Center">
-                                    <Button Classes="reset-link" Content="Reset"
-                                            Command="{Binding RestoreLocaleCommand}"
-                                            IsVisible="{Binding LocaleModified}" />
-                                    <AutoCompleteBox
-                                        x:Name="LocaleBox"
-                                        Width="300"
-                                        ItemsSource="{Binding Locales}"
-                                        SelectedItem="{Binding SelectedLocale}"
-                                        FilterMode="Custom"
-                                        MinimumPrefixLength="0"
-                                        MaxDropDownHeight="280"
-                                        PlaceholderText="Search locale...">
-                                        <AutoCompleteBox.ValueMemberBinding>
-                                            <ReflectionBinding Path="DisplayName" />
-                                        </AutoCompleteBox.ValueMemberBinding>
-                                        <AutoCompleteBox.ItemTemplate>
-                                            <DataTemplate x:DataType="glob:CultureInfo">
-                                                <TextBlock Text="{Binding DisplayName}" />
-                                            </DataTemplate>
-                                        </AutoCompleteBox.ItemTemplate>
-                                    </AutoCompleteBox>
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Display format on hover" />
+                            <TextBlock Text="Time and date shown while hovering the widget" />
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="Time format" Width="90" VerticalAlignment="Top" />
+                                <StackPanel Spacing="2" Width="240">
+                                    <TextBox Text="{Binding ClockTimeFormatHover}" PlaceholderText="HH:mm:ss" />
+                                    <TextBlock Text="{Binding TimeHoverSample}" />
+                                    <TextBlock Text="{Binding TimeHoverFormatError}"
+                                               IsVisible="{Binding TimeHoverFormatError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                                 </StackPanel>
-                            </Grid>
-                        </Border>
-
-                        <TextBlock Classes="section" Text="Display format" />
-
-                        <Border Classes="card">
-                            <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                <TextBlock Grid.Column="0" Text="Text alignment" VerticalAlignment="Center" />
-                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="16"
-                                            VerticalAlignment="Center">
-                                    <RadioButton GroupName="ClockAlignment" Content="Left"
-                                                 IsChecked="{Binding ClockAlignment, Converter={StaticResource EnumToBool}, ConverterParameter={x:Static models:ClockAlignment.Left}}" />
-                                    <RadioButton GroupName="ClockAlignment" Content="Centered"
-                                                 IsChecked="{Binding ClockAlignment, Converter={StaticResource EnumToBool}, ConverterParameter={x:Static models:ClockAlignment.Center}}" />
-                                    <RadioButton GroupName="ClockAlignment" Content="Right"
-                                                 IsChecked="{Binding ClockAlignment, Converter={StaticResource EnumToBool}, ConverterParameter={x:Static models:ClockAlignment.Right}}" />
-                                    <Button Classes="reset-link" Content="Reset"
-                                            Command="{Binding RestoreClockAlignmentCommand}"
-                                            IsVisible="{Binding ClockAlignmentModified}" />
+                                <Button Content="Reset" VerticalAlignment="Top" Command="{Binding RestoreClockTimeFormatHoverCommand}" IsVisible="{Binding ClockTimeFormatHoverModified}" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="Date format" Width="90" VerticalAlignment="Top" />
+                                <StackPanel Spacing="2" Width="240">
+                                    <TextBox Text="{Binding ClockDateFormatHover}" PlaceholderText="u" />
+                                    <TextBlock Text="{Binding DateHoverSample}" />
+                                    <TextBlock Text="{Binding DateHoverFormatError}"
+                                               IsVisible="{Binding DateHoverFormatError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                                 </StackPanel>
-                            </Grid>
-                        </Border>
+                                <Button Content="Reset" VerticalAlignment="Top" Command="{Binding RestoreClockDateFormatHoverCommand}" IsVisible="{Binding ClockDateFormatHoverModified}" />
+                            </StackPanel>
+                        </StackPanel>
 
-                        <Border Classes="card">
-                            <Grid ColumnDefinitions="*,Auto">
-                                <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Top">
-                                    <TextBlock Text="Time format" />
-                                    <TextBlock Classes="description" Text="Shown by default" />
-                                </StackPanel>
-                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8"
-                                            VerticalAlignment="Top">
-                                    <Button Classes="reset-link" Content="Reset" VerticalAlignment="Top"
-                                            Command="{Binding RestoreClockTimeFormatCommand}"
-                                            IsVisible="{Binding ClockTimeFormatModified}" />
-                                    <StackPanel Spacing="3" Width="240" HorizontalAlignment="Right">
-                                        <TextBox Text="{Binding ClockTimeFormat}" PlaceholderText="T" />
-                                        <TextBlock Classes="description" Text="{Binding TimeSample}" />
-                                        <TextBlock Classes="error" Text="{Binding TimeFormatError}"
-                                                   IsVisible="{Binding TimeFormatError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-                                    </StackPanel>
-                                </StackPanel>
-                            </Grid>
-                        </Border>
-
-                        <Border Classes="card">
-                            <Grid ColumnDefinitions="*,Auto">
-                                <TextBlock Grid.Column="0" Text="Date format" VerticalAlignment="Top" />
-                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8"
-                                            VerticalAlignment="Top">
-                                    <Button Classes="reset-link" Content="Reset" VerticalAlignment="Top"
-                                            Command="{Binding RestoreClockDateFormatCommand}"
-                                            IsVisible="{Binding ClockDateFormatModified}" />
-                                    <StackPanel Spacing="3" Width="240" HorizontalAlignment="Right">
-                                        <TextBox Text="{Binding ClockDateFormat}" PlaceholderText="D" />
-                                        <TextBlock Classes="description" Text="{Binding DateSample}" />
-                                        <TextBlock Classes="error" Text="{Binding DateFormatError}"
-                                                   IsVisible="{Binding DateFormatError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-                                    </StackPanel>
-                                </StackPanel>
-                            </Grid>
-                        </Border>
-
-                        <TextBlock Classes="section" Text="On hover" />
-
-                        <Border Classes="card">
-                            <Grid ColumnDefinitions="*,Auto">
-                                <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Top">
-                                    <TextBlock Text="Time format" />
-                                    <TextBlock Classes="description" Text="Shown while hovering the widget" />
-                                </StackPanel>
-                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8"
-                                            VerticalAlignment="Top">
-                                    <Button Classes="reset-link" Content="Reset" VerticalAlignment="Top"
-                                            Command="{Binding RestoreClockTimeFormatHoverCommand}"
-                                            IsVisible="{Binding ClockTimeFormatHoverModified}" />
-                                    <StackPanel Spacing="3" Width="240" HorizontalAlignment="Right">
-                                        <TextBox Text="{Binding ClockTimeFormatHover}" PlaceholderText="HH:mm:ss" />
-                                        <TextBlock Classes="description" Text="{Binding TimeHoverSample}" />
-                                        <TextBlock Classes="error" Text="{Binding TimeHoverFormatError}"
-                                                   IsVisible="{Binding TimeHoverFormatError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-                                    </StackPanel>
-                                </StackPanel>
-                            </Grid>
-                        </Border>
-
-                        <Border Classes="card">
-                            <Grid ColumnDefinitions="*,Auto">
-                                <TextBlock Grid.Column="0" Text="Date format" VerticalAlignment="Top" />
-                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8"
-                                            VerticalAlignment="Top">
-                                    <Button Classes="reset-link" Content="Reset" VerticalAlignment="Top"
-                                            Command="{Binding RestoreClockDateFormatHoverCommand}"
-                                            IsVisible="{Binding ClockDateFormatHoverModified}" />
-                                    <StackPanel Spacing="3" Width="240" HorizontalAlignment="Right">
-                                        <TextBox Text="{Binding ClockDateFormatHover}" PlaceholderText="u" />
-                                        <TextBlock Classes="description" Text="{Binding DateHoverSample}" />
-                                        <TextBlock Classes="error" Text="{Binding DateHoverFormatError}"
-                                                   IsVisible="{Binding DateHoverFormatError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-                                    </StackPanel>
-                                </StackPanel>
-                            </Grid>
-                        </Border>
-
-                        <StackPanel Spacing="4" Margin="2,14,2,0">
-                            <TextBlock Classes="description" TextWrapping="Wrap"
-                                       Text="Tokens: HH h mm ss tt dddd ddd MMMM MMM d yyyy zzz" />
+                        <StackPanel Spacing="4">
+                            <TextBlock TextWrapping="Wrap" Text="Tokens: HH h mm ss tt dddd ddd MMMM MMM d yyyy zzz" />
                             <HyperlinkButton
                                 HorizontalContentAlignment="Left"
                                 Padding="0"
@@ -427,7 +294,6 @@
                                 <TextBlock TextWrapping="Wrap" Text="Reference: Date and time format strings" />
                             </HyperlinkButton>
                         </StackPanel>
-
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
@@ -435,25 +301,19 @@
             <!-- Metrics -->
             <TabItem Header="Metrics">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel Margin="24,8,24,24" Spacing="0">
-                        <TextBlock Classes="page-title" Text="Metrics" />
+                    <StackPanel Margin="12" Spacing="16">
                         <ItemsControl ItemsSource="{Binding MetricGroups}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate x:DataType="vm:MetricGroupViewModel">
-                                    <StackPanel Spacing="0">
-                                        <TextBlock Classes="section" Text="{Binding Header}" />
+                                    <StackPanel Spacing="4" Margin="0,0,0,8">
+                                        <TextBlock Text="{Binding Header}" />
                                         <ItemsControl ItemsSource="{Binding Toggles}">
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate x:DataType="vm:MetricToggleViewModel">
-                                                    <Border Classes="card">
-                                                        <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                                            <TextBlock Grid.Column="0" Text="{Binding Label}"
-                                                                       VerticalAlignment="Center" />
-                                                            <ToggleSwitch Grid.Column="1"
-                                                                          IsChecked="{Binding IsVisible}" OnContent=""
-                                                                          OffContent="" />
-                                                        </Grid>
-                                                    </Border>
+                                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                                        <TextBlock Text="{Binding Label}" VerticalAlignment="Center" />
+                                                        <ToggleSwitch IsChecked="{Binding IsVisible}" OnContent="" OffContent="" />
+                                                    </StackPanel>
                                                 </DataTemplate>
                                             </ItemsControl.ItemTemplate>
                                         </ItemsControl>
@@ -468,44 +328,26 @@
             <!-- Updates -->
             <TabItem Header="Updates">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel Margin="24,8,24,24" Spacing="0">
-                        <TextBlock Classes="page-title" Text="Updates" />
-
-                        <TextBlock Classes="section first" Text="Automatic updates" />
-
-                        <Border Classes="card">
-                            <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
-                                    <TextBlock Text="Check for updates automatically" />
-                                    <TextBlock Classes="description" Text="Look for new releases on a schedule" />
-                                </StackPanel>
-                                <ToggleSwitch Grid.Column="1" IsChecked="{Binding UpdateCheckEnabled}" OnContent=""
-                                              OffContent="" />
-                            </Grid>
-                        </Border>
-
-                        <Border Classes="card" IsEnabled="{Binding UpdateCheckEnabled}">
-                            <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
-                                    <TextBlock Text="Frequency" />
-                                    <TextBlock Classes="description" Text="How often to check for new releases" />
-                                </StackPanel>
-                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8"
-                                            VerticalAlignment="Center">
-                                    <Button Classes="reset-link" Content="Reset"
-                                            Command="{Binding RestoreUpdateFrequencyCommand}"
-                                            IsVisible="{Binding UpdateFrequencyModified}" />
-                                    <ComboBox MinWidth="180" ItemsSource="{Binding UpdateFrequencies}"
-                                              SelectedItem="{Binding UpdateFrequency}">
-                                        <ComboBox.ItemTemplate>
-                                            <DataTemplate x:DataType="models:UpdateCheckFrequency">
-                                                <TextBlock Text="{Binding Converter={StaticResource FrequencyLabel}}" />
-                                            </DataTemplate>
-                                        </ComboBox.ItemTemplate>
-                                    </ComboBox>
-                                </StackPanel>
-                            </Grid>
-                        </Border>
+                    <StackPanel Margin="12" Spacing="16">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Check for updates automatically" />
+                            <TextBlock Text="Look for new releases on a schedule" />
+                            <ToggleSwitch IsChecked="{Binding UpdateCheckEnabled}" OnContent="" OffContent="" />
+                        </StackPanel>
+                        <StackPanel Spacing="4" IsEnabled="{Binding UpdateCheckEnabled}">
+                            <TextBlock Text="Frequency" />
+                            <TextBlock Text="How often to check for new releases" />
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <ComboBox MinWidth="180" ItemsSource="{Binding UpdateFrequencies}" SelectedItem="{Binding UpdateFrequency}">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate x:DataType="models:UpdateCheckFrequency">
+                                            <TextBlock Text="{Binding Converter={StaticResource FrequencyLabel}}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                                <Button Content="Reset" Command="{Binding RestoreUpdateFrequencyCommand}" IsVisible="{Binding UpdateFrequencyModified}" />
+                            </StackPanel>
+                        </StackPanel>
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>

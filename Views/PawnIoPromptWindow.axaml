@@ -10,14 +10,11 @@
     Title="Driver required"
     Icon="avares://MiniMetrics/Assets/minimetrics.ico"
     CanResize="False"
-    WindowStartupLocation="CenterScreen"
-    Background="Transparent"
-    TransparencyLevelHint="Mica"
-    TransparencyBackgroundFallback="{DynamicResource Chrome.Surface}">
+    WindowStartupLocation="CenterScreen">
 
     <StackPanel Margin="24,22" Spacing="16">
         <TextBlock
-            FontSize="20"
+            FontSize="17"
             FontWeight="SemiBold"
             TextWrapping="Wrap"
             Text="CPU temperature and power need a driver" />
@@ -29,7 +26,7 @@
 
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
             <Button Content="Not now" Click="OnClose" />
-            <Button Content="Install PawnIO" IsDefault="True" Classes="accent" Click="OnInstall" />
+            <Button Content="Install PawnIO" Click="OnInstall" />
         </StackPanel>
     </StackPanel>
 </Window>

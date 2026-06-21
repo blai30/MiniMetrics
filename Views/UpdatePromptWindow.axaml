@@ -12,14 +12,11 @@
     Title="MiniMetrics update"
     Icon="avares://MiniMetrics/Assets/minimetrics.ico"
     CanResize="False"
-    WindowStartupLocation="CenterScreen"
-    Background="Transparent"
-    TransparencyLevelHint="Mica"
-    TransparencyBackgroundFallback="{DynamicResource Chrome.Surface}">
+    WindowStartupLocation="CenterScreen">
 
     <StackPanel Margin="24,22" Spacing="16">
         <TextBlock
-            FontSize="20"
+            FontSize="17"
             FontWeight="SemiBold"
             TextWrapping="Wrap"
             Text="{Binding Heading}" />
@@ -34,12 +31,10 @@
             <Button Content="Remind me later" Click="OnDismiss" />
             <Button Content="Skip this version" Click="OnSkip" />
             <Button
-                Content="View release" Classes="accent"
-                IsVisible="{Binding !CanInstall}"
+                Content="View release"                IsVisible="{Binding !CanInstall}"
                 Click="OnViewRelease" />
             <Button
-                Content="Install and restart" Classes="accent"
-                IsVisible="{Binding CanInstall}"
+                Content="Install and restart"                IsVisible="{Binding CanInstall}"
                 Click="OnInstall" />
         </StackPanel>
 
@@ -51,7 +46,7 @@
             <Button
                 Content="Close"
                 IsDefault="True"
-                IsCancel="True" Click="OnClose" />
+                IsCancel="True"                Click="OnClose" />
         </StackPanel>
     </StackPanel>
 </Window>

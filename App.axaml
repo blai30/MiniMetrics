@@ -30,6 +30,5 @@
 
     <Application.Styles>
         <FluentTheme />
-        <StyleInclude Source="avares://MiniMetrics/Styles/Chrome.axaml" />
     </Application.Styles>
 </Application>
