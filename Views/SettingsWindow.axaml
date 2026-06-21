@@ -22,10 +22,16 @@
     PointerPressed="OnSettingsPointerPressed">
 
     <Window.Resources>
-        <conv:UpdateFrequencyLabelConverter x:Key="FrequencyLabel" />
-        <conv:StringToFontFamilyConverter x:Key="StringToFontFamily" />
-        <conv:SwatchSelectionThicknessConverter x:Key="SwatchRing" />
-        <conv:IndexEqualsConverter x:Key="IndexEquals" />
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="avares://MiniMetrics/Views/LucideIcons.axaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <conv:UpdateFrequencyLabelConverter x:Key="FrequencyLabel" />
+            <conv:StringToFontFamilyConverter x:Key="StringToFontFamily" />
+            <conv:SwatchSelectionThicknessConverter x:Key="SwatchRing" />
+            <conv:IndexEqualsConverter x:Key="IndexEquals" />
+            <conv:MetricIconConverter x:Key="MetricIcon" />
+        </ResourceDictionary>
     </Window.Resources>
 
     <Window.Styles>
@@ -203,6 +209,26 @@
         <Style Selector="Slider /template/ Thumb:pressed">
             <Setter Property="Background" Value="{DynamicResource Settings.Thumb.Pressed}" />
         </Style>
+
+        <!-- Leading row icon size. One place to tune how large every row glyph renders. -->
+        <Style Selector="Viewbox.rowIcon">
+            <Setter Property="Width" Value="22" />
+            <Setter Property="Height" Value="22" />
+        </Style>
+
+        <!-- Leading row icon: stroke-only Lucide glyph, scaled by its Viewbox. Stretch is None so the
+             24-unit geometry keeps 1 unit = 1px before the Viewbox scales it; the Margin reserves the
+             half-stroke (plus round caps) of headroom that Avalonia's shape stretch does not, so the
+             stroke is not clipped on any edge. -->
+        <Style Selector="Path.rowIcon">
+            <Setter Property="Stroke" Value="{DynamicResource Settings.Text.Primary}" />
+            <Setter Property="StrokeThickness" Value="2" />
+            <Setter Property="StrokeLineCap" Value="Round" />
+            <Setter Property="StrokeJoin" Value="Round" />
+            <Setter Property="Fill" Value="{x:Null}" />
+            <Setter Property="Stretch" Value="None" />
+            <Setter Property="Margin" Value="1.5" />
+        </Style>
     </Window.Styles>
 
     <Grid x:Name="RootArea" Focusable="True" RowDefinitions="Auto,*" Background="{DynamicResource Settings.Background}">
@@ -231,9 +257,14 @@
                     <StackPanel Classes="rows">
                         <Border Classes="rowFrame">
                             <Grid Classes="row" ColumnDefinitions="*,Auto">
-                                <StackPanel Grid.Column="0">
-                                    <TextBlock Classes="settingLabel" Text="Theme" />
-                                    <TextBlock Classes="settingDesc" Text="Color mode for the app and widgets" />
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12">
+                                    <Viewbox Classes="rowIcon" VerticalAlignment="Center">
+                                        <Path Classes="rowIcon" Data="{StaticResource Lucide.Palette}" />
+                                    </Viewbox>
+                                    <StackPanel>
+                                        <TextBlock Classes="settingLabel" Text="Theme" />
+                                        <TextBlock Classes="settingDesc" Text="Color mode for the app and widgets" />
+                                    </StackPanel>
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Classes="control">
                                     <Button Classes="reset" Content="Reset"
@@ -245,9 +276,14 @@
                         </Border>
                         <Border Classes="rowFrame">
                             <Grid Classes="row" ColumnDefinitions="*,Auto">
-                                <StackPanel Grid.Column="0">
-                                    <TextBlock Classes="settingLabel" Text="Background color" />
-                                    <TextBlock Classes="settingDesc" Text="Translucent fill behind every widget" />
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12">
+                                    <Viewbox Classes="rowIcon" VerticalAlignment="Center">
+                                        <Path Classes="rowIcon" Data="{StaticResource Lucide.PaintBucket}" />
+                                    </Viewbox>
+                                    <StackPanel>
+                                        <TextBlock Classes="settingLabel" Text="Background color" />
+                                        <TextBlock Classes="settingDesc" Text="Translucent fill behind every widget" />
+                                    </StackPanel>
                                 </StackPanel>
                                 <ItemsControl Grid.Column="1" VerticalAlignment="Center"
                                               ItemsSource="{Binding Swatches}">
@@ -281,9 +317,14 @@
                         </Border>
                         <Border Classes="rowFrame">
                             <Grid Classes="row" ColumnDefinitions="*,Auto">
-                                <StackPanel Grid.Column="0">
-                                    <TextBlock Classes="settingLabel" Text="Custom hex" />
-                                    <TextBlock Classes="settingDesc" Text="Or enter an exact color" />
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12">
+                                    <Viewbox Classes="rowIcon" VerticalAlignment="Center">
+                                        <Path Classes="rowIcon" Data="{StaticResource Lucide.Hash}" />
+                                    </Viewbox>
+                                    <StackPanel>
+                                        <TextBlock Classes="settingLabel" Text="Custom hex" />
+                                        <TextBlock Classes="settingDesc" Text="Or enter an exact color" />
+                                    </StackPanel>
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Classes="control">
                                     <Button Classes="reset" Content="Reset"
@@ -295,9 +336,14 @@
                         </Border>
                         <Border Classes="rowFrame">
                             <Grid Classes="row" ColumnDefinitions="*,Auto">
-                                <StackPanel Grid.Column="0">
-                                    <TextBlock Classes="settingLabel" Text="Opacity" />
-                                    <TextBlock Classes="settingDesc" Text="How opaque the widget background is" />
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12">
+                                    <Viewbox Classes="rowIcon" VerticalAlignment="Center">
+                                        <Path Classes="rowIcon" Data="{StaticResource Lucide.Blend}" />
+                                    </Viewbox>
+                                    <StackPanel>
+                                        <TextBlock Classes="settingLabel" Text="Opacity" />
+                                        <TextBlock Classes="settingDesc" Text="How opaque the widget background is" />
+                                    </StackPanel>
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Classes="control">
                                     <Button Classes="reset" Content="Reset"
@@ -326,9 +372,14 @@
                     <StackPanel Classes="rows">
                         <Border Classes="rowFrame">
                             <Grid Classes="row" ColumnDefinitions="*,Auto">
-                                <StackPanel Grid.Column="0">
-                                    <TextBlock Classes="settingLabel" Text="Widget size" />
-                                    <TextBlock Classes="settingDesc" Text="Scale of every widget on screen" />
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12">
+                                    <Viewbox Classes="rowIcon" VerticalAlignment="Center">
+                                        <Path Classes="rowIcon" Data="{StaticResource Lucide.Scaling}" />
+                                    </Viewbox>
+                                    <StackPanel>
+                                        <TextBlock Classes="settingLabel" Text="Widget size" />
+                                        <TextBlock Classes="settingDesc" Text="Scale of every widget on screen" />
+                                    </StackPanel>
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Classes="control">
                                     <Button Classes="reset" Content="Reset"
@@ -353,9 +404,14 @@
                         </Border>
                         <Border Classes="rowFrame">
                             <Grid Classes="row" ColumnDefinitions="*,Auto">
-                                <StackPanel Grid.Column="0">
-                                    <TextBlock Classes="settingLabel" Text="Font" />
-                                    <TextBlock Classes="settingDesc" Text="Typeface used by the widgets" />
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12">
+                                    <Viewbox Classes="rowIcon" VerticalAlignment="Center">
+                                        <Path Classes="rowIcon" Data="{StaticResource Lucide.Type}" />
+                                    </Viewbox>
+                                    <StackPanel>
+                                        <TextBlock Classes="settingLabel" Text="Font" />
+                                        <TextBlock Classes="settingDesc" Text="Typeface used by the widgets" />
+                                    </StackPanel>
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Classes="control">
                                     <Button Classes="reset" Content="Reset"
@@ -386,9 +442,14 @@
                         </Border>
                         <Border Classes="rowFrame">
                             <Grid Classes="row" ColumnDefinitions="*,Auto">
-                                <StackPanel Grid.Column="0">
-                                    <TextBlock Classes="settingLabel" Text="Font weight" />
-                                    <TextBlock Classes="settingDesc" Text="Weight used by the widgets" />
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12">
+                                    <Viewbox Classes="rowIcon" VerticalAlignment="Center">
+                                        <Path Classes="rowIcon" Data="{StaticResource Lucide.Bold}" />
+                                    </Viewbox>
+                                    <StackPanel>
+                                        <TextBlock Classes="settingLabel" Text="Font weight" />
+                                        <TextBlock Classes="settingDesc" Text="Weight used by the widgets" />
+                                    </StackPanel>
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Classes="control">
                                     <Button Classes="reset" Content="Reset"
@@ -405,9 +466,14 @@
                     <StackPanel Classes="rows">
                         <Border Classes="rowFrame">
                             <Grid Classes="row" ColumnDefinitions="*,Auto">
-                                <StackPanel Grid.Column="0">
-                                    <TextBlock Classes="settingLabel" Text="CPU widget" />
-                                    <TextBlock Classes="settingDesc" Text="Condensed single-line layout" />
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12">
+                                    <Viewbox Classes="rowIcon" VerticalAlignment="Center">
+                                        <Path Classes="rowIcon" Data="{StaticResource Lucide.Cpu}" />
+                                    </Viewbox>
+                                    <StackPanel>
+                                        <TextBlock Classes="settingLabel" Text="CPU widget" />
+                                        <TextBlock Classes="settingDesc" Text="Condensed single-line layout" />
+                                    </StackPanel>
                                 </StackPanel>
                                 <ToggleSwitch Grid.Column="1" VerticalAlignment="Center"
                                               IsChecked="{Binding CpuCompact}" OnContent="" OffContent="" />
@@ -415,9 +481,14 @@
                         </Border>
                         <Border Classes="rowFrame">
                             <Grid Classes="row" ColumnDefinitions="*,Auto">
-                                <StackPanel Grid.Column="0">
-                                    <TextBlock Classes="settingLabel" Text="GPU widget" />
-                                    <TextBlock Classes="settingDesc" Text="Condensed single-line layout" />
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12">
+                                    <Viewbox Classes="rowIcon" VerticalAlignment="Center">
+                                        <Path Classes="rowIcon" Data="{StaticResource Lucide.Gpu}" />
+                                    </Viewbox>
+                                    <StackPanel>
+                                        <TextBlock Classes="settingLabel" Text="GPU widget" />
+                                        <TextBlock Classes="settingDesc" Text="Condensed single-line layout" />
+                                    </StackPanel>
                                 </StackPanel>
                                 <ToggleSwitch Grid.Column="1" VerticalAlignment="Center"
                                               IsChecked="{Binding GpuCompact}" OnContent="" OffContent="" />
@@ -425,9 +496,14 @@
                         </Border>
                         <Border Classes="rowFrame">
                             <Grid Classes="row" ColumnDefinitions="*,Auto">
-                                <StackPanel Grid.Column="0">
-                                    <TextBlock Classes="settingLabel" Text="Clock widget" />
-                                    <TextBlock Classes="settingDesc" Text="Condensed single-line layout" />
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12">
+                                    <Viewbox Classes="rowIcon" VerticalAlignment="Center">
+                                        <Path Classes="rowIcon" Data="{StaticResource Lucide.Clock}" />
+                                    </Viewbox>
+                                    <StackPanel>
+                                        <TextBlock Classes="settingLabel" Text="Clock widget" />
+                                        <TextBlock Classes="settingDesc" Text="Condensed single-line layout" />
+                                    </StackPanel>
                                 </StackPanel>
                                 <ToggleSwitch Grid.Column="1" VerticalAlignment="Center"
                                               IsChecked="{Binding DateTimeCompact}" OnContent="" OffContent="" />
@@ -451,9 +527,14 @@
                     <StackPanel Classes="rows">
                         <Border Classes="rowFrame">
                             <Grid Classes="row" ColumnDefinitions="*,Auto">
-                                <StackPanel Grid.Column="0">
-                                    <TextBlock Classes="settingLabel" Text="Use local time" />
-                                    <TextBlock Classes="settingDesc" Text="Follow the system clock and time zone" />
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12">
+                                    <Viewbox Classes="rowIcon" VerticalAlignment="Center">
+                                        <Path Classes="rowIcon" Data="{StaticResource Lucide.MapPin}" />
+                                    </Viewbox>
+                                    <StackPanel>
+                                        <TextBlock Classes="settingLabel" Text="Use local time" />
+                                        <TextBlock Classes="settingDesc" Text="Follow the system clock and time zone" />
+                                    </StackPanel>
                                 </StackPanel>
                                 <ToggleSwitch Grid.Column="1" VerticalAlignment="Center"
                                               IsChecked="{Binding UseLocalTime}" OnContent="" OffContent="" />
@@ -461,9 +542,14 @@
                         </Border>
                         <Border Classes="rowFrame">
                             <Grid Classes="row" ColumnDefinitions="*,Auto">
-                                <StackPanel Grid.Column="0">
-                                    <TextBlock Classes="settingLabel" Text="Time zone" />
-                                    <TextBlock Classes="settingDesc" Text="Used when local time is off" />
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12">
+                                    <Viewbox Classes="rowIcon" VerticalAlignment="Center">
+                                        <Path Classes="rowIcon" Data="{StaticResource Lucide.Globe}" />
+                                    </Viewbox>
+                                    <StackPanel>
+                                        <TextBlock Classes="settingLabel" Text="Time zone" />
+                                        <TextBlock Classes="settingDesc" Text="Used when local time is off" />
+                                    </StackPanel>
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Classes="control">
                                     <Button Classes="reset" Content="Reset" IsEnabled="{Binding !UseLocalTime}"
@@ -494,9 +580,14 @@
                         </Border>
                         <Border Classes="rowFrame">
                             <Grid Classes="row" ColumnDefinitions="*,Auto">
-                                <StackPanel Grid.Column="0">
-                                    <TextBlock Classes="settingLabel" Text="Locale" />
-                                    <TextBlock Classes="settingDesc" Text="Language for names and formats" />
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12">
+                                    <Viewbox Classes="rowIcon" VerticalAlignment="Center">
+                                        <Path Classes="rowIcon" Data="{StaticResource Lucide.Languages}" />
+                                    </Viewbox>
+                                    <StackPanel>
+                                        <TextBlock Classes="settingLabel" Text="Locale" />
+                                        <TextBlock Classes="settingDesc" Text="Language for names and formats" />
+                                    </StackPanel>
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Classes="control">
                                     <Button Classes="reset" Content="Reset"
@@ -530,9 +621,14 @@
                     <StackPanel Classes="rows">
                         <Border Classes="rowFrame">
                             <Grid Classes="row" ColumnDefinitions="*,Auto">
-                                <StackPanel Grid.Column="0">
-                                    <TextBlock Classes="settingLabel" Text="Alignment" />
-                                    <TextBlock Classes="settingDesc" Text="How the widget text is aligned" />
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12">
+                                    <Viewbox Classes="rowIcon" VerticalAlignment="Center">
+                                        <Path Classes="rowIcon" Data="{StaticResource Lucide.AlignLeft}" />
+                                    </Viewbox>
+                                    <StackPanel>
+                                        <TextBlock Classes="settingLabel" Text="Alignment" />
+                                        <TextBlock Classes="settingDesc" Text="How the widget text is aligned" />
+                                    </StackPanel>
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Classes="control">
                                     <Button Classes="reset" Content="Reset"
@@ -552,9 +648,14 @@
                         </Border>
                         <Border Classes="rowFrame">
                             <Grid Classes="row" ColumnDefinitions="*,Auto">
-                                <StackPanel Grid.Column="0">
-                                    <TextBlock Classes="settingLabel" Text="Time" />
-                                    <TextBlock Classes="settingDesc" Text="Default time format" />
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12">
+                                    <Viewbox Classes="rowIcon" VerticalAlignment="Center">
+                                        <Path Classes="rowIcon" Data="{StaticResource Lucide.Clock}" />
+                                    </Viewbox>
+                                    <StackPanel>
+                                        <TextBlock Classes="settingLabel" Text="Time" />
+                                        <TextBlock Classes="settingDesc" Text="Default time format" />
+                                    </StackPanel>
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Classes="control">
                                     <Button Classes="reset" Content="Reset"
@@ -571,9 +672,14 @@
                         </Border>
                         <Border Classes="rowFrame">
                             <Grid Classes="row" ColumnDefinitions="*,Auto">
-                                <StackPanel Grid.Column="0">
-                                    <TextBlock Classes="settingLabel" Text="Date" />
-                                    <TextBlock Classes="settingDesc" Text="Default date format" />
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12">
+                                    <Viewbox Classes="rowIcon" VerticalAlignment="Center">
+                                        <Path Classes="rowIcon" Data="{StaticResource Lucide.Calendar}" />
+                                    </Viewbox>
+                                    <StackPanel>
+                                        <TextBlock Classes="settingLabel" Text="Date" />
+                                        <TextBlock Classes="settingDesc" Text="Default date format" />
+                                    </StackPanel>
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Classes="control">
                                     <Button Classes="reset" Content="Reset"
@@ -594,9 +700,14 @@
                     <StackPanel Classes="rows">
                         <Border Classes="rowFrame">
                             <Grid Classes="row" ColumnDefinitions="*,Auto">
-                                <StackPanel Grid.Column="0">
-                                    <TextBlock Classes="settingLabel" Text="Time" />
-                                    <TextBlock Classes="settingDesc" Text="Shown while hovering the widget" />
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12">
+                                    <Viewbox Classes="rowIcon" VerticalAlignment="Center">
+                                        <Path Classes="rowIcon" Data="{StaticResource Lucide.Clock}" />
+                                    </Viewbox>
+                                    <StackPanel>
+                                        <TextBlock Classes="settingLabel" Text="Time" />
+                                        <TextBlock Classes="settingDesc" Text="Shown while hovering the widget" />
+                                    </StackPanel>
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Classes="control">
                                     <Button Classes="reset" Content="Reset"
@@ -614,9 +725,14 @@
                         </Border>
                         <Border Classes="rowFrame">
                             <Grid Classes="row" ColumnDefinitions="*,Auto">
-                                <StackPanel Grid.Column="0">
-                                    <TextBlock Classes="settingLabel" Text="Date" />
-                                    <TextBlock Classes="settingDesc" Text="Shown while hovering the widget" />
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12">
+                                    <Viewbox Classes="rowIcon" VerticalAlignment="Center">
+                                        <Path Classes="rowIcon" Data="{StaticResource Lucide.Calendar}" />
+                                    </Viewbox>
+                                    <StackPanel>
+                                        <TextBlock Classes="settingLabel" Text="Date" />
+                                        <TextBlock Classes="settingDesc" Text="Shown while hovering the widget" />
+                                    </StackPanel>
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Classes="control">
                                     <Button Classes="reset" Content="Reset"
@@ -664,8 +780,14 @@
                                             <DataTemplate x:DataType="vm:MetricToggleViewModel">
                                                 <Border Classes="rowFrame">
                                                     <Grid Classes="row" ColumnDefinitions="*,Auto">
-                                                        <TextBlock Grid.Column="0" Classes="settingLabel"
-                                                                   Text="{Binding Label}" />
+                                                        <StackPanel Grid.Column="0" Orientation="Horizontal"
+                                                                    Spacing="12">
+                                                            <Viewbox Classes="rowIcon" VerticalAlignment="Center">
+                                                                <Path Classes="rowIcon"
+                                                                      Data="{Binding Key, Converter={StaticResource MetricIcon}}" />
+                                                            </Viewbox>
+                                                            <TextBlock Classes="settingLabel" Text="{Binding Label}" />
+                                                        </StackPanel>
                                                         <ToggleSwitch Grid.Column="1" VerticalAlignment="Center"
                                                                       IsChecked="{Binding IsVisible}"
                                                                       OnContent="" OffContent="" />
@@ -691,9 +813,14 @@
                     <StackPanel Classes="rows">
                         <Border Classes="rowFrame">
                             <Grid Classes="row" ColumnDefinitions="*,Auto">
-                                <StackPanel Grid.Column="0">
-                                    <TextBlock Classes="settingLabel" Text="Check for updates automatically" />
-                                    <TextBlock Classes="settingDesc" Text="Look for new releases on a schedule" />
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12">
+                                    <Viewbox Classes="rowIcon" VerticalAlignment="Center">
+                                        <Path Classes="rowIcon" Data="{StaticResource Lucide.RefreshCw}" />
+                                    </Viewbox>
+                                    <StackPanel>
+                                        <TextBlock Classes="settingLabel" Text="Check for updates automatically" />
+                                        <TextBlock Classes="settingDesc" Text="Look for new releases on a schedule" />
+                                    </StackPanel>
                                 </StackPanel>
                                 <ToggleSwitch Grid.Column="1" VerticalAlignment="Center"
                                               IsChecked="{Binding UpdateCheckEnabled}" OnContent="" OffContent="" />
@@ -701,9 +828,14 @@
                         </Border>
                         <Border Classes="rowFrame">
                             <Grid Classes="row" ColumnDefinitions="*,Auto">
-                                <StackPanel Grid.Column="0">
-                                    <TextBlock Classes="settingLabel" Text="Frequency" />
-                                    <TextBlock Classes="settingDesc" Text="How often to check for new releases" />
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12">
+                                    <Viewbox Classes="rowIcon" VerticalAlignment="Center">
+                                        <Path Classes="rowIcon" Data="{StaticResource Lucide.CalendarClock}" />
+                                    </Viewbox>
+                                    <StackPanel>
+                                        <TextBlock Classes="settingLabel" Text="Frequency" />
+                                        <TextBlock Classes="settingDesc" Text="How often to check for new releases" />
+                                    </StackPanel>
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Classes="control">
                                     <Button Classes="reset" Content="Reset"
