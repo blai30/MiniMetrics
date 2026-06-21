@@ -31,10 +31,10 @@
             <Button Content="Remind me later" Click="OnDismiss" />
             <Button Content="Skip this version" Click="OnSkip" />
             <Button
-                Content="View release"                IsVisible="{Binding !CanInstall}"
+                Content="View release" IsVisible="{Binding !CanInstall}"
                 Click="OnViewRelease" />
             <Button
-                Content="Install and restart"                IsVisible="{Binding CanInstall}"
+                Content="Install and restart" IsVisible="{Binding CanInstall}"
                 Click="OnInstall" />
         </StackPanel>
 
@@ -46,7 +46,7 @@
             <Button
                 Content="Close"
                 IsDefault="True"
-                IsCancel="True"                Click="OnClose" />
+                IsCancel="True" Click="OnClose" />
         </StackPanel>
     </StackPanel>
 </Window>
