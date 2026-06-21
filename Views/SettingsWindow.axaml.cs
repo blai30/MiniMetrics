@@ -3,12 +3,10 @@ using System.Globalization;
 using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
-using FluentAvalonia.UI.Controls;
 using MiniMetrics.Lib;
 using MiniMetrics.ViewModels;
 
@@ -20,25 +18,13 @@ public partial class SettingsWindow : Window
     {
         InitializeComponent();
 
-        SetUpSearchableDropDown(LocaleBox, LocaleChevron, LocaleParts);
-        SetUpSearchableDropDown(TimeZoneBox, TimeZoneChevron, TimeZoneParts);
-        SetUpSearchableDropDown(FontBox, FontChevron, FontParts);
+        SetUpSearchableDropDown(LocaleBox, LocaleParts);
+        SetUpSearchableDropDown(TimeZoneBox, TimeZoneParts);
+        SetUpSearchableDropDown(FontBox, FontParts);
     }
 
     private static (string Display, string Key)? FontParts(object? item) =>
         item is string font ? (font, font) : null;
-
-    // Shows the page whose name matches the selected nav item's Tag, hiding the others. Keeping all four
-    // pages in one tree (toggled by visibility) preserves every binding's DataContext without a Frame.
-    private void OnNavSelectionChanged(object? sender, FANavigationViewSelectionChangedEventArgs e)
-    {
-        if (e.SelectedItem is not FANavigationViewItem { Tag: string tag }) return;
-
-        AppearancePage.IsVisible = tag == "Appearance";
-        ClockPage.IsVisible = tag == "Clock";
-        MetricsPage.IsVisible = tag == "Metrics";
-        UpdatesPage.IsVisible = tag == "Updates";
-    }
 
     private static (string Display, string Key)? LocaleParts(object? item) =>
         item is CultureInfo culture ? (culture.DisplayName, culture.Name) : null;
@@ -46,12 +32,11 @@ public partial class SettingsWindow : Window
     private static (string Display, string Key)? TimeZoneParts(object? item) =>
         item is TimeZoneInfo zone ? (zone.DisplayName, zone.Id) : null;
 
-    // Wires an AutoCompleteBox + chevron to behave like a searchable dropdown: clicking the field or the
-    // chevron opens the full list, the current selection stays listed until the user types, typing
-    // filters leniently over the item's display name and key, and opening highlights the text so the
-    // first keystroke starts a fresh search.
+    // Wires an AutoCompleteBox to behave like a searchable dropdown: clicking the field opens the full
+    // list, the current selection stays listed until the user types, typing filters leniently over the
+    // item's display name and key, and opening highlights the text so the first keystroke starts fresh.
     private void SetUpSearchableDropDown(
-        AutoCompleteBox box, Button chevron, Func<object?, (string Display, string Key)?> parts)
+        AutoCompleteBox box, Func<object?, (string Display, string Key)?> parts)
     {
         string selectionText = parts(box.SelectedItem)?.Display ?? "";
         box.SelectionChanged += (_, _) => selectionText = parts(box.SelectedItem)?.Display ?? "";
@@ -65,31 +50,11 @@ public partial class SettingsWindow : Window
                    || FuzzySearch.Matches(part.Display, part.Key, query);
         };
 
-        // Pressing anywhere in the field (not just the chevron) drops the list open like a dropdown.
+        // Pressing anywhere in the field drops the list open like a dropdown.
         box.AddHandler(PointerPressedEvent, (_, _) =>
         {
             if (!box.IsDropDownOpen) OpenDropDown(box);
         }, RoutingStrategies.Tunnel);
-
-        chevron.Click += (_, _) =>
-        {
-            if (box.IsDropDownOpen)
-                box.IsDropDownOpen = false;
-            else
-                OpenDropDown(box);
-        };
-
-        // The Fluent dropdown scrollbar auto-hides and a style selector cannot reach it (it lives in the
-        // popup's nested list). Once the list is realized on open, turn auto-hide off directly.
-        box.DropDownOpened += (_, _) =>
-            Dispatcher.UIThread.Post(() => DisableScrollbarAutoHide(box), DispatcherPriority.Background);
-    }
-
-    private static void DisableScrollbarAutoHide(AutoCompleteBox box)
-    {
-        var popup = box.GetVisualDescendants().OfType<Popup>().FirstOrDefault();
-        var scrollViewer = popup?.Child?.GetVisualDescendants().OfType<ScrollViewer>().FirstOrDefault();
-        scrollViewer?.AllowAutoHide = false;
     }
 
     // Focus the field, open the full list, and highlight the current text so the first keystroke starts

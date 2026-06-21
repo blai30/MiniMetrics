@@ -3,39 +3,21 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:v="using:MiniMetrics.Views"
     mc:Ignorable="d"
     x:Class="MiniMetrics.Views.PawnIoPromptWindow"
     Width="400"
     SizeToContent="Height"
-    TransparencyLevelHint="Mica"
-    Background="Transparent"
     Title="Driver required"
     Icon="avares://MiniMetrics/Assets/minimetrics.ico"
     CanResize="False"
     WindowStartupLocation="CenterScreen">
 
     <StackPanel Margin="24,22" Spacing="16">
-        <StackPanel Orientation="Horizontal" Spacing="14">
-            <Border
-                Width="44"
-                Height="44"
-                VerticalAlignment="Top"
-                CornerRadius="10"
-                Background="{DynamicResource AccentFillColorDefaultBrush}">
-                <v:LucideIcon
-                    Width="20"
-                    Height="20"
-                    Foreground="{DynamicResource TextOnAccentFillColorPrimaryBrush}"
-                    Symbol="shield" />
-            </Border>
-            <TextBlock
-                VerticalAlignment="Center"
-                FontSize="17"
-                FontWeight="SemiBold"
-                TextWrapping="Wrap"
-                Text="CPU temperature and power need a driver" />
-        </StackPanel>
+        <TextBlock
+            FontSize="17"
+            FontWeight="SemiBold"
+            TextWrapping="Wrap"
+            Text="CPU temperature and power need a driver" />
 
         <TextBlock
             LineHeight="20"
@@ -44,7 +26,7 @@
 
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
             <Button Content="Not now" Click="OnClose" />
-            <Button Content="Install PawnIO" Classes="accent" Click="OnInstall" />
+            <Button Content="Install PawnIO" Click="OnInstall" />
         </StackPanel>
     </StackPanel>
 </Window>

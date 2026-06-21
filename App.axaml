@@ -2,7 +2,6 @@
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:MiniMetrics"
-    xmlns:fa="using:FluentAvalonia.Styling"
     x:Class="MiniMetrics.App"
     RequestedThemeVariant="Default">
 
@@ -18,18 +17,140 @@
                     <SolidColorBrush x:Key="Widget.Text.Label" Color="#C2C9D4" />
                     <SolidColorBrush x:Key="Widget.Text.Secondary" Color="#AEB6C2" />
                     <SolidColorBrush x:Key="Widget.Bar.Track" Color="#40FFFFFF" />
+                    <!-- Tailwind zinc steps: bg 950, card/muted 900, tab-active/border 800, text 50/400. -->
+                    <SolidColorBrush x:Key="Settings.Background" Color="#09090B" />
+                    <SolidColorBrush x:Key="Settings.Card" Color="#18181B" />
+                    <SolidColorBrush x:Key="Settings.Muted" Color="#18181B" />
+                    <SolidColorBrush x:Key="Settings.Tab.Active" Color="#27272A" />
+                    <SolidColorBrush x:Key="Settings.Border" Color="#27272A" />
+                    <SolidColorBrush x:Key="Settings.Divider" Color="#1F1F23" />
+                    <SolidColorBrush x:Key="Settings.Text.Primary" Color="#FAFAFA" />
+                    <SolidColorBrush x:Key="Settings.Text.Secondary" Color="#A1A1AA" />
+                    <SolidColorBrush x:Key="Settings.Error" Color="#F87171" />
+                    <!-- Slider thumb pressed (clearly darker than the bright hover/rest thumb). -->
+                    <SolidColorBrush x:Key="Settings.Thumb.Pressed" Color="#A1A1AA" />
+
+                    <!-- Align Fluent's neutral control ramp to zinc so switches, disabled fields, the segmented
+                         radios, and input borders match the zinc surfaces instead of Fluent's own grays. -->
+                    <Color x:Key="ControlStrokeColorDefault">#27272A</Color>
+                    <Color x:Key="ControlStrokeColorSecondary">#27272A</Color>
+                    <SolidColorBrush x:Key="ControlStrokeColorDefaultBrush" Color="#27272A" />
+                    <SolidColorBrush x:Key="ControlStrokeColorSecondaryBrush" Color="#27272A" />
+                    <SolidColorBrush x:Key="ControlFillColorDefaultBrush" Color="#18181B" />
+                    <SolidColorBrush x:Key="ControlFillColorSecondaryBrush" Color="#27272A" />
+                    <SolidColorBrush x:Key="ControlFillColorTertiaryBrush" Color="#27272A" />
+                    <SolidColorBrush x:Key="ControlFillColorDisabledBrush" Color="#18181B" />
+                    <SolidColorBrush x:Key="ControlAltFillColorSecondaryBrush" Color="#3F3F46" />
+                    <SolidColorBrush x:Key="ControlAltFillColorTertiaryBrush" Color="#27272A" />
+                    <SolidColorBrush x:Key="ControlAltFillColorQuarternaryBrush" Color="#27272A" />
+                    <SolidColorBrush x:Key="ControlAltFillColorDisabledBrush" Color="#18181B" />
+                    <SolidColorBrush x:Key="SubtleFillColorSecondaryBrush" Color="#27272A" />
+                    <SolidColorBrush x:Key="SubtleFillColorTertiaryBrush" Color="#27272A" />
+
+                    <!-- Switch on = white track, black knob. -->
+                    <SolidColorBrush x:Key="ToggleSwitchFillOn" Color="#FAFAFA" />
+                    <SolidColorBrush x:Key="ToggleSwitchFillOnPointerOver" Color="#FFFFFF" />
+                    <SolidColorBrush x:Key="ToggleSwitchFillOnPressed" Color="#E4E4E7" />
+                    <SolidColorBrush x:Key="ToggleSwitchFillOnDisabled" Color="#3F3F46" />
+                    <SolidColorBrush x:Key="ToggleSwitchKnobFillOn" Color="#09090B" />
+                    <SolidColorBrush x:Key="ToggleSwitchKnobFillOnPointerOver" Color="#09090B" />
+                    <SolidColorBrush x:Key="ToggleSwitchKnobFillOnPressed" Color="#09090B" />
+
+                    <!-- Slider: bright filled track and thumb against a darker rail for clear contrast. -->
+                    <SolidColorBrush x:Key="SliderTrackFill" Color="#3F3F46" />
+                    <SolidColorBrush x:Key="SliderTrackValueFill" Color="#FAFAFA" />
+                    <SolidColorBrush x:Key="SliderThumbBackground" Color="#FAFAFA" />
+
+                    <!-- Dropdown / flyout popups in zinc, with zinc list-item hover and selection. -->
+                    <SolidColorBrush x:Key="ComboBoxDropDownBackground" Color="#18181B" />
+                    <SolidColorBrush x:Key="ComboBoxDropDownBorderBrush" Color="#27272A" />
+                    <SolidColorBrush x:Key="FlyoutPresenterBackground" Color="#18181B" />
+                    <SolidColorBrush x:Key="FlyoutBorderThemeBrush" Color="#27272A" />
+                    <SolidColorBrush x:Key="ListBoxItemBackgroundPointerOver" Color="#27272A" />
+                    <SolidColorBrush x:Key="ListBoxItemBackgroundSelected" Color="#27272A" />
+                    <SolidColorBrush x:Key="ListBoxItemBackgroundSelectedPointerOver" Color="#323237" />
+                    <SolidColorBrush x:Key="ComboBoxItemBackgroundPointerOver" Color="#27272A" />
+                    <SolidColorBrush x:Key="ComboBoxItemBackgroundSelected" Color="#27272A" />
+                    <SolidColorBrush x:Key="ComboBoxItemBackgroundSelectedPointerOver" Color="#323237" />
                 </ResourceDictionary>
                 <ResourceDictionary x:Key="Light">
                     <SolidColorBrush x:Key="Widget.Text.Primary" Color="#1B1F27" />
                     <SolidColorBrush x:Key="Widget.Text.Label" Color="#3A4252" />
                     <SolidColorBrush x:Key="Widget.Text.Secondary" Color="#566072" />
                     <SolidColorBrush x:Key="Widget.Bar.Track" Color="#1F000000" />
+                    <!-- Tailwind zinc steps: bg white, card/muted 50/100, border 200, text 950/500. -->
+                    <SolidColorBrush x:Key="Settings.Background" Color="#FFFFFF" />
+                    <SolidColorBrush x:Key="Settings.Card" Color="#FFFFFF" />
+                    <SolidColorBrush x:Key="Settings.Muted" Color="#F4F4F5" />
+                    <SolidColorBrush x:Key="Settings.Tab.Active" Color="#FFFFFF" />
+                    <SolidColorBrush x:Key="Settings.Border" Color="#E4E4E7" />
+                    <SolidColorBrush x:Key="Settings.Divider" Color="#F0F0F2" />
+                    <SolidColorBrush x:Key="Settings.Text.Primary" Color="#09090B" />
+                    <SolidColorBrush x:Key="Settings.Text.Secondary" Color="#71717A" />
+                    <SolidColorBrush x:Key="Settings.Error" Color="#DC2626" />
+                    <!-- Slider thumb pressed (clearly distinct from the dark hover/rest thumb). -->
+                    <SolidColorBrush x:Key="Settings.Thumb.Pressed" Color="#52525B" />
+
+                    <!-- Align Fluent's neutral control ramp to zinc (light). -->
+                    <Color x:Key="ControlStrokeColorDefault">#E4E4E7</Color>
+                    <Color x:Key="ControlStrokeColorSecondary">#E4E4E7</Color>
+                    <SolidColorBrush x:Key="ControlStrokeColorDefaultBrush" Color="#E4E4E7" />
+                    <SolidColorBrush x:Key="ControlStrokeColorSecondaryBrush" Color="#E4E4E7" />
+                    <SolidColorBrush x:Key="ControlFillColorDefaultBrush" Color="#FFFFFF" />
+                    <SolidColorBrush x:Key="ControlFillColorSecondaryBrush" Color="#F4F4F5" />
+                    <SolidColorBrush x:Key="ControlFillColorTertiaryBrush" Color="#F4F4F5" />
+                    <SolidColorBrush x:Key="ControlFillColorDisabledBrush" Color="#F4F4F5" />
+                    <SolidColorBrush x:Key="ControlAltFillColorSecondaryBrush" Color="#D4D4D8" />
+                    <SolidColorBrush x:Key="ControlAltFillColorTertiaryBrush" Color="#A1A1AA" />
+                    <SolidColorBrush x:Key="ControlAltFillColorQuarternaryBrush" Color="#A1A1AA" />
+                    <SolidColorBrush x:Key="ControlAltFillColorDisabledBrush" Color="#F4F4F5" />
+                    <SolidColorBrush x:Key="SubtleFillColorSecondaryBrush" Color="#F4F4F5" />
+                    <SolidColorBrush x:Key="SubtleFillColorTertiaryBrush" Color="#F4F4F5" />
+
+                    <!-- Switch on = black track, white knob. -->
+                    <SolidColorBrush x:Key="ToggleSwitchFillOn" Color="#18181B" />
+                    <SolidColorBrush x:Key="ToggleSwitchFillOnPointerOver" Color="#27272A" />
+                    <SolidColorBrush x:Key="ToggleSwitchFillOnPressed" Color="#3F3F46" />
+                    <SolidColorBrush x:Key="ToggleSwitchFillOnDisabled" Color="#D4D4D8" />
+                    <SolidColorBrush x:Key="ToggleSwitchKnobFillOn" Color="#FFFFFF" />
+                    <SolidColorBrush x:Key="ToggleSwitchKnobFillOnPointerOver" Color="#FFFFFF" />
+                    <SolidColorBrush x:Key="ToggleSwitchKnobFillOnPressed" Color="#FFFFFF" />
+
+                    <!-- Slider: dark filled track and thumb against a lighter rail. -->
+                    <SolidColorBrush x:Key="SliderTrackFill" Color="#D4D4D8" />
+                    <SolidColorBrush x:Key="SliderTrackValueFill" Color="#18181B" />
+                    <SolidColorBrush x:Key="SliderThumbBackground" Color="#18181B" />
+
+                    <!-- Dropdown / flyout popups in zinc, with zinc list-item hover and selection. -->
+                    <SolidColorBrush x:Key="ComboBoxDropDownBackground" Color="#FFFFFF" />
+                    <SolidColorBrush x:Key="ComboBoxDropDownBorderBrush" Color="#E4E4E7" />
+                    <SolidColorBrush x:Key="FlyoutPresenterBackground" Color="#FFFFFF" />
+                    <SolidColorBrush x:Key="FlyoutBorderThemeBrush" Color="#E4E4E7" />
+                    <SolidColorBrush x:Key="ListBoxItemBackgroundPointerOver" Color="#F4F4F5" />
+                    <SolidColorBrush x:Key="ListBoxItemBackgroundSelected" Color="#F4F4F5" />
+                    <SolidColorBrush x:Key="ListBoxItemBackgroundSelectedPointerOver" Color="#ECECEE" />
+                    <SolidColorBrush x:Key="ComboBoxItemBackgroundPointerOver" Color="#F4F4F5" />
+                    <SolidColorBrush x:Key="ComboBoxItemBackgroundSelected" Color="#F4F4F5" />
+                    <SolidColorBrush x:Key="ComboBoxItemBackgroundSelectedPointerOver" Color="#ECECEE" />
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
+
+            <!-- Neutral control accent: dark theme uses the Light* variants (near-white), light theme uses
+                 the Dark* variants (near-black), so Fluent switches/sliders/focus render hue-free like shadcn. -->
+            <Color x:Key="SystemAccentColor">#71717A</Color>
+            <Color x:Key="SystemAccentColorLight1">#E4E4E7</Color>
+            <Color x:Key="SystemAccentColorLight2">#FAFAFA</Color>
+            <Color x:Key="SystemAccentColorLight3">#FFFFFF</Color>
+            <Color x:Key="SystemAccentColorDark1">#18181B</Color>
+            <Color x:Key="SystemAccentColorDark2">#111114</Color>
+            <Color x:Key="SystemAccentColorDark3">#09090B</Color>
+
+            <!-- Slightly narrower switch. -->
+            <x:Double x:Key="ToggleSwitchThemeMinWidth">38</x:Double>
         </ResourceDictionary>
     </Application.Resources>
 
     <Application.Styles>
-        <fa:FluentAvaloniaTheme PreferSystemTheme="True" PreferUserAccentColor="True" />
+        <FluentTheme />
     </Application.Styles>
 </Application>

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using Avalonia;
 using Avalonia.Data;
@@ -97,4 +98,31 @@ public sealed class UpdateFrequencyLabelConverter : IValueConverter
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
         throw new NotSupportedException();
+}
+
+// Compares an int index against the converter parameter, so a view can show one of several stacked
+// panes by index (the selected rail item) without the view model tracking the selection.
+public sealed class IndexEqualsConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+        value is int index && parameter is string text && int.TryParse(text, out int target) && index == target;
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => throw new NotSupportedException();
+}
+
+// Lights up a swatch's ring when its hex matches the currently selected background color. Bound as a
+// multi-value converter over [swatch hex, selected hex] so the active swatch gets a 2px border and the
+// rest get none, without the view model tracking a separate "selected swatch" field.
+public sealed class SwatchSelectionThicknessConverter : IMultiValueConverter
+{
+    public object Convert(IList<object?> values, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (values.Count < 2 || values[0] is not string swatch || values[1] is not string selected)
+            return new Thickness(0);
+
+        return string.Equals(swatch.Trim(), selected.Trim(), StringComparison.OrdinalIgnoreCase)
+            ? new Thickness(2)
+            : new Thickness(0);
+    }
 }
