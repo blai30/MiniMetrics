@@ -17,14 +17,40 @@
                     <SolidColorBrush x:Key="Widget.Text.Label" Color="#C2C9D4" />
                     <SolidColorBrush x:Key="Widget.Text.Secondary" Color="#AEB6C2" />
                     <SolidColorBrush x:Key="Widget.Bar.Track" Color="#40FFFFFF" />
+                    <SolidColorBrush x:Key="Settings.Rail.Background" Color="#0B0F17" />
+                    <SolidColorBrush x:Key="Settings.Group.Background" Color="#1B2030" />
+                    <SolidColorBrush x:Key="Settings.Group.Border" Color="#283042" />
+                    <SolidColorBrush x:Key="Settings.Divider" Color="#232B3B" />
+                    <SolidColorBrush x:Key="Settings.Text.Primary" Color="#E8EBF2" />
+                    <SolidColorBrush x:Key="Settings.Text.Secondary" Color="#6B7689" />
+                    <SolidColorBrush x:Key="Settings.Accent" Color="#5B8DEF" />
+                    <SolidColorBrush x:Key="Settings.Error" Color="#E0556B" />
                 </ResourceDictionary>
                 <ResourceDictionary x:Key="Light">
                     <SolidColorBrush x:Key="Widget.Text.Primary" Color="#1B1F27" />
                     <SolidColorBrush x:Key="Widget.Text.Label" Color="#3A4252" />
                     <SolidColorBrush x:Key="Widget.Text.Secondary" Color="#566072" />
                     <SolidColorBrush x:Key="Widget.Bar.Track" Color="#1F000000" />
+                    <SolidColorBrush x:Key="Settings.Rail.Background" Color="#F7F8FA" />
+                    <SolidColorBrush x:Key="Settings.Group.Background" Color="#FBFBFC" />
+                    <SolidColorBrush x:Key="Settings.Group.Border" Color="#E9EBEF" />
+                    <SolidColorBrush x:Key="Settings.Divider" Color="#EEF0F3" />
+                    <SolidColorBrush x:Key="Settings.Text.Primary" Color="#1C1D21" />
+                    <SolidColorBrush x:Key="Settings.Text.Secondary" Color="#9298A2" />
+                    <SolidColorBrush x:Key="Settings.Accent" Color="#3B6FD4" />
+                    <SolidColorBrush x:Key="Settings.Error" Color="#C0392B" />
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
+
+            <!-- Deliberate app accent so Fluent controls (toggles, sliders, selection) use this blue
+                 instead of inheriting the Windows system accent color. -->
+            <Color x:Key="SystemAccentColor">#5B8DEF</Color>
+            <Color x:Key="SystemAccentColorLight1">#6F9CF2</Color>
+            <Color x:Key="SystemAccentColorLight2">#84ABF5</Color>
+            <Color x:Key="SystemAccentColorLight3">#99BAF7</Color>
+            <Color x:Key="SystemAccentColorDark1">#4E7AD4</Color>
+            <Color x:Key="SystemAccentColorDark2">#4168B8</Color>
+            <Color x:Key="SystemAccentColorDark3">#34569C</Color>
         </ResourceDictionary>
     </Application.Resources>
 
