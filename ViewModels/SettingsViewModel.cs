@@ -75,6 +75,9 @@ public partial class SettingsViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(ClockAlignmentModified))]
     public partial ClockAlignment ClockAlignment { get; set; }
 
+    public IReadOnlyList<ClockAlignment> ClockAlignments { get; } =
+        [ClockAlignment.Left, ClockAlignment.Center, ClockAlignment.Right];
+
     public IReadOnlyList<string> AvailableFonts { get; }
 
     public IReadOnlyList<WidgetFontWeight> WidgetFontWeights { get; } =

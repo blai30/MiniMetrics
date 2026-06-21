@@ -1,5 +1,4 @@
 using System.Globalization;
-using MiniMetrics.Lib;
 using MiniMetrics.Models;
 using MiniMetrics.ViewModels;
 
