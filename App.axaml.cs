@@ -1,7 +1,6 @@
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Reflection;
 using Avalonia;
@@ -30,6 +29,7 @@ public partial class App : Application
     private Settings _settings = null!;
     private MetricWidgetViewModel _cpuViewModel = null!;
     private MetricWidgetViewModel _gpuViewModel = null!;
+    private SettingsApplier _applier = null!;
     private WidgetCoordinator _widgetCoordinator = null!;
     private MetricActivator _metricActivator = null!;
     private DateTimeWidgetViewModel _dateTimeViewModel = null!;
@@ -101,8 +101,8 @@ public partial class App : Application
             _gpuViewModel.IsCompact = _settings.GpuCompact;
 
             _dateTimeViewModel = new();
-            _dateTimeViewModel.SetTimeZone(ResolveTimeZone(_settings.TimeZoneId));
-            _dateTimeViewModel.SetLocale(ResolveLocale(_settings.ClockLocaleId));
+            _dateTimeViewModel.SetTimeZone(SettingsApplier.ResolveTimeZone(_settings.TimeZoneId));
+            _dateTimeViewModel.SetLocale(SettingsApplier.ResolveLocale(_settings.ClockLocaleId));
             _dateTimeViewModel.SetFormats(
                 _settings.ClockTimeFormat, _settings.ClockDateFormat,
                 _settings.ClockTimeFormatHover, _settings.ClockDateFormatHover);
@@ -110,10 +110,13 @@ public partial class App : Application
             _dateTimeViewModel.SetAlignment(_settings.ClockAlignment);
 
             _widgets = [_cpuViewModel, _gpuViewModel, _dateTimeViewModel];
-            ApplyAppearanceToWidgets();
+            _applier = new(
+                _settingsController, _cpuViewModel, _gpuViewModel, _dateTimeViewModel,
+                _widgets, ApplyThemeVariant, ResolvedIsDark);
+            _applier.ApplyAppearance();
 
             _fontCatalog = new SystemFontCatalog();
-            ApplyWidgetStyle();
+            _applier.ApplyStyle();
 
             _source = OperatingSystem.IsWindows()
                 ? new HardwareSensorSource(new LibreHardwareTree())
@@ -351,69 +354,18 @@ public partial class App : Application
             return new() { DataContext = viewModel };
         });
 
-    // Routes one settings change to its effect. Each record carries its own payload, so this reads
-    // nothing back off the view model.
+    // Routes one settings change to its persistence and live effect. Metric visibility is handled here
+    // because enabling an elevation-flagged metric can relaunch or prompt, an outcome only the host can
+    // render; every other change is persisted and reflected by the applier in one place.
     private void OnSettingChanged(SettingChange change)
     {
-        switch (change)
+        if (change is SettingChange.MetricVisibility metric)
         {
-            case SettingChange.Appearance appearance:
-                _settingsController.SetAppearance(appearance.IsDark, appearance.Color, appearance.Opacity);
-                ApplyAppearanceToWidgets();
-                break;
-            case SettingChange.Theme theme:
-                _settingsController.SetTheme(theme.Value);
-                ApplyThemeVariant();
-                ApplyAppearanceToWidgets();
-                RefreshWidgetAccents();
-                break;
-            case SettingChange.MetricVisibility metric:
-                OnMetricVisibilityChanged(metric.Key, metric.Visible);
-                break;
-            case SettingChange.Compact compact:
-                OnCompactChanged(compact.Widget, compact.IsCompact);
-                break;
-            case SettingChange.Alignment alignment:
-                OnClockAlignmentChanged(alignment.Value);
-                break;
-            case SettingChange.TimeZone timeZone:
-                // ResolveTimeZone(null) maps a null id back to the machine zone, matching the startup path.
-                _settingsController.SetTimeZone(timeZone.ZoneId);
-                _dateTimeViewModel.SetTimeZone(ResolveTimeZone(timeZone.ZoneId));
-                break;
-            case SettingChange.ClockFormats formats:
-                _settingsController.SetClockFormats(formats.Time, formats.Date, formats.TimeHover, formats.DateHover);
-                _dateTimeViewModel.SetFormats(formats.Time, formats.Date, formats.TimeHover, formats.DateHover);
-                break;
-            case SettingChange.ClockLocale locale:
-                _settingsController.SetClockLocale(locale.Locale.Name);
-                _dateTimeViewModel.SetLocale(locale.Locale);
-                break;
-            case SettingChange.UpdatePreferences updates:
-                _settingsController.SetUpdatePreferences(updates.Enabled, updates.Frequency);
-                break;
-            case SettingChange.WidgetStyle style:
-                _settingsController.SetWidgetStyle(style.Family, style.Scale, style.Weight);
-                ApplyWidgetStyle();
-                break;
+            OnMetricVisibilityChanged(metric.Key, metric.Visible);
+            return;
         }
-    }
 
-    // Pushes the current opacity and the resolved theme's background color to every widget through the
-    // shared appearance seam.
-    private void ApplyAppearanceToWidgets()
-    {
-        string background = ResolvedIsDark() ? _settings.BackgroundColor : _settings.LightBackgroundColor;
-        foreach (var widget in _widgets) widget.ApplyAppearance(background, _settings.Opacity);
-    }
-
-    // Resolves one style profile from the current settings and pushes it to every widget through the
-    // shared widget-style seam.
-    private void ApplyWidgetStyle()
-    {
-        var profile = WidgetStyleProfile.Resolve(
-            _settings.WidgetFontFamily, _settings.WidgetScale, _settings.WidgetFontWeight);
-        foreach (var widget in _widgets) widget.ApplyStyle(profile);
+        _applier.Apply(change);
     }
 
     // The effective variant resolved by Avalonia (Default resolves to Light or Dark). Dark is the
@@ -436,42 +388,9 @@ public partial class App : Application
     {
         if (_settings.Theme == AppTheme.System)
         {
-            ApplyAppearanceToWidgets();
-            RefreshWidgetAccents();
+            _applier.ApplyAppearance();
+            _applier.RefreshAccents();
         }
-    }
-
-    private void RefreshWidgetAccents()
-    {
-        _cpuViewModel.RefreshThemeColors();
-        _gpuViewModel.RefreshThemeColors();
-    }
-
-    // Persists a per-widget compact toggle and pushes it onto the affected widget so it reflows live.
-    private void OnCompactChanged(string widget, bool value)
-    {
-        switch (widget)
-        {
-            case "cpu":
-                _settingsController.SetCpuCompact(value);
-                _cpuViewModel.IsCompact = value;
-                break;
-            case "gpu":
-                _settingsController.SetGpuCompact(value);
-                _gpuViewModel.IsCompact = value;
-                break;
-            case "clock":
-                _settingsController.SetDateTimeCompact(value);
-                _dateTimeViewModel.IsCompact = value;
-                break;
-        }
-    }
-
-    // Persists the clock text alignment and pushes it onto the live clock so it realigns immediately.
-    private void OnClockAlignmentChanged(ClockAlignment value)
-    {
-        _settingsController.SetClockAlignment(value);
-        _dateTimeViewModel.SetAlignment(value);
     }
 
     // Re-entrancy guard: RevertMetricToggle flips a toggle back, which re-raises this event; the guard
@@ -682,42 +601,6 @@ public partial class App : Application
         }
         catch (Exception ex) when (ex is Win32Exception or InvalidOperationException)
         {
-        }
-    }
-
-    // Resolves the saved zone id to a TimeZoneInfo, falling back to local if it is missing or the
-    // id is unknown on this machine.
-    private static TimeZoneInfo ResolveTimeZone(string? id)
-    {
-        if (string.IsNullOrEmpty(id)) return TimeZoneInfo.Local;
-
-        try
-        {
-            return TimeZoneInfo.FindSystemTimeZoneById(id);
-        }
-        catch (TimeZoneNotFoundException)
-        {
-            return TimeZoneInfo.Local;
-        }
-        catch (InvalidTimeZoneException)
-        {
-            return TimeZoneInfo.Local;
-        }
-    }
-
-    // Resolves the saved locale id to a CultureInfo, falling back to the machine's current culture if
-    // it is missing or unknown on this machine.
-    private static CultureInfo ResolveLocale(string? id)
-    {
-        if (string.IsNullOrEmpty(id)) return CultureInfo.CurrentCulture;
-
-        try
-        {
-            return CultureInfo.GetCultureInfo(id);
-        }
-        catch (CultureNotFoundException)
-        {
-            return CultureInfo.CurrentCulture;
         }
     }
 
