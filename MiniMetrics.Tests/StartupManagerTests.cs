@@ -115,6 +115,30 @@ public class StartupManagerTests
     }
 
     [TestMethod]
+    public void Declined_task_creation_is_attempted_once()
+    {
+        // A declined UAC prompt must not re-prompt: the create is tried exactly once.
+        var (manager, ops) = Build();
+        ops.CreateTaskSucceeds = false;
+
+        manager.Sync(true, true);
+
+        Assert.AreEqual(1, ops.CreateTaskCalls);
+    }
+
+    [TestMethod]
+    public void Declined_task_removal_is_attempted_once()
+    {
+        var (manager, ops) = Build();
+        ops.TaskPresent = true;
+        ops.RemoveTaskSucceeds = false;
+
+        manager.Sync(true, false);
+
+        Assert.AreEqual(1, ops.RemoveTaskCalls);
+    }
+
+    [TestMethod]
     public void Re_syncing_with_elevation_does_not_recreate_the_task()
     {
         // Enabling a second CPU temp/power metric re-syncs while the task already exists. The

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using LibreHardwareMonitor.Hardware;
 
@@ -35,8 +36,24 @@ public sealed class LibreHardwareTree : IHardwareTree
 
     public void Refresh() => _computer.Accept(_visitor);
 
-    public bool HasGpu =>
-        _computer.Hardware.Any(hardware => hardware.HardwareType == HardwareType.GpuNvidia);
+    public bool HasGpu => PreferredGpuType(_computer.Hardware.Select(h => h.HardwareType)) is not null;
+
+    // Vendor preference order. A hybrid system (Intel iGPU + NVIDIA/AMD dGPU) enumerates the integrated
+    // GPU first, so picking the first match would report the iGPU and miss the discrete card. Prefer the
+    // verified NVIDIA path, then AMD, and fall back to the Intel integrated GPU only when it is the sole
+    // option. AMD and Intel reads use the sensor-name fallbacks in HardwareSensorSource.
+    private static readonly HardwareType[] GpuPriority =
+        [HardwareType.GpuNvidia, HardwareType.GpuAmd, HardwareType.GpuIntel];
+
+    public static HardwareType? PreferredGpuType(IEnumerable<HardwareType> present)
+    {
+        var available = present.ToHashSet();
+        foreach (var type in GpuPriority)
+            if (available.Contains(type))
+                return type;
+
+        return null;
+    }
 
     public double? Read(HardwareKind device, SensorKind sensor, string nameContains)
     {
@@ -63,7 +80,9 @@ public sealed class LibreHardwareTree : IHardwareTree
                 h.Name.Contains("Total", StringComparison.OrdinalIgnoreCase))
             ?? _computer.Hardware.FirstOrDefault(h => h.HardwareType == HardwareType.Memory),
 
-        HardwareKind.Gpu => _computer.Hardware.FirstOrDefault(h => h.HardwareType == HardwareType.GpuNvidia),
+        HardwareKind.Gpu => PreferredGpuType(_computer.Hardware.Select(h => h.HardwareType)) is { } gpuType
+            ? _computer.Hardware.FirstOrDefault(h => h.HardwareType == gpuType)
+            : null,
 
         _ => null
     };

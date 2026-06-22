@@ -176,7 +176,7 @@ public abstract class OverlayWindow : Window
         var area = screen.WorkingArea;
         var workArea = new EdgeSnap.Rect(area.X, area.Y, area.Width, area.Height);
 
-        var peers = PeerRects?.Invoke() ?? Array.Empty<EdgeSnap.Rect>();
+        var peers = PeerRects?.Invoke() ?? [];
 
         (int x, int y) = EdgeSnap.Snap(widget, workArea, peers, SnapThreshold);
         return new(x, y);

@@ -71,7 +71,10 @@ jobs:
           -o publish/sc-folder
 
       - name: Install Velopack CLI
-        run: dotnet tool install -g vpk
+        # Pin to the Velopack library version referenced by MiniMetrics.csproj so the packer and the
+        # in-app update runtime stay in lockstep; a newer vpk could emit packages the pinned runtime
+        # cannot apply.
+        run: dotnet tool install -g vpk --version 1.2.0
 
       # Default download: framework-dependent. No --channel is passed, so it uses Velopack's built-in
       # default channel (win), which is what the feed files (releases.win.json, the nupkg, RELEASES-win)

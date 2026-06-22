@@ -120,6 +120,20 @@ public class SettingsStoreTests
     }
 
     [TestMethod]
+    public void Load_backs_up_a_corrupt_file_before_resetting()
+    {
+        // A corrupt file is preserved as .bak so the user's lost config is recoverable and diagnosable.
+        string path = TempPath();
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        File.WriteAllText(path, "{ this is not valid json");
+
+        new SettingsStore(path).Load();
+
+        Assert.IsTrue(File.Exists(path + ".bak"));
+        Assert.AreEqual("{ this is not valid json", File.ReadAllText(path + ".bak"));
+    }
+
+    [TestMethod]
     public void Save_then_Load_round_trips_datetime_fields()
     {
         string path = TempPath();

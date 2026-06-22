@@ -19,9 +19,10 @@ public sealed class StartupManager(IStartupOperations ops, string exePath)
         switch (wantTask)
         {
             // Reconcile the task (elevated) side first so a declined prompt leaves the prior
-            // registration in place rather than half-applied.
-            case true when !ops.TaskExists() && !ops.CreateTask(exePath) && !ops.CreateTask(exePath):
-            case false when ops.TaskExists() && !ops.RemoveTask() && !ops.RemoveTask():
+            // registration in place rather than half-applied. Each create/remove is attempted once:
+            // both raise a UAC prompt against the real OS, so a retry would re-prompt the user.
+            case true when !ops.TaskExists() && !ops.CreateTask(exePath):
+            case false when ops.TaskExists() && !ops.RemoveTask():
                 return false;
         }
 

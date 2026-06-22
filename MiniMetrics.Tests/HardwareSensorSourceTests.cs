@@ -145,6 +145,32 @@ public class HardwareSensorSourceTests
     }
 
     [TestMethod]
+    public void Gpu_temperature_falls_back_to_hot_spot()
+    {
+        // AMD GPUs expose "GPU Hot Spot" rather than the NVIDIA "GPU Core" temperature sensor.
+        var tree = new FakeHardwareTree { HasGpu = true };
+        tree.Set(HardwareKind.Gpu, SensorKind.Load, "GPU Core", 50);
+        tree.Set(HardwareKind.Gpu, SensorKind.Temperature, "GPU Hot Spot", 83);
+        var source = new HardwareSensorSource(tree);
+
+        Assert.AreEqual(83, source.Read().Gpu!.TempCelsius);
+    }
+
+    [TestMethod]
+    public void Gpu_vram_falls_back_to_d3d_dedicated_memory()
+    {
+        // Intel GPUs report VRAM through the generic D3D dedicated-memory sensors.
+        var tree = new FakeHardwareTree { HasGpu = true };
+        tree.Set(HardwareKind.Gpu, SensorKind.SmallData, "D3D Dedicated Memory Used", 2048);
+        tree.Set(HardwareKind.Gpu, SensorKind.SmallData, "D3D Dedicated Memory Total", 4096);
+        var source = new HardwareSensorSource(tree);
+
+        var gpu = source.Read().Gpu!;
+        Assert.AreEqual(2048UL * BytesPerMib, gpu.VramUsedBytes);
+        Assert.AreEqual(4096UL * BytesPerMib, gpu.VramTotalBytes);
+    }
+
+    [TestMethod]
     public void Gpu_absent_yields_a_null_gpu_section()
     {
         var tree = new FakeHardwareTree { HasGpu = false };

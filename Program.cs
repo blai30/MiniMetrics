@@ -1,6 +1,7 @@
 using Avalonia;
 using System;
 using System.Runtime.Versioning;
+using System.Threading.Tasks;
 using MiniMetrics.Services;
 using Velopack;
 
@@ -13,6 +14,29 @@ internal sealed class Program
     // yet and stuff might break.
     [STAThread]
     public static void Main(string[] args)
+    {
+        // Persist any otherwise-silent crash so a field failure can be diagnosed. Registered first so it
+        // covers the whole startup sequence below.
+        AppDomain.CurrentDomain.UnhandledException += (_, eventArgs) =>
+            CrashLog.Write("UnhandledException", eventArgs.ExceptionObject as Exception);
+        TaskScheduler.UnobservedTaskException += (_, eventArgs) =>
+        {
+            CrashLog.Write("UnobservedTaskException", eventArgs.Exception);
+            eventArgs.SetObserved();
+        };
+
+        try
+        {
+            Run(args);
+        }
+        catch (Exception exception)
+        {
+            CrashLog.Write("Startup", exception);
+            throw;
+        }
+    }
+
+    private static void Run(string[] args)
     {
         // Velopack must process any install/update/uninstall hook arguments and exit before this process
         // does anything else: it is run before the elevation gate and the single-instance mutex so a hook

@@ -89,12 +89,21 @@ public sealed class HardwareSensorSource(IHardwareTree tree, Func<ulong>? instal
         GpuMetrics? gpu = null;
         if (_gpuActive && tree.HasGpu)
         {
+            // Sensor names are verified on NVIDIA; the trailing fallbacks are best-effort for AMD and
+            // Intel, whose LibreHardwareMonitor sensor names differ (AMD "GPU Hot Spot", the generic
+            // "D3D Dedicated Memory" counters, AMD's "GPU SoC"/"GPU PPT" power rails).
             double load = tree.Read(HardwareKind.Gpu, SensorKind.Load, "GPU Core") ?? 0;
-            double temp = tree.Read(HardwareKind.Gpu, SensorKind.Temperature, "GPU Core") ?? 0;
+            double temp = tree.Read(HardwareKind.Gpu, SensorKind.Temperature, "GPU Core")
+                          ?? tree.Read(HardwareKind.Gpu, SensorKind.Temperature, "GPU Hot Spot") ?? 0;
             double power = tree.Read(HardwareKind.Gpu, SensorKind.Power, "GPU Package")
-                           ?? tree.Read(HardwareKind.Gpu, SensorKind.Power, "GPU Power") ?? 0;
-            double vramUsedMib = tree.Read(HardwareKind.Gpu, SensorKind.SmallData, "GPU Memory Used") ?? 0;
-            double vramTotalMib = tree.Read(HardwareKind.Gpu, SensorKind.SmallData, "GPU Memory Total") ?? 0;
+                           ?? tree.Read(HardwareKind.Gpu, SensorKind.Power, "GPU Power")
+                           ?? tree.Read(HardwareKind.Gpu, SensorKind.Power, "GPU SoC")
+                           ?? tree.Read(HardwareKind.Gpu, SensorKind.Power, "GPU PPT") ?? 0;
+            double vramUsedMib = tree.Read(HardwareKind.Gpu, SensorKind.SmallData, "GPU Memory Used")
+                                 ?? tree.Read(HardwareKind.Gpu, SensorKind.SmallData, "D3D Dedicated Memory Used") ?? 0;
+            double vramTotalMib = tree.Read(HardwareKind.Gpu, SensorKind.SmallData, "GPU Memory Total")
+                                  ?? tree.Read(HardwareKind.Gpu, SensorKind.SmallData, "D3D Dedicated Memory Total") ??
+                                  0;
 
             gpu = new(
                 load,

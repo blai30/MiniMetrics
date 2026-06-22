@@ -642,19 +642,28 @@ public partial class App : Application
 
     private async void RunUpdateCheck(bool manual)
     {
-        var result = await _updateFlow.CheckAsync(manual);
-
-        switch (result.Outcome)
+        // async void: the launch-time check runs unawaited, so an escaping exception would tear down the
+        // process. Contain it here the way ApplyUpdateInApp does for its own async void path.
+        try
         {
-            case UpdateOutcome.UpdateAvailable:
-                ShowUpdateAvailable(result.Version!, result.ReleaseUrl!);
-                break;
-            case UpdateOutcome.UpToDate when manual:
-                ShowUpdateInfo(UpdatePromptViewModel.ForUpToDate(CurrentVersionString));
-                break;
-            case UpdateOutcome.Failed when manual:
-                ShowUpdateInfo(UpdatePromptViewModel.ForFailed());
-                break;
+            var result = await _updateFlow.CheckAsync(manual);
+
+            switch (result.Outcome)
+            {
+                case UpdateOutcome.UpdateAvailable:
+                    ShowUpdateAvailable(result.Version!, result.ReleaseUrl!);
+                    break;
+                case UpdateOutcome.UpToDate when manual:
+                    ShowUpdateInfo(UpdatePromptViewModel.ForUpToDate(CurrentVersionString));
+                    break;
+                case UpdateOutcome.Failed when manual:
+                    ShowUpdateInfo(UpdatePromptViewModel.ForFailed());
+                    break;
+            }
+        }
+        catch (Exception exception)
+        {
+            CrashLog.Write("RunUpdateCheck", exception);
         }
     }
 

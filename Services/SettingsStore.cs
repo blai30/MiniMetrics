@@ -25,7 +25,23 @@ public sealed class SettingsStore(string path)
         }
         catch
         {
+            // A corrupt or unreadable file would otherwise silently reset every setting. Preserve it as
+            // .bak so the user's config is recoverable and the failure is diagnosable, then fall back to
+            // defaults rather than crashing.
+            TryBackup();
             return new();
+        }
+    }
+
+    private void TryBackup()
+    {
+        try
+        {
+            if (File.Exists(path)) File.Copy(path, path + ".bak", true);
+        }
+        catch
+        {
+            // Best effort; never let a backup failure crash startup.
         }
     }
 
