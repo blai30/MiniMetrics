@@ -1,6 +1,5 @@
 using Avalonia;
 using Avalonia.Headless;
-using MiniMetrics;
 
 [assembly: AvaloniaTestApplication(typeof(MiniMetrics.Tests.TestAppBuilder))]
 

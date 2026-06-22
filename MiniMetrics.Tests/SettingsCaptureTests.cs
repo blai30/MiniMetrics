@@ -1,10 +1,7 @@
-using System.Threading;
-using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Styling;
-using MiniMetrics.Models;
 using MiniMetrics.ViewModels;
 using MiniMetrics.Views;
 
@@ -31,5 +28,21 @@ public class SettingsCaptureTests
                 Assert.IsNotNull(frame);
                 Assert.IsTrue(frame!.PixelSize.Width >= 640);
                 Assert.IsNotNull(window.FindControl<ListBox>("SectionList"));
+            }, CancellationToken.None);
+
+    [TestMethod]
+    public Task Settings_window_light_renders()
+        => HeadlessUnitTestSession.GetOrStartForAssembly(typeof(TestAppBuilder).Assembly)
+            .Dispatch(() =>
+            {
+                Application.Current!.RequestedThemeVariant = ThemeVariant.Light;
+
+                var viewModel = new SettingsViewModel(new(), true, new FakeFontCatalog());
+                var window = new SettingsWindow { DataContext = viewModel };
+                window.Show();
+
+                var frame = Capture.Window(window, "settings-light");
+
+                Assert.IsNotNull(frame);
             }, CancellationToken.None);
 }

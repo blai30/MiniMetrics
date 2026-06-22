@@ -1,6 +1,3 @@
-using System;
-using System.IO;
-
 namespace MiniMetrics.Tests;
 
 public static class CapturePaths

@@ -147,6 +147,11 @@
 
             <!-- Slightly narrower switch. -->
             <x:Double x:Key="ToggleSwitchThemeMinWidth">38</x:Double>
+
+            <!-- Compact slider thumb: a smaller circle than the stock 20px disc (corner
+                 radius stays 10, which clamps to a full circle at this size). -->
+            <x:Double x:Key="SliderHorizontalThumbWidth">12</x:Double>
+            <x:Double x:Key="SliderHorizontalThumbHeight">12</x:Double>
         </ResourceDictionary>
     </Application.Resources>
 
