@@ -48,16 +48,14 @@ internal sealed class Program
         if (OperatingSystem.IsWindows())
             velopackApp = velopackApp.OnBeforeUninstallFastCallback(_ =>
             {
-                if (OperatingSystem.IsWindows())
-                {
-                    var operations = new WindowsStartupOperations();
-                    operations.RemoveRunKey();
+                if (!OperatingSystem.IsWindows()) return;
+                var operations = new WindowsStartupOperations();
+                operations.RemoveRunKey();
 
-                    // Non-elevated only: this FastCallback must not show UI (so no UAC) and is killed after
-                    // 30 seconds. Tasks created by this version are user-deletable and removed silently;
-                    // tasks left by older versions are admin-only and remain (documented manual cleanup).
-                    if (operations.TaskExists()) operations.RemoveTaskNonElevated();
-                }
+                // Non-elevated only: this FastCallback must not show UI (so no UAC) and is killed after
+                // 30 seconds. Tasks created by this version are user-deletable and removed silently;
+                // tasks left by older versions are admin-only and remain (documented manual cleanup).
+                if (operations.TaskExists()) operations.RemoveTaskNonElevated();
             });
         velopackApp.Run();
 
@@ -81,9 +79,7 @@ internal sealed class Program
     {
         var settings = new SettingsStore(SettingsStore.DefaultPath).Load();
         var coordinator = new ElevationCoordinator(new WindowsElevation(), new WindowsDriverProbe());
-        if (!coordinator.ShouldRelaunch(settings.Visibility)) return false;
-
-        return coordinator.RelaunchElevated(Environment.ProcessPath!);
+        return coordinator.ShouldRelaunch(settings.Visibility) && coordinator.RelaunchElevated(Environment.ProcessPath!);
     }
 
     // Avalonia configuration, don't remove; also used by visual designer.
