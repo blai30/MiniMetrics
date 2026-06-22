@@ -77,9 +77,9 @@ task is created so that your own account can remove it without a prompt. The one
 from a much older version of MiniMetrics, which only an administrator could delete; if you ever enabled CPU temperature
 or power on such a build, clear it with the Task Scheduler steps below.
 
-MiniMetrics is a portable app: there is no installer, so you remove it by deleting the program. The catch is that "Run
-at startup" records where the program lives, and deleting the program does not erase that record. The result is a
-leftover startup entry that points at a file that no longer exists.
+If you use a portable build, there is no uninstaller, so you remove MiniMetrics by deleting the program. The catch is
+that "Run at startup" records where the program lives, and deleting the program does not erase that record. The result
+is a leftover startup entry that points at a file that no longer exists.
 
 This leftover is harmless. When Windows tries to start a program that is gone, it simply does nothing, with no error and
 no slowdown. The only thing you may notice is a stale MiniMetrics row in Task Manager's **Startup apps** tab. Still, it

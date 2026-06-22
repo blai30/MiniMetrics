@@ -24,7 +24,7 @@ a clock floating on your screen, always within view.
 - Floating CPU and GPU widgets with live readouts such as temperature, usage, power, and RAM/VRAM, powered
   by [LibreHardwareMonitor](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor)
 - Temperature color coding with thresholds, including a critical level for the GPU
-- Light, dark, and system themes, with accent colors that follow the theme
+- Light, dark, and system themes
 - Compact layout toggle per widget (CPU, GPU, and clock) for a denser readout
 - Date and time widget with time zone and locale selection, custom date/time format strings (with a separate format
   shown on hover), and left, center, or right text alignment
@@ -68,8 +68,7 @@ anyway".
 
 ## Tech stack
 
-- [Avalonia](https://avaloniaui.net/) 12 for the cross-platform UI toolkit
-- [FluentAvalonia](https://github.com/amwx/FluentAvalonia) for the Fluent app theme, controls, and system accent
+- [Avalonia](https://avaloniaui.net/) 12 for the cross-platform UI toolkit, with the stock
 - C# on .NET 10
 - [CommunityToolkit.Mvvm](https://learn.microsoft.com/dotnet/communitytoolkit/mvvm/) for MVVM
 - [LibreHardwareMonitor](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor) for hardware sensors
