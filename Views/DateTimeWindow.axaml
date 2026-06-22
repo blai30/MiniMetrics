@@ -57,13 +57,13 @@
                 IsVisible="{Binding IsCompact}">
                 <TextBlock
                     VerticalAlignment="Center"
-                    FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=46}"
+                    FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=26}"
                     FontWeight="{Binding ClockWeight}"
                     Foreground="{DynamicResource Widget.Text.Primary}"
                     Text="{Binding TimeText}" />
                 <TextBlock
                     VerticalAlignment="Center"
-                    FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=28}"
+                    FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=26}"
                     FontWeight="{Binding ClockWeight}"
                     Foreground="{DynamicResource Widget.Text.Label}"
                     Text="{Binding DateText}" />

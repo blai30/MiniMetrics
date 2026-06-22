@@ -10,9 +10,6 @@ public partial class DateTimeWindow : OverlayWindow
         InitializeComponent();
     }
 
-    protected override double FullWidth => 640;
-    protected override double FullHeight => 176;
-
     // Hovering temporarily swaps the clock to its hover format pair. When the widget is locked it is
     // click-through, so the OS delivers no pointer events here and the clock stays on the normal pair.
     protected override void OnPointerEntered(PointerEventArgs e)

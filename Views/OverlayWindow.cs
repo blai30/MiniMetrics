@@ -40,10 +40,6 @@ public abstract class OverlayWindow : Window
     {
     }
 
-    // The widget's full (non-compact) window size in code; compact mode hugs its content instead.
-    protected abstract double FullWidth { get; }
-    protected abstract double FullHeight { get; }
-
     // Compact mode is a single short row whose width tracks its content; the height is shared.
     private const double CompactHeight = 80;
 
@@ -61,7 +57,7 @@ public abstract class OverlayWindow : Window
         base.OnDataContextChanged(e);
         if (DataContext is not ICompactWidget widget) return;
         widget.PropertyChanged += OnWidgetPropertyChanged;
-        ApplyCompact(widget.IsCompact);
+        ApplyCompact(widget);
     }
 
     private void OnWidgetPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -69,7 +65,7 @@ public abstract class OverlayWindow : Window
         if (DataContext is not ICompactWidget widget) return;
 
         if (e.PropertyName == nameof(ICompactWidget.IsCompact))
-            ApplyCompact(widget.IsCompact);
+            ApplyCompact(widget);
         else if (widget.IsCompact && IsAutoWidthTrigger(e.PropertyName))
             // The compact content changed membership (e.g. the GPU widget's rows arrived on the first
             // snapshot); re-fit the width once the new content has been laid out.
@@ -88,10 +84,11 @@ public abstract class OverlayWindow : Window
         InvalidateMeasure();
     }
 
-    // Compact: a single CompactHeight-tall row whose width tracks its content. Full: the fixed size.
-    private void ApplyCompact(bool compact)
+    // Compact: a single CompactHeight-tall row whose width tracks its content. Full: the widget's
+    // scaled size, so leaving compact never clips the layout at non-default scales.
+    private void ApplyCompact(ICompactWidget widget)
     {
-        if (compact)
+        if (widget.IsCompact)
         {
             SizeToContent = SizeToContent.Width;
             Height = CompactHeight;
@@ -99,8 +96,8 @@ public abstract class OverlayWindow : Window
         else
         {
             SizeToContent = SizeToContent.Manual;
-            Width = FullWidth;
-            Height = FullHeight;
+            Width = widget.ScaledWidth;
+            Height = widget.ScaledHeight;
         }
     }
 

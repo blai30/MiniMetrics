@@ -7,4 +7,9 @@ namespace MiniMetrics.ViewModels;
 public interface ICompactWidget : INotifyPropertyChanged
 {
     bool IsCompact { get; }
+
+    // The full (non-compact) window size, scaled with the widget. The overlay restores these on leaving
+    // compact so the full layout is sized to its content at any scale rather than clipped to a constant.
+    double ScaledWidth { get; }
+    double ScaledHeight { get; }
 }
