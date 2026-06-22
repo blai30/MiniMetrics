@@ -15,7 +15,7 @@ public sealed class WidgetHost(
     OverlayWindow window,
     Func<(int X, int Y)?> readPosition,
     Action<int, int> savePosition,
-    Action flushPosition)
+    Action flushPosition) : IWidgetChromeTarget
 {
     private readonly DesktopWindow _desktop = new(window);
     private bool _alwaysOnTop;

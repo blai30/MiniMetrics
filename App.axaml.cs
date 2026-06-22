@@ -39,19 +39,20 @@ public partial class App : Application
     private WidgetHost _gpuHost = null!;
     private WidgetHost _dateTimeHost = null!;
     private WidgetHost[] _hosts = [];
+    private WidgetChrome _chrome = null!;
     private DispatcherTimer? _clockTimer;
     private DispatcherTimer? _trimTimer;
 
     private TrayMenuController _tray = null!;
     private StartupManager? _startupManager;
-    private SettingsWindow? _settingsWindow;
-    private PawnIoPromptWindow? _pawnIoPromptWindow;
-    private ConfirmUninstallWindow? _confirmUninstallWindow;
+    private readonly SingleWindowHost<SettingsWindow> _settingsHost = new();
+    private readonly SingleWindowHost<PawnIoPromptWindow> _pawnIoHost = new();
+    private readonly SingleWindowHost<ConfirmUninstallWindow> _uninstallHost = new();
+    private readonly SingleWindowHost<UpdatePromptWindow> _updateHost = new();
     private IUpdateFlow _updateFlow = null!;
     private bool _isInstalled;
     private string? _rootStubPath;
     private Version _currentVersion = null!;
-    private UpdatePromptWindow? _updatePromptWindow;
 
     public override void Initialize()
     {
@@ -170,6 +171,7 @@ public partial class App : Application
                 _settingsController.SetDateTimePosition);
 
             _hosts = [_cpuHost, _gpuHost, _dateTimeHost];
+            _chrome = new(_settingsController, _hosts);
 
             // On first appearance with no saved position, the GPU widget sits flush-right of the CPU widget.
             _gpuHost.OnFirstPlacement = () =>
@@ -338,30 +340,16 @@ public partial class App : Application
         _tray.SetClockChecked(!hidden);
     }
 
-    private void OnToggleLock()
-    {
-        bool locked = _settingsController.ToggleLocked();
-        foreach (var host in _hosts) host.SetLocked(locked);
+    private void OnToggleLock() => _tray.SetLockChecked(_chrome.ToggleLocked());
 
-        _tray.SetLockChecked(locked);
-    }
-
-    private void OnOpenSettings()
-    {
-        // Single instance: focus the existing window instead of opening a second one.
-        if (_settingsWindow is not null)
+    // Single instance: the host focuses the existing window instead of opening a second one.
+    private void OnOpenSettings() =>
+        _settingsHost.ShowOrActivate(() =>
         {
-            _settingsWindow.Activate();
-            return;
-        }
-
-        var viewModel = new SettingsViewModel(_settings, ResolvedIsDark(), _fontCatalog);
-        viewModel.SettingChanged += OnSettingChanged;
-
-        _settingsWindow = new() { DataContext = viewModel };
-        _settingsWindow.Closed += (_, _) => _settingsWindow = null;
-        _settingsWindow.Show();
-    }
+            var viewModel = new SettingsViewModel(_settings, ResolvedIsDark(), _fontCatalog);
+            viewModel.SettingChanged += OnSettingChanged;
+            return new() { DataContext = viewModel };
+        });
 
     // Routes one settings change to its effect. Each record carries its own payload, so this reads
     // nothing back off the view model.
@@ -524,7 +512,8 @@ public partial class App : Application
         _suppressVisibilityHandler = true;
         try
         {
-            if (_settingsWindow?.DataContext is SettingsViewModel viewModel) viewModel.ToggleFor(key).IsVisible = false;
+            if (_settingsHost.Current?.DataContext is SettingsViewModel viewModel)
+                viewModel.ToggleFor(key).IsVisible = false;
         }
         finally
         {
@@ -544,21 +533,9 @@ public partial class App : Application
         else if (!shouldShow && _gpuHost.IsVisible) _gpuHost.Hide();
     }
 
-    private void OnToggleAlwaysOnTop()
-    {
-        bool onTop = _settingsController.ToggleAlwaysOnTop();
-        foreach (var host in _hosts) host.SetAlwaysOnTop(onTop);
+    private void OnToggleAlwaysOnTop() => _tray.SetAlwaysOnTopChecked(_chrome.ToggleAlwaysOnTop());
 
-        _tray.SetAlwaysOnTopChecked(onTop);
-    }
-
-    private void OnToggleSnap()
-    {
-        bool snap = _settingsController.ToggleSnapToEdges();
-        foreach (var host in _hosts) host.SetSnapEnabled(snap);
-
-        _tray.SetSnapChecked(snap);
-    }
+    private void OnToggleSnap() => _tray.SetSnapChecked(_chrome.ToggleSnap());
 
     private void OnToggleRunAtStartup()
     {
@@ -576,19 +553,13 @@ public partial class App : Application
     // Opens the uninstall confirmation. Installed builds only; the menu item is not shown otherwise.
     // Reuses a single window so repeated clicks focus the existing prompt rather than stacking duplicates.
     [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-    private void OnUninstall()
-    {
-        if (_confirmUninstallWindow is not null)
+    private void OnUninstall() =>
+        _uninstallHost.ShowOrActivate(() =>
         {
-            _confirmUninstallWindow.Activate();
-            return;
-        }
-
-        _confirmUninstallWindow = new();
-        _confirmUninstallWindow.Confirmed += (_, _) => RunUninstall();
-        _confirmUninstallWindow.Closed += (_, _) => _confirmUninstallWindow = null;
-        _confirmUninstallWindow.Show();
-    }
+            var window = new ConfirmUninstallWindow();
+            window.Confirmed += (_, _) => RunUninstall();
+            return window;
+        });
 
     // Runs the ordered in-app uninstall: remove the scheduled task first, then the run key, then hand off to
     // Velopack's uninstaller. Tasks created by this version delete without a prompt; a task left by an older
@@ -627,18 +598,7 @@ public partial class App : Application
 
     // Surfaces the one-time PawnIO install prompt, reusing a single instance so repeated toggles focus
     // the existing window rather than stacking duplicates.
-    private void ShowPawnIoPrompt()
-    {
-        if (_pawnIoPromptWindow is not null)
-        {
-            _pawnIoPromptWindow.Activate();
-            return;
-        }
-
-        _pawnIoPromptWindow = new();
-        _pawnIoPromptWindow.Closed += (_, _) => _pawnIoPromptWindow = null;
-        _pawnIoPromptWindow.Show();
-    }
+    private void ShowPawnIoPrompt() => _pawnIoHost.ShowOrActivate(() => new());
 
     private async void RunUpdateCheck(bool manual)
     {
@@ -678,25 +638,21 @@ public partial class App : Application
     {
         _tray.ShowUpdateAvailable(version, url, _updateFlow.CanApplyInApp);
 
-        if (_updatePromptWindow is not null)
+        _updateHost.ShowOrActivate(() =>
         {
-            _updatePromptWindow.Activate();
-            return;
-        }
+            var viewModel = _updateFlow.CanApplyInApp
+                ? UpdatePromptViewModel.ForInstallReady(version, CurrentVersionString)
+                : UpdatePromptViewModel.ForAvailable(version, CurrentVersionString, url);
 
-        var viewModel = _updateFlow.CanApplyInApp
-            ? UpdatePromptViewModel.ForInstallReady(version, CurrentVersionString)
-            : UpdatePromptViewModel.ForAvailable(version, CurrentVersionString, url);
-
-        _updatePromptWindow = new(viewModel);
-        _updatePromptWindow.SkipRequested += (_, _) =>
-        {
-            _settingsController.SetSkippedUpdateVersion(version);
-            _tray.RemoveUpdateItem();
-        };
-        _updatePromptWindow.InstallRequested += (_, _) => ApplyUpdateInApp();
-        _updatePromptWindow.Closed += (_, _) => _updatePromptWindow = null;
-        _updatePromptWindow.Show();
+            var window = new UpdatePromptWindow(viewModel);
+            window.SkipRequested += (_, _) =>
+            {
+                _settingsController.SetSkippedUpdateVersion(version);
+                _tray.RemoveUpdateItem();
+            };
+            window.InstallRequested += (_, _) => ApplyUpdateInApp();
+            return window;
+        });
     }
 
     // Applies the pending update in place and restarts; on failure surfaces the failure prompt. Shared by
@@ -713,18 +669,8 @@ public partial class App : Application
         }
     }
 
-    private void ShowUpdateInfo(UpdatePromptViewModel viewModel)
-    {
-        if (_updatePromptWindow is not null)
-        {
-            _updatePromptWindow.Activate();
-            return;
-        }
-
-        _updatePromptWindow = new(viewModel);
-        _updatePromptWindow.Closed += (_, _) => _updatePromptWindow = null;
-        _updatePromptWindow.Show();
-    }
+    private void ShowUpdateInfo(UpdatePromptViewModel viewModel) =>
+        _updateHost.ShowOrActivate(() => new(viewModel));
 
     // Opens a release page in the default browser. Best effort: a broken shell association must not
     // crash the tray click.
