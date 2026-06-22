@@ -15,8 +15,25 @@ internal sealed class Program
     [STAThread]
     public static void Main(string[] args)
     {
-        // Persist any otherwise-silent crash so a field failure can be diagnosed. Registered first so it
-        // covers the whole startup sequence below.
+        // Velopack must process hook args and exit before anything else, so it runs first (the analyzer
+        // also requires VelopackApp.Run() in Main): a hook invocation must never relaunch elevated or
+        // contend for the mutex. OnBeforeUninstallFastCallback handles Add/Remove Programs uninstall, which
+        // can't show UI or be canceled, so it clears the run key and removes the autostart task non-elevated.
+        var velopackApp = VelopackApp.Build();
+        if (OperatingSystem.IsWindows())
+            velopackApp = velopackApp.OnBeforeUninstallFastCallback(_ =>
+            {
+                if (!OperatingSystem.IsWindows()) return;
+                var operations = new WindowsStartupOperations();
+                operations.RemoveRunKey();
+
+                // Non-elevated only (no UAC, killed after 30s). Only this version's user-deletable tasks
+                // are removed; admin-only tasks from older versions remain (documented manual cleanup).
+                if (operations.TaskExists()) operations.RemoveTaskNonElevated();
+            });
+        velopackApp.Run();
+
+        // Persist otherwise-silent crashes; covers the rest of the startup sequence below.
         AppDomain.CurrentDomain.UnhandledException += (_, eventArgs) =>
             CrashLog.Write("UnhandledException", eventArgs.ExceptionObject as Exception);
         TaskScheduler.UnobservedTaskException += (_, eventArgs) =>
@@ -38,36 +55,12 @@ internal sealed class Program
 
     private static void Run(string[] args)
     {
-        // Velopack must process any install/update/uninstall hook arguments and exit before this process
-        // does anything else: it is run before the elevation gate and the single-instance mutex so a hook
-        // invocation never relaunches elevated or contends for the mutex. The Add/Remove Programs uninstall
-        // path runs OnBeforeUninstallFastCallback, which cannot show UI or be canceled, so it clears the
-        // per-user run key and removes the autostart task non-elevated (possible because this version grants
-        // the user delete rights on it). The elevated scheduled-task fallback lives in the in-app Uninstall.
-        var velopackApp = VelopackApp.Build();
-        if (OperatingSystem.IsWindows())
-            velopackApp = velopackApp.OnBeforeUninstallFastCallback(_ =>
-            {
-                if (!OperatingSystem.IsWindows()) return;
-                var operations = new WindowsStartupOperations();
-                operations.RemoveRunKey();
-
-                // Non-elevated only: this FastCallback must not show UI (so no UAC) and is killed after
-                // 30 seconds. Tasks created by this version are user-deletable and removed silently;
-                // tasks left by older versions are admin-only and remain (documented manual cleanup).
-                if (operations.TaskExists()) operations.RemoveTaskNonElevated();
-            });
-        velopackApp.Run();
-
-        // CPU temperature and power are read through the PawnIO kernel driver, whose device only an
-        // elevated process can open. If one of those metrics is enabled, the driver is installed, and we
-        // are not elevated, relaunch elevated and let this instance exit before any window appears. A
-        // declined prompt falls through and runs normally.
+        // CPU temp/power need an elevated process to open the PawnIO device. If enabled with the driver
+        // installed but unelevated, relaunch elevated and exit; a declined prompt falls through to run normally.
         if (OperatingSystem.IsWindows() && RelaunchedElevated()) return;
 
-        // Only one instance may run at a time. Acquire the guard after the elevation gate above so the
-        // non-elevated instance that relaunches itself elevated never holds the mutex: the elevated child
-        // claims it cleanly. A second launch finds the mutex taken and exits before any window appears.
+        // Acquire the single-instance guard after the elevation gate so the instance that relaunches itself
+        // elevated never holds the mutex; the elevated child claims it cleanly. A second launch exits here.
         using var instance = SingleInstance.Acquire();
         if (!instance.IsOnlyInstance) return;
 
@@ -79,7 +72,8 @@ internal sealed class Program
     {
         var settings = new SettingsStore(SettingsStore.DefaultPath).Load();
         var coordinator = new ElevationCoordinator(new WindowsElevation(), new WindowsDriverProbe());
-        return coordinator.ShouldRelaunch(settings.Visibility) && coordinator.RelaunchElevated(Environment.ProcessPath!);
+        return coordinator.ShouldRelaunch(settings.Visibility) &&
+               coordinator.RelaunchElevated(Environment.ProcessPath!);
     }
 
     // Avalonia configuration, don't remove; also used by visual designer.
