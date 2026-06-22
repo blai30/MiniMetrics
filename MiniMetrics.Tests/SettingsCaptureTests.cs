@@ -22,7 +22,7 @@ public class SettingsCaptureTests
             {
                 Application.Current!.RequestedThemeVariant = ThemeVariant.Dark;
 
-                var viewModel = new SettingsViewModel(new Settings(), systemIsDark: true, new FakeFontCatalog());
+                var viewModel = new SettingsViewModel(new(), true, new FakeFontCatalog());
                 var window = new SettingsWindow { DataContext = viewModel };
                 window.Show();
 
