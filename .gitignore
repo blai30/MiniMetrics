@@ -70,3 +70,6 @@ TestResults/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Headless UI capture output (regenerated on demand, never committed)
+captures/
