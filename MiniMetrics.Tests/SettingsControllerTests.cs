@@ -322,10 +322,10 @@ public class SettingsControllerTests
     {
         var (controller, store, scheduler) = NewController();
 
-        controller.SetWidgetStyle("Cascadia Code", 125, WidgetFontWeight.Bold);
+        controller.SetWidgetStyle("cpu", "Cascadia Code", 125, WidgetFontWeight.Bold);
 
         Assert.AreEqual("Cascadia Code", controller.Current.WidgetFontFamily);
-        Assert.AreEqual(125, controller.Current.WidgetScale);
+        Assert.AreEqual(125, controller.Current.WidgetScales["cpu"]);
         Assert.AreEqual(WidgetFontWeight.Bold, controller.Current.WidgetFontWeight);
         Assert.AreEqual(1, scheduler.ScheduleCount);
         Assert.IsNull(store.Load().WidgetFontFamily); // default until flush
@@ -333,7 +333,7 @@ public class SettingsControllerTests
         controller.Flush();
 
         Assert.AreEqual("Cascadia Code", store.Load().WidgetFontFamily);
-        Assert.AreEqual(125, store.Load().WidgetScale);
+        Assert.AreEqual(125, store.Load().WidgetScales["cpu"]);
         Assert.AreEqual(WidgetFontWeight.Bold, store.Load().WidgetFontWeight);
     }
 
@@ -343,7 +343,9 @@ public class SettingsControllerTests
         var (controller, _, _) = NewController();
 
         Assert.IsNull(controller.Current.WidgetFontFamily);
-        Assert.AreEqual(100, controller.Current.WidgetScale);
+        Assert.AreEqual(100, controller.Current.WidgetScales["cpu"]);
+        Assert.AreEqual(100, controller.Current.WidgetScales["gpu"]);
+        Assert.AreEqual(100, controller.Current.WidgetScales["clock"]);
         Assert.AreEqual(WidgetFontWeight.Regular, controller.Current.WidgetFontWeight);
     }
 }

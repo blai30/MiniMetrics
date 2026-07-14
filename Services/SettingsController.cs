@@ -20,6 +20,7 @@ public sealed class SettingsController
         _store = store;
         _scheduler = scheduler;
         MigrateVisibility();
+        MigrateWidgetScales();
         SeedElevationDefaults();
     }
 
@@ -118,11 +119,11 @@ public sealed class SettingsController
     }
 
     // Records the chosen font family, widget size scale, and weight preset, persisting on the debounce
-    // so a drag of the size slider or a burst of picks writes once. Applied globally to every widget.
-    public void SetWidgetStyle(string? family, int scale, WidgetFontWeight weight)
+    // so a drag of the size slider or a burst of picks writes once. Applied per-widget.
+    public void SetWidgetStyle(string widget, string? family, int scale, WidgetFontWeight weight)
     {
         _settings.WidgetFontFamily = family;
-        _settings.WidgetScale = scale;
+        _settings.WidgetScales[widget] = scale;
         _settings.WidgetFontWeight = weight;
         ScheduleSave();
     }
@@ -236,5 +237,15 @@ public sealed class SettingsController
         foreach (var entry in MetricRegistry.All)
             if (entry.RequiresElevation)
                 _settings.Visibility.TryAdd(entry.Key, false);
+    }
+
+    // Migrates the old global WidgetScale property to the new per-widget WidgetScales dictionary. All
+    // widgets are initialized to a default scale of 100 if not already in the dictionary.
+    private void MigrateWidgetScales()
+    {
+        // Initialize all widget scales with the default if not present
+        _settings.WidgetScales.TryAdd("cpu", 100);
+        _settings.WidgetScales.TryAdd("gpu", 100);
+        _settings.WidgetScales.TryAdd("clock", 100);
     }
 }

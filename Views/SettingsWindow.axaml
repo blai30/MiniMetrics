@@ -374,27 +374,91 @@
                             <Grid Classes="row" ColumnDefinitions="*,Auto">
                                 <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12">
                                     <Viewbox Classes="rowIcon" VerticalAlignment="Center">
-                                        <Path Classes="rowIcon" Data="{StaticResource Lucide.Scaling}" />
+                                        <Path Classes="rowIcon" Data="{StaticResource Lucide.Cpu}" />
                                     </Viewbox>
                                     <StackPanel>
-                                        <TextBlock Classes="settingLabel" Text="Widget size" />
-                                        <TextBlock Classes="settingDesc" Text="Scale of every widget on screen" />
+                                        <TextBlock Classes="settingLabel" Text="CPU widget size" />
+                                        <TextBlock Classes="settingDesc" Text="Scale of the CPU widget" />
                                     </StackPanel>
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Classes="control">
                                     <Button Classes="reset" Content="Reset"
-                                            Command="{Binding RestoreWidgetScaleCommand}"
-                                            IsVisible="{Binding WidgetScaleModified}" />
-                                    <Slider Width="130" Minimum="50" Maximum="200" Value="{Binding WidgetScale}" />
+                                            Command="{Binding RestoreCpuScaleCommand}"
+                                            IsVisible="{Binding CpuScaleModified}" />
+                                    <Slider Width="130" Minimum="50" Maximum="200" Value="{Binding CpuScale}" />
                                     <NumericUpDown
-                                        x:Name="WidgetScaleInput"
+                                        x:Name="CpuScaleInput"
                                         Width="92"
                                         Height="34"
                                         VerticalAlignment="Center"
                                         Minimum="50"
                                         Maximum="200"
                                         Increment="1"
-                                        Value="{Binding WidgetScale, Mode=OneWay}"
+                                        Value="{Binding CpuScale, Mode=OneWay}"
+                                        ShowButtonSpinner="False"
+                                        ClipValueToMinMax="True"
+                                        KeyDown="OnPercentInputKeyDown"
+                                        LostFocus="OnPercentInputLostFocus" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                        <Border Classes="rowFrame">
+                            <Grid Classes="row" ColumnDefinitions="*,Auto">
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12">
+                                    <Viewbox Classes="rowIcon" VerticalAlignment="Center">
+                                        <Path Classes="rowIcon" Data="{StaticResource Lucide.Gpu}" />
+                                    </Viewbox>
+                                    <StackPanel>
+                                        <TextBlock Classes="settingLabel" Text="GPU widget size" />
+                                        <TextBlock Classes="settingDesc" Text="Scale of the GPU widget" />
+                                    </StackPanel>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Classes="control">
+                                    <Button Classes="reset" Content="Reset"
+                                            Command="{Binding RestoreGpuScaleCommand}"
+                                            IsVisible="{Binding GpuScaleModified}" />
+                                    <Slider Width="130" Minimum="50" Maximum="200" Value="{Binding GpuScale}" />
+                                    <NumericUpDown
+                                        x:Name="GpuScaleInput"
+                                        Width="92"
+                                        Height="34"
+                                        VerticalAlignment="Center"
+                                        Minimum="50"
+                                        Maximum="200"
+                                        Increment="1"
+                                        Value="{Binding GpuScale, Mode=OneWay}"
+                                        ShowButtonSpinner="False"
+                                        ClipValueToMinMax="True"
+                                        KeyDown="OnPercentInputKeyDown"
+                                        LostFocus="OnPercentInputLostFocus" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                        <Border Classes="rowFrame">
+                            <Grid Classes="row" ColumnDefinitions="*,Auto">
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12">
+                                    <Viewbox Classes="rowIcon" VerticalAlignment="Center">
+                                        <Path Classes="rowIcon" Data="{StaticResource Lucide.Clock}" />
+                                    </Viewbox>
+                                    <StackPanel>
+                                        <TextBlock Classes="settingLabel" Text="Clock widget size" />
+                                        <TextBlock Classes="settingDesc" Text="Scale of the clock widget" />
+                                    </StackPanel>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Classes="control">
+                                    <Button Classes="reset" Content="Reset"
+                                            Command="{Binding RestoreClockScaleCommand}"
+                                            IsVisible="{Binding ClockScaleModified}" />
+                                    <Slider Width="130" Minimum="50" Maximum="200" Value="{Binding ClockScale}" />
+                                    <NumericUpDown
+                                        x:Name="ClockScaleInput"
+                                        Width="92"
+                                        Height="34"
+                                        VerticalAlignment="Center"
+                                        Minimum="50"
+                                        Maximum="200"
+                                        Increment="1"
+                                        Value="{Binding ClockScale, Mode=OneWay}"
                                         ShowButtonSpinner="False"
                                         ClipValueToMinMax="True"
                                         KeyDown="OnPercentInputKeyDown"

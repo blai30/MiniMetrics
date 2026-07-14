@@ -88,8 +88,16 @@ public partial class SettingsViewModel : ObservableObject
     public partial string WidgetFontFamily { get; set; }
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(WidgetScaleModified))]
-    public partial int WidgetScale { get; set; }
+    [NotifyPropertyChangedFor(nameof(CpuScaleModified))]
+    public partial int CpuScale { get; set; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(GpuScaleModified))]
+    public partial int GpuScale { get; set; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ClockScaleModified))]
+    public partial int ClockScale { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(WidgetFontWeightModified))]
@@ -186,7 +194,9 @@ public partial class SettingsViewModel : ObservableObject
         DateTimeCompact = settings.DateTimeCompact;
         AvailableFonts = fonts?.AvailableFamilies() ?? [WidgetStyleProfile.DefaultFamilyName];
         WidgetFontFamily = settings.WidgetFontFamily ?? WidgetStyleProfile.DefaultFamilyName;
-        WidgetScale = settings.WidgetScale;
+        CpuScale = settings.WidgetScales.GetValueOrDefault("cpu", 100);
+        GpuScale = settings.WidgetScales.GetValueOrDefault("gpu", 100);
+        ClockScale = settings.WidgetScales.GetValueOrDefault("clock", 100);
         WidgetFontWeight = settings.WidgetFontWeight;
         ClockAlignment = settings.ClockAlignment;
         UseLocalTime = settings.TimeZoneId is null;
@@ -241,7 +251,9 @@ public partial class SettingsViewModel : ObservableObject
     // IsVisible to these so it surfaces only while the option strays from default.
     public bool ThemeModified => Theme != Defaults.Theme;
     public bool OpacityModified => Opacity != Defaults.Opacity;
-    public bool WidgetScaleModified => WidgetScale != Defaults.WidgetScale;
+    public bool CpuScaleModified => CpuScale != 100;
+    public bool GpuScaleModified => GpuScale != 100;
+    public bool ClockScaleModified => ClockScale != 100;
     public bool WidgetFontFamilyModified => WidgetFontFamily != WidgetStyleProfile.DefaultFamilyName;
     public bool WidgetFontWeightModified => WidgetFontWeight != Defaults.WidgetFontWeight;
     public bool ClockAlignmentModified => ClockAlignment != Defaults.ClockAlignment;
@@ -261,7 +273,13 @@ public partial class SettingsViewModel : ObservableObject
     private void RestoreOpacity() => Opacity = Defaults.Opacity;
 
     [RelayCommand]
-    private void RestoreWidgetScale() => WidgetScale = Defaults.WidgetScale;
+    private void RestoreCpuScale() => CpuScale = 100;
+
+    [RelayCommand]
+    private void RestoreGpuScale() => GpuScale = 100;
+
+    [RelayCommand]
+    private void RestoreClockScale() => ClockScale = 100;
 
     [RelayCommand]
     private void RestoreWidgetFontFamily() => WidgetFontFamily = WidgetStyleProfile.DefaultFamilyName;
@@ -382,13 +400,19 @@ public partial class SettingsViewModel : ObservableObject
         SettingChanged?.Invoke(new SettingChange.Compact("clock", value));
 
     partial void OnWidgetFontFamilyChanged(string value) =>
-        RaiseWidgetStyle();
+        RaiseWidgetStyle("cpu");
 
-    partial void OnWidgetScaleChanged(int value) =>
-        RaiseWidgetStyle();
+    partial void OnCpuScaleChanged(int value) =>
+        RaiseWidgetStyle("cpu");
+
+    partial void OnGpuScaleChanged(int value) =>
+        RaiseWidgetStyle("gpu");
+
+    partial void OnClockScaleChanged(int value) =>
+        RaiseWidgetStyle("clock");
 
     partial void OnWidgetFontWeightChanged(WidgetFontWeight value) =>
-        RaiseWidgetStyle();
+        RaiseWidgetStyle("cpu");
 
     partial void OnClockAlignmentChanged(ClockAlignment value) =>
         SettingChanged?.Invoke(new SettingChange.Alignment(value));
@@ -407,8 +431,17 @@ public partial class SettingsViewModel : ObservableObject
     private void RaiseUpdatePreferences() =>
         SettingChanged?.Invoke(new SettingChange.UpdatePreferences(UpdateCheckEnabled, UpdateFrequency));
 
-    private void RaiseWidgetStyle() =>
-        SettingChanged?.Invoke(new SettingChange.WidgetStyle(WidgetFontFamily, WidgetScale, WidgetFontWeight));
+    private void RaiseWidgetStyle(string widget)
+    {
+        int scale = widget switch
+        {
+            "cpu" => CpuScale,
+            "gpu" => GpuScale,
+            "clock" => ClockScale,
+            _ => 100
+        };
+        SettingChanged?.Invoke(new SettingChange.WidgetStyle(widget, WidgetFontFamily, scale, WidgetFontWeight));
+    }
 
     // Picks the saved zone by id, else the machine's local zone (matched from the list so the
     // dropdown highlights it), else local as a last resort.

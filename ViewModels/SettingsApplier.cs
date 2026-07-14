@@ -85,7 +85,7 @@ public sealed class SettingsApplier
                 _controller.SetUpdatePreferences(updates.Enabled, updates.Frequency);
                 break;
             case SettingChange.WidgetStyle style:
-                _controller.SetWidgetStyle(style.Family, style.Scale, style.Weight);
+                _controller.SetWidgetStyle(style.Widget, style.Family, style.Scale, style.Weight);
                 ApplyStyle();
                 break;
         }
@@ -100,14 +100,41 @@ public sealed class SettingsApplier
         foreach (var widget in _widgets) widget.ApplyAppearance(background, settings.Opacity);
     }
 
-    // Resolves one style profile from the current settings and pushes it to every widget through the
-    // shared widget-style seam. Also called by the host at startup.
+    // Resolves one style profile for each widget from the current settings and pushes it to the widget
+    // through the shared widget-style seam. Also called by the host at startup.
     public void ApplyStyle()
     {
         var settings = _controller.Current;
-        var profile = WidgetStyleProfile.Resolve(
-            settings.WidgetFontFamily, settings.WidgetScale, settings.WidgetFontWeight);
-        foreach (var widget in _widgets) widget.ApplyStyle(profile);
+        
+        // Apply style to each widget by referencing the specific widget view models
+        var cpuProfile = WidgetStyleProfile.Resolve(
+            settings.WidgetFontFamily, 
+            settings.WidgetScales.GetValueOrDefault("cpu", 100), 
+            settings.WidgetFontWeight);
+        _cpu.ApplyStyle(cpuProfile);
+
+        var gpuProfile = WidgetStyleProfile.Resolve(
+            settings.WidgetFontFamily, 
+            settings.WidgetScales.GetValueOrDefault("gpu", 100), 
+            settings.WidgetFontWeight);
+        _gpu.ApplyStyle(gpuProfile);
+
+        var clockProfile = WidgetStyleProfile.Resolve(
+            settings.WidgetFontFamily, 
+            settings.WidgetScales.GetValueOrDefault("clock", 100), 
+            settings.WidgetFontWeight);
+        _dateTime.ApplyStyle(clockProfile);
+
+        // Also apply to any other IWidgetDisplay objects in the shared seam (for test/future compatibility)
+        // Filter out the metric widgets to avoid applying twice
+        foreach (var widget in _widgets)
+        {
+            if (widget != _cpu && widget != _gpu && widget != _dateTime)
+            {
+                // For non-metric widgets, apply the CPU scale as default
+                widget.ApplyStyle(cpuProfile);
+            }
+        }
     }
 
     // Re-raises accent colors on the metric widgets so the theme-aware converters re-run. Also called by

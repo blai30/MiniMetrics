@@ -110,8 +110,14 @@ public partial class SettingsWindow : Window
                 case nameof(OpacityInput):
                     viewModel.Opacity = committed;
                     break;
-                case nameof(WidgetScaleInput):
-                    viewModel.WidgetScale = committed;
+                case nameof(CpuScaleInput):
+                    viewModel.CpuScale = committed;
+                    break;
+                case nameof(GpuScaleInput):
+                    viewModel.GpuScale = committed;
+                    break;
+                case nameof(ClockScaleInput):
+                    viewModel.ClockScale = committed;
                     break;
             }
         }
@@ -120,7 +126,9 @@ public partial class SettingsWindow : Window
             input.Value = input.Name switch
             {
                 nameof(OpacityInput) => viewModel.Opacity,
-                nameof(WidgetScaleInput) => viewModel.WidgetScale,
+                nameof(CpuScaleInput) => viewModel.CpuScale,
+                nameof(GpuScaleInput) => viewModel.GpuScale,
+                nameof(ClockScaleInput) => viewModel.ClockScale,
                 _ => input.Value
             };
         }

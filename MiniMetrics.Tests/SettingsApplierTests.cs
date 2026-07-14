@@ -127,9 +127,9 @@ public class SettingsApplierTests
     {
         var harness = NewHarness();
 
-        harness.Applier.Apply(new SettingChange.WidgetStyle("Inter", 150, WidgetFontWeight.Bold));
+        harness.Applier.Apply(new SettingChange.WidgetStyle("cpu", "Inter", 150, WidgetFontWeight.Bold));
 
-        Assert.AreEqual(150, harness.Controller.Current.WidgetScale);
+        Assert.AreEqual(150, harness.Controller.Current.WidgetScales["cpu"]);
         Assert.AreEqual(WidgetFontWeight.Bold, harness.Controller.Current.WidgetFontWeight);
         Assert.AreEqual(1, harness.Widget.StyleCount);
         Assert.AreEqual(1.5, harness.Widget.LastProfile!.Value.Scale);

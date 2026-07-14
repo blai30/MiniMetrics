@@ -438,7 +438,9 @@ public class SettingsViewModelTests
         var viewModel = new SettingsViewModel(new(), true, new FakeFontCatalog());
 
         Assert.AreEqual("Inter", viewModel.WidgetFontFamily);
-        Assert.AreEqual(100, viewModel.WidgetScale);
+        Assert.AreEqual(100, viewModel.CpuScale);
+        Assert.AreEqual(100, viewModel.GpuScale);
+        Assert.AreEqual(100, viewModel.ClockScale);
         Assert.AreEqual(WidgetFontWeight.Regular, viewModel.WidgetFontWeight);
     }
 
@@ -447,13 +449,17 @@ public class SettingsViewModelTests
     {
         var settings = new Settings
         {
-            WidgetFontFamily = "Cascadia Code", WidgetScale = 130, WidgetFontWeight = WidgetFontWeight.Bold
+            WidgetFontFamily = "Cascadia Code",
+            WidgetScales = new() { { "cpu", 130 }, { "gpu", 140 }, { "clock", 150 } },
+            WidgetFontWeight = WidgetFontWeight.Bold
         };
 
         var viewModel = new SettingsViewModel(settings, true, new FakeFontCatalog("Cascadia Code"));
 
         Assert.AreEqual("Cascadia Code", viewModel.WidgetFontFamily);
-        Assert.AreEqual(130, viewModel.WidgetScale);
+        Assert.AreEqual(130, viewModel.CpuScale);
+        Assert.AreEqual(140, viewModel.GpuScale);
+        Assert.AreEqual(150, viewModel.ClockScale);
         Assert.AreEqual(WidgetFontWeight.Bold, viewModel.WidgetFontWeight);
     }
 
@@ -470,15 +476,42 @@ public class SettingsViewModelTests
     }
 
     [TestMethod]
-    public void Changing_scale_raises_a_widget_style_change()
+    public void Changing_cpu_scale_raises_a_widget_style_change()
     {
         var viewModel = new SettingsViewModel(new(), true, new FakeFontCatalog());
         var changes = Capture(viewModel);
 
-        viewModel.WidgetScale = 120;
+        viewModel.CpuScale = 120;
 
         Assert.AreEqual(1, changes.Count);
         Assert.IsTrue(changes[0] is SettingChange.WidgetStyle);
+        Assert.AreEqual("cpu", ((SettingChange.WidgetStyle)changes[0]).Widget);
+    }
+
+    [TestMethod]
+    public void Changing_gpu_scale_raises_a_widget_style_change()
+    {
+        var viewModel = new SettingsViewModel(new(), true, new FakeFontCatalog());
+        var changes = Capture(viewModel);
+
+        viewModel.GpuScale = 120;
+
+        Assert.AreEqual(1, changes.Count);
+        Assert.IsTrue(changes[0] is SettingChange.WidgetStyle);
+        Assert.AreEqual("gpu", ((SettingChange.WidgetStyle)changes[0]).Widget);
+    }
+
+    [TestMethod]
+    public void Changing_clock_scale_raises_a_widget_style_change()
+    {
+        var viewModel = new SettingsViewModel(new(), true, new FakeFontCatalog());
+        var changes = Capture(viewModel);
+
+        viewModel.ClockScale = 120;
+
+        Assert.AreEqual(1, changes.Count);
+        Assert.IsTrue(changes[0] is SettingChange.WidgetStyle);
+        Assert.AreEqual("clock", ((SettingChange.WidgetStyle)changes[0]).Widget);
     }
 
     [TestMethod]
@@ -500,7 +533,9 @@ public class SettingsViewModelTests
 
         Assert.IsFalse(viewModel.ThemeModified);
         Assert.IsFalse(viewModel.OpacityModified);
-        Assert.IsFalse(viewModel.WidgetScaleModified);
+        Assert.IsFalse(viewModel.CpuScaleModified);
+        Assert.IsFalse(viewModel.GpuScaleModified);
+        Assert.IsFalse(viewModel.ClockScaleModified);
         Assert.IsFalse(viewModel.WidgetFontWeightModified);
         Assert.IsFalse(viewModel.ClockAlignmentModified);
         Assert.IsFalse(viewModel.UpdateFrequencyModified);
@@ -512,10 +547,12 @@ public class SettingsViewModelTests
         var viewModel = new SettingsViewModel(new(), true, new FakeFontCatalog());
 
         viewModel.Opacity = 50;
+        viewModel.CpuScale = 120;
         viewModel.UpdateFrequency = UpdateCheckFrequency.Monthly;
         viewModel.ClockAlignment = ClockAlignment.Center;
 
         Assert.IsTrue(viewModel.OpacityModified);
+        Assert.IsTrue(viewModel.CpuScaleModified);
         Assert.IsTrue(viewModel.UpdateFrequencyModified);
         Assert.IsTrue(viewModel.ClockAlignmentModified);
         Assert.IsFalse(viewModel.ThemeModified);
@@ -547,11 +584,11 @@ public class SettingsViewModelTests
     {
         var viewModel = new SettingsViewModel(new(), true, new FakeFontCatalog());
 
-        viewModel.WidgetScale = 130;
-        Assert.IsTrue(viewModel.WidgetScaleModified);
+        viewModel.CpuScale = 130;
+        Assert.IsTrue(viewModel.CpuScaleModified);
 
-        viewModel.WidgetScale = 100;
-        Assert.IsFalse(viewModel.WidgetScaleModified);
+        viewModel.CpuScale = 100;
+        Assert.IsFalse(viewModel.CpuScaleModified);
     }
 
     [TestMethod]
