@@ -65,7 +65,7 @@ public partial class DateTimeWidgetViewModel : ObservableObject, IWidgetDisplay,
 
     // Updates the width adjustment mode and optionally a custom width. In Auto mode the widget resizes
     // to fit its content; in Fixed mode it uses the custom width scaled by the current widget scale.
-    public void SetWidthMode(ClockWidthMode mode, double customWidth = BaseWidth)
+    public void SetWidthMode(ClockWidthMode mode, int customWidth = 640)
     {
         _widthMode = mode;
         _customWidth = customWidth;

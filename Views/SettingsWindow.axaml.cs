@@ -119,6 +119,9 @@ public partial class SettingsWindow : Window
                 case nameof(ClockScaleInput):
                     viewModel.ClockScale = committed;
                     break;
+                case nameof(ClockCustomWidthInput):
+                    viewModel.ClockCustomWidth = committed;
+                    break;
             }
         }
         else
@@ -129,6 +132,7 @@ public partial class SettingsWindow : Window
                 nameof(CpuScaleInput) => viewModel.CpuScale,
                 nameof(GpuScaleInput) => viewModel.GpuScale,
                 nameof(ClockScaleInput) => viewModel.ClockScale,
+                nameof(ClockCustomWidthInput) => viewModel.ClockCustomWidth,
                 _ => input.Value
             };
         }

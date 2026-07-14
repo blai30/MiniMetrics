@@ -753,7 +753,7 @@
                                     <Button Classes="reset" Content="Reset"
                                             Command="{Binding RestoreClockWidthCommand}"
                                             IsVisible="{Binding ClockCustomWidthModified}" />
-                                    <Slider Minimum="200" Maximum="1200" Value="{Binding ClockCustomWidth}" Width="200" HorizontalAlignment="Right" />
+                                    <Slider Minimum="200" Maximum="1200" Value="{Binding ClockCustomWidth}" Width="130" />
                                     <NumericUpDown
                                         x:Name="ClockCustomWidthInput"
                                         Width="92"
@@ -762,6 +762,7 @@
                                         Minimum="200"
                                         Maximum="1200"
                                         Increment="1"
+                                        FormatString="{}{0:F0}"
                                         Value="{Binding ClockCustomWidth, Mode=OneWay}"
                                         ShowButtonSpinner="False"
                                         ClipValueToMinMax="True"

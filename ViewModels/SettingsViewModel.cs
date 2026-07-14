@@ -109,7 +109,7 @@ public partial class SettingsViewModel : ObservableObject
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ClockCustomWidthModified))]
-    public partial double ClockCustomWidth { get; set; }
+    public partial int ClockCustomWidth { get; set; }
 
     public IReadOnlyList<ClockWidthMode> ClockWidthModes { get; } = [ClockWidthMode.Auto, ClockWidthMode.Fixed];
 
@@ -437,7 +437,7 @@ public partial class SettingsViewModel : ObservableObject
     partial void OnClockWidthModeChanged(ClockWidthMode value) =>
         RaiseClockWidth();
 
-    partial void OnClockCustomWidthChanged(double value) =>
+    partial void OnClockCustomWidthChanged(int value) =>
         RaiseClockWidth();
 
     // The read-back facets bundle the view model's current values so the host never reaches back in.

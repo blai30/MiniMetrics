@@ -138,7 +138,7 @@ public sealed class SettingsController
 
     // Records the chosen clock width mode and custom width, persisting on the debounce. Auto adjusts to
     // content; Fixed uses the custom width scaled by the current widget scale.
-    public void SetClockWidth(ClockWidthMode mode, double customWidth)
+    public void SetClockWidth(ClockWidthMode mode, int customWidth)
     {
         _settings.ClockWidthMode = mode;
         _settings.ClockCustomWidth = customWidth;
