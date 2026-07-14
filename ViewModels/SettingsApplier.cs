@@ -88,6 +88,10 @@ public sealed class SettingsApplier
                 _controller.SetWidgetStyle(style.Widget, style.Family, style.Scale, style.Weight);
                 ApplyStyle();
                 break;
+            case SettingChange.ClockWidth width:
+                _controller.SetClockWidth(width.Mode, width.CustomWidth);
+                ApplyClockWidth();
+                break;
         }
     }
 
@@ -145,7 +149,14 @@ public sealed class SettingsApplier
         _gpu.RefreshThemeColors();
     }
 
-    // Persists a per-widget compact toggle and pushes it onto the affected widget so it reflows live.
+    // Applies the current clock width mode and custom width to the DateTime widget so it adjusts live.
+    private void ApplyClockWidth()
+    {
+        var settings = _controller.Current;
+        _dateTime.SetWidthMode(settings.ClockWidthMode, settings.ClockCustomWidth);
+    }
+
+    // Pushes a per-widget compact toggle and pushes it onto the affected widget so it reflows live.
     private void ApplyCompact(string widget, bool value)
     {
         switch (widget)

@@ -31,6 +31,7 @@
             <conv:SwatchSelectionThicknessConverter x:Key="SwatchRing" />
             <conv:IndexEqualsConverter x:Key="IndexEquals" />
             <conv:MetricIconConverter x:Key="MetricIcon" />
+            <conv:EnumEqualsConverter x:Key="EnumEquals" />
         </ResourceDictionary>
     </Window.Resources>
 
@@ -707,6 +708,65 @@
                                             </ItemsPanelTemplate>
                                         </ListBox.ItemsPanel>
                                     </ListBox>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                        <Border Classes="rowFrame">
+                            <Grid Classes="row" ColumnDefinitions="*,Auto">
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12">
+                                    <Viewbox Classes="rowIcon" VerticalAlignment="Center">
+                                        <Path Classes="rowIcon" Data="{StaticResource Lucide.Scaling}" />
+                                    </Viewbox>
+                                    <StackPanel>
+                                        <TextBlock Classes="settingLabel" Text="Width" />
+                                        <TextBlock Classes="settingDesc" Text="Auto adjusts to content or Fixed sets a custom width" />
+                                    </StackPanel>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Classes="control">
+                                    <Button Classes="reset" Content="Reset"
+                                            Command="{Binding RestoreClockWidthCommand}"
+                                            IsVisible="{Binding ClockWidthModified}" />
+                                    <ListBox Classes="pillTabs" HorizontalAlignment="Right"
+                                             ItemsSource="{Binding ClockWidthModes}"
+                                             SelectedItem="{Binding ClockWidthMode}">
+                                        <ListBox.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <StackPanel Orientation="Horizontal" />
+                                            </ItemsPanelTemplate>
+                                        </ListBox.ItemsPanel>
+                                    </ListBox>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                        <Border Classes="rowFrame" IsVisible="{Binding ClockWidthMode, Converter={StaticResource EnumEquals}, ConverterParameter=Fixed}">
+                            <Grid Classes="row" ColumnDefinitions="*,Auto">
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12">
+                                    <Viewbox Classes="rowIcon" VerticalAlignment="Center">
+                                        <Path Classes="rowIcon" Data="{StaticResource Lucide.Scaling}" />
+                                    </Viewbox>
+                                    <StackPanel>
+                                        <TextBlock Classes="settingLabel" Text="Custom width" />
+                                        <TextBlock Classes="settingDesc" Text="Width in pixels (scaled by widget scale)" />
+                                    </StackPanel>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Classes="control">
+                                    <Button Classes="reset" Content="Reset"
+                                            Command="{Binding RestoreClockWidthCommand}"
+                                            IsVisible="{Binding ClockCustomWidthModified}" />
+                                    <Slider Minimum="200" Maximum="1200" Value="{Binding ClockCustomWidth}" Width="200" HorizontalAlignment="Right" />
+                                    <NumericUpDown
+                                        x:Name="ClockCustomWidthInput"
+                                        Width="92"
+                                        Height="34"
+                                        VerticalAlignment="Center"
+                                        Minimum="200"
+                                        Maximum="1200"
+                                        Increment="1"
+                                        Value="{Binding ClockCustomWidth, Mode=OneWay}"
+                                        ShowButtonSpinner="False"
+                                        ClipValueToMinMax="True"
+                                        KeyDown="OnPercentInputKeyDown"
+                                        LostFocus="OnPercentInputLostFocus" />
                                 </StackPanel>
                             </Grid>
                         </Border>

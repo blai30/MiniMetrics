@@ -112,3 +112,15 @@ public sealed class SwatchSelectionThicknessConverter : IMultiValueConverter
             : new Thickness(0);
     }
 }
+
+// Compares an enum value against the converter parameter (a string matching the enum member name), so a
+// view can show/hide controls conditioned on an enum setting without the view model tracking a separate
+// "is X" flag.
+public sealed class EnumEqualsConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+        value is Enum @enum && parameter is string name && @enum.ToString() == name;
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => throw new NotSupportedException();
+}

@@ -108,6 +108,7 @@ public partial class App : Application
                 _settings.ClockTimeFormatHover, _settings.ClockDateFormatHover);
             _dateTimeViewModel.IsCompact = _settings.DateTimeCompact;
             _dateTimeViewModel.SetAlignment(_settings.ClockAlignment);
+            _dateTimeViewModel.SetWidthMode(_settings.ClockWidthMode, _settings.ClockCustomWidth);
 
             _widgets = [_cpuViewModel, _gpuViewModel, _dateTimeViewModel];
             _applier = new(

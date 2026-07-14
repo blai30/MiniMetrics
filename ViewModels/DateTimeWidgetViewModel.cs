@@ -37,6 +37,8 @@ public partial class DateTimeWidgetViewModel : ObservableObject, IWidgetDisplay,
 
     private const double BaseWidth = 640;
     private const double BaseHeight = 176;
+    private ClockWidthMode _widthMode = ClockWidthMode.Auto;
+    private double _customWidth = BaseWidth;
 
     [ObservableProperty] public partial FontFamily FontFamily { get; set; } = new(WidgetStyleProfile.BundledInter);
     [ObservableProperty] public partial double Scale { get; set; } = 1.0;
@@ -56,10 +58,22 @@ public partial class DateTimeWidgetViewModel : ObservableObject, IWidgetDisplay,
     {
         FontFamily = new(profile.FontFamily);
         Scale = profile.Scale;
-        ScaledWidth = BaseWidth * profile.Scale;
+        ScaledWidth = ResolveWidth(profile.Scale);
         ScaledHeight = BaseHeight * profile.Scale;
         ClockWeight = (FontWeight)profile.ClockWeight;
     }
+
+    // Updates the width adjustment mode and optionally a custom width. In Auto mode the widget resizes
+    // to fit its content; in Fixed mode it uses the custom width scaled by the current widget scale.
+    public void SetWidthMode(ClockWidthMode mode, double customWidth = BaseWidth)
+    {
+        _widthMode = mode;
+        _customWidth = customWidth;
+        ScaledWidth = ResolveWidth(Scale);
+    }
+
+    private double ResolveWidth(double scale) =>
+        _widthMode == ClockWidthMode.Fixed ? _customWidth * scale : BaseWidth * scale;
 
     // Updates the active time zone and reformats the last known instant.
     public void SetTimeZone(TimeZoneInfo zone)

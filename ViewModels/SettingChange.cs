@@ -34,4 +34,6 @@ public abstract record SettingChange
     public sealed record UpdatePreferences(bool Enabled, UpdateCheckFrequency Frequency) : SettingChange;
 
     public sealed record WidgetStyle(string Widget, string Family, int Scale, WidgetFontWeight Weight) : SettingChange;
+
+    public sealed record ClockWidth(ClockWidthMode Mode, double CustomWidth) : SettingChange;
 }

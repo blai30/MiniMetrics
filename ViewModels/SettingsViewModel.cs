@@ -103,6 +103,16 @@ public partial class SettingsViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(WidgetFontWeightModified))]
     public partial WidgetFontWeight WidgetFontWeight { get; set; }
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ClockWidthModified))]
+    public partial ClockWidthMode ClockWidthMode { get; set; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ClockCustomWidthModified))]
+    public partial double ClockCustomWidth { get; set; }
+
+    public IReadOnlyList<ClockWidthMode> ClockWidthModes { get; } = [ClockWidthMode.Auto, ClockWidthMode.Fixed];
+
     [ObservableProperty] public partial bool UseLocalTime { get; set; }
 
     // The full set of specific cultures for the locale picker, ordered by display name.
@@ -199,6 +209,8 @@ public partial class SettingsViewModel : ObservableObject
         ClockScale = settings.WidgetScales.GetValueOrDefault("clock", 100);
         WidgetFontWeight = settings.WidgetFontWeight;
         ClockAlignment = settings.ClockAlignment;
+        ClockWidthMode = settings.ClockWidthMode;
+        ClockCustomWidth = settings.ClockCustomWidth;
         UseLocalTime = settings.TimeZoneId is null;
         ClockTimeFormat = settings.ClockTimeFormat;
         ClockDateFormat = settings.ClockDateFormat;
@@ -257,6 +269,8 @@ public partial class SettingsViewModel : ObservableObject
     public bool WidgetFontFamilyModified => WidgetFontFamily != WidgetStyleProfile.DefaultFamilyName;
     public bool WidgetFontWeightModified => WidgetFontWeight != Defaults.WidgetFontWeight;
     public bool ClockAlignmentModified => ClockAlignment != Defaults.ClockAlignment;
+    public bool ClockWidthModified => ClockWidthMode != Defaults.ClockWidthMode;
+    public bool ClockCustomWidthModified => ClockCustomWidth != Defaults.ClockCustomWidth;
     public bool UpdateFrequencyModified => UpdateFrequency != Defaults.UpdateFrequency;
 
     // The editor writes one theme variant at a time, so compare against and restore that variant's default.
@@ -289,6 +303,9 @@ public partial class SettingsViewModel : ObservableObject
 
     [RelayCommand]
     private void RestoreClockAlignment() => ClockAlignment = Defaults.ClockAlignment;
+
+    [RelayCommand]
+    private void RestoreClockWidth() => (ClockWidthMode, ClockCustomWidth) = (Defaults.ClockWidthMode, Defaults.ClockCustomWidth);
 
     [RelayCommand]
     private void RestoreUpdateFrequency() => UpdateFrequency = Defaults.UpdateFrequency;
@@ -417,6 +434,12 @@ public partial class SettingsViewModel : ObservableObject
     partial void OnClockAlignmentChanged(ClockAlignment value) =>
         SettingChanged?.Invoke(new SettingChange.Alignment(value));
 
+    partial void OnClockWidthModeChanged(ClockWidthMode value) =>
+        RaiseClockWidth();
+
+    partial void OnClockCustomWidthChanged(double value) =>
+        RaiseClockWidth();
+
     // The read-back facets bundle the view model's current values so the host never reaches back in.
     private void RaiseAppearance() =>
         SettingChanged?.Invoke(new SettingChange.Appearance(EditingVariantIsDark, BackgroundColor, Opacity));
@@ -430,6 +453,9 @@ public partial class SettingsViewModel : ObservableObject
 
     private void RaiseUpdatePreferences() =>
         SettingChanged?.Invoke(new SettingChange.UpdatePreferences(UpdateCheckEnabled, UpdateFrequency));
+
+    private void RaiseClockWidth() =>
+        SettingChanged?.Invoke(new SettingChange.ClockWidth(ClockWidthMode, ClockCustomWidth));
 
     private void RaiseWidgetStyle(string widget)
     {

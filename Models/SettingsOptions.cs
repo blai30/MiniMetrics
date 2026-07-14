@@ -27,3 +27,10 @@ public enum UpdateCheckFrequency
     Weekly,
     Monthly
 }
+
+// Width adjustment mode for the clock widget. Auto adjusts to content; Fixed uses a custom width.
+public enum ClockWidthMode
+{
+    Auto,
+    Fixed
+}
