@@ -37,14 +37,18 @@ public partial class DateTimeWidgetViewModel : ObservableObject, IWidgetDisplay,
 
     private const double BaseWidth = 640;
     private const double BaseHeight = 176;
-    private ClockWidthMode _widthMode = ClockWidthMode.Auto;
-    private double _customWidth = BaseWidth;
+    private ClockWidthMode _widthMode = ClockWidthMode.Fixed;
+    private int _customWidth = (int)BaseWidth;
 
     [ObservableProperty] public partial FontFamily FontFamily { get; set; } = new(WidgetStyleProfile.BundledInter);
     [ObservableProperty] public partial double Scale { get; set; } = 1.0;
     [ObservableProperty] public partial double ScaledWidth { get; set; } = BaseWidth;
     [ObservableProperty] public partial double ScaledHeight { get; set; } = BaseHeight;
     [ObservableProperty] public partial FontWeight ClockWeight { get; set; } = FontWeight.Medium;
+
+    // Exposes the current width mode to the host window so it can switch between fixed and content-sized
+    // width. The window listens to this via PropertyChanged and adjusts SizeToContent accordingly.
+    public ClockWidthMode WidthMode => _widthMode;
 
     // Recomputes the card's solid background color from a base color and opacity (shared with the
     // metrics widget's appearance logic).
@@ -70,6 +74,7 @@ public partial class DateTimeWidgetViewModel : ObservableObject, IWidgetDisplay,
         _widthMode = mode;
         _customWidth = customWidth;
         ScaledWidth = ResolveWidth(Scale);
+        OnPropertyChanged(nameof(WidthMode));
     }
 
     private double ResolveWidth(double scale) =>

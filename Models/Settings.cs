@@ -34,7 +34,7 @@ public sealed class Settings
     public string? ClockDateFormat { get; set; }
     public string? ClockTimeFormatHover { get; set; }
     public string? ClockDateFormatHover { get; set; }
-    public ClockWidthMode ClockWidthMode { get; set; } = ClockWidthMode.Auto;
+    public ClockWidthMode ClockWidthMode { get; set; } = ClockWidthMode.Fixed;
     public int ClockCustomWidth { get; set; } = 640;
     public Dictionary<string, bool> Visibility { get; set; } = [];
     public bool UpdateCheckEnabled { get; set; } = true;

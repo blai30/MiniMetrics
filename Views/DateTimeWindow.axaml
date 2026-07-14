@@ -9,8 +9,6 @@
     mc:Ignorable="d"
     x:Class="MiniMetrics.Views.DateTimeWindow"
     x:DataType="vm:DateTimeWidgetViewModel"
-    Width="{Binding ScaledWidth}"
-    Height="{Binding ScaledHeight}"
     Background="Transparent"
     TransparencyLevelHint="Transparent"
     TextOptions.TextRenderingMode="Antialias"
