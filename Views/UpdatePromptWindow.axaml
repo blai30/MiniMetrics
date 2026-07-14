@@ -8,7 +8,7 @@
     x:Class="MiniMetrics.Views.UpdatePromptWindow"
     x:DataType="vm:UpdatePromptViewModel"
     Classes="dialog"
-    Width="480"
+    Width="560"
     SizeToContent="Height"
     Title="MiniMetrics update"
     Icon="avares://MiniMetrics/Assets/minimetrics.ico"
@@ -37,8 +37,7 @@
             <Button Content="Remind me later" Click="OnDismiss" />
             <Button Content="Skip this version" Click="OnSkip" />
             <Button
-                Classes="primary"
-                Content="View release" IsVisible="{Binding !CanInstall}"
+                Content="View release"
                 Click="OnViewRelease" />
             <Button
                 Classes="primary"

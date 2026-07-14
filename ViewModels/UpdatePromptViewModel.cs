@@ -41,14 +41,14 @@ public sealed class UpdatePromptViewModel
             latestVersion,
             url);
 
-    public static UpdatePromptViewModel ForInstallReady(string latestVersion, string currentVersion) =>
+    public static UpdatePromptViewModel ForInstallReady(string latestVersion, string currentVersion, string url) =>
         new(
             true,
             true,
             "A new version is available",
             $"MiniMetrics {latestVersion} is available. You're on {currentVersion}. Install it now and MiniMetrics will restart.",
             latestVersion,
-            null);
+            url);
 
     public static UpdatePromptViewModel ForUpToDate(string currentVersion) =>
         new(

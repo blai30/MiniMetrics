@@ -561,7 +561,7 @@ public partial class App : Application
         _updateHost.ShowOrActivate(() =>
         {
             var viewModel = _updateFlow.CanApplyInApp
-                ? UpdatePromptViewModel.ForInstallReady(version, CurrentVersionString)
+                ? UpdatePromptViewModel.ForInstallReady(version, CurrentVersionString, url)
                 : UpdatePromptViewModel.ForAvailable(version, CurrentVersionString, url);
 
             var window = new UpdatePromptWindow(viewModel);

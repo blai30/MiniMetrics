@@ -38,13 +38,13 @@ public class UpdatePromptViewModelTests
     }
 
     [TestMethod]
-    public void ForInstallReady_is_actionable_and_installable_without_a_url()
+    public void ForInstallReady_is_actionable_and_installable_with_a_url()
     {
-        var viewModel = UpdatePromptViewModel.ForInstallReady("1.3.0", "1.2.0");
+        var viewModel = UpdatePromptViewModel.ForInstallReady("1.3.0", "1.2.0", "https://example/r");
 
         Assert.IsTrue(viewModel.IsActionable);
         Assert.IsTrue(viewModel.CanInstall);
-        Assert.IsNull(viewModel.Url);
+        Assert.AreEqual("https://example/r", viewModel.Url);
         Assert.AreEqual("1.3.0", viewModel.Version);
         StringAssert.Contains(viewModel.Body, "1.3.0");
         StringAssert.Contains(viewModel.Body, "1.2.0");
