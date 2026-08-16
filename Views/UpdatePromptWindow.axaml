@@ -8,7 +8,7 @@
     x:Class="MiniMetrics.Views.UpdatePromptWindow"
     x:DataType="vm:UpdatePromptViewModel"
     Classes="dialog"
-    Width="560"
+    Width="620"
     SizeToContent="Height"
     Title="MiniMetrics update"
     Icon="avares://MiniMetrics/Assets/minimetrics.ico"
