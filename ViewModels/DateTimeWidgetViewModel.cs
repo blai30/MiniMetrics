@@ -31,7 +31,10 @@ public partial class DateTimeWidgetViewModel : ObservableObject, IWidgetDisplay,
 
     // Drives the horizontal alignment of the clock text. TextAlignment positions the time and date
     // lines in the fixed-width full layout; BlockAlignment is applied to the compact layout's inline
-    // row (a no-op while that window hugs its content, kept for consistency).
+    // row (a no-op while that window hugs its content, kept for consistency). Alignment keeps the
+    // chosen setting itself, which the window needs to know which edge to anchor while it sizes to
+    // its content.
+    [ObservableProperty] public partial ClockAlignment Alignment { get; private set; } = ClockAlignment.Left;
     [ObservableProperty] public partial TextAlignment TextAlignment { get; set; } = TextAlignment.Left;
     [ObservableProperty] public partial HorizontalAlignment BlockAlignment { get; set; } = HorizontalAlignment.Left;
 
@@ -105,16 +108,17 @@ public partial class DateTimeWidgetViewModel : ObservableObject, IWidgetDisplay,
         Refresh();
     }
 
-    // Maps the saved alignment choice onto the two layout-facing properties.
-    public void SetAlignment(ClockAlignment alignment)
-    {
-        (TextAlignment, BlockAlignment) = alignment switch
+    // Updates the saved alignment choice.
+    public void SetAlignment(ClockAlignment alignment) => Alignment = alignment;
+
+    // Maps that choice onto the two layout-facing properties.
+    partial void OnAlignmentChanged(ClockAlignment value) =>
+        (TextAlignment, BlockAlignment) = value switch
         {
             ClockAlignment.Center => (TextAlignment.Center, HorizontalAlignment.Center),
             ClockAlignment.Right => (TextAlignment.Right, HorizontalAlignment.Right),
             _ => (TextAlignment.Left, HorizontalAlignment.Left)
         };
-    }
 
     // Advances the clock to a new instant (called once per second by App) and reformats.
     public void Tick(DateTimeOffset instant)

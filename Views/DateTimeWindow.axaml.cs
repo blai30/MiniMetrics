@@ -2,6 +2,7 @@ using System;
 using System.ComponentModel;
 using Avalonia.Controls;
 using Avalonia.Input;
+using MiniMetrics.Lib;
 using MiniMetrics.Models;
 using MiniMetrics.ViewModels;
 
@@ -42,6 +43,22 @@ public partial class DateTimeWindow : OverlayWindow
             if (!vm.IsCompact)
                 ApplyWidthMode(vm);
         }
+    }
+
+    // While the window sizes to its content it resizes on its own whenever the rendered time changes
+    // width, and a window always grows and shrinks from its right edge. Left-aligned that is invisible,
+    // but a right- or center-aligned clock would slide sideways on every such change, so move the
+    // window by the same amount to keep the aligned edge planted. A fixed-width window never resizes
+    // by itself, and the first layout has no previous width to anchor against.
+    protected override void OnSizeChanged(SizeChangedEventArgs e)
+    {
+        base.OnSizeChanged(e);
+
+        if (!e.WidthChanged || !SizeToContent.HasFlag(SizeToContent.Width)) return;
+        if (e.PreviousSize.Width <= 0 || DataContext is not DateTimeWidgetViewModel vm) return;
+
+        Position = Position.WithX(WidthAnchor.AnchoredLeft(
+            Position.X, e.PreviousSize.Width, e.NewSize.Width, vm.Alignment, RenderScaling));
     }
 
     private void ApplyWidthMode(DateTimeWidgetViewModel vm)

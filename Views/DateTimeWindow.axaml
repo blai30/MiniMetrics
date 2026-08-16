@@ -24,7 +24,13 @@
         <conv:ThicknessScaleConverter x:Key="ThicknessScale" />
     </Window.Resources>
 
-    <Border BorderThickness="0" CornerRadius="0" Background="{Binding CardBackground}">
+    <!-- Tabular figures give every digit the same advance, so the clock neither shuffles its own
+    characters as it ticks nor resizes an auto-width window on every second. -->
+    <Border
+        BorderThickness="0"
+        CornerRadius="0"
+        Background="{Binding CardBackground}"
+        TextElement.FontFeatures="+tnum">
         <Panel>
             <!-- Full layout: time over date. -->
             <StackPanel
