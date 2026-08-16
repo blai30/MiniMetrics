@@ -125,13 +125,18 @@ public class ClockWidthAnchorTests
 
             double width = window.Bounds.Width;
 
-            // Tabular figures give every digit the same advance, so a tick that only changes which
-            // digits are shown must not resize the window at all.
+            // Each line reserves the width its text would need with tabular figures, so a tick that
+            // only changes which digits are shown must not resize the window at all.
             for (int second = 0; second < 60; second++)
             {
                 viewModel.Tick(new(2026, 6, 16, 12, 26, second, TimeSpan.Zero));
                 Dispatcher.UIThread.RunJobs();
                 Assert.AreEqual(width, window.Bounds.Width, 1e-9, $"width moved at :{second:00}");
             }
+
+            // Same for the narrowest digits Inter draws, which are the worst case for that reservation.
+            viewModel.Tick(new(2026, 6, 16, 23, 11, 11, TimeSpan.Zero));
+            Dispatcher.UIThread.RunJobs();
+            Assert.AreEqual(width, window.Bounds.Width, 1e-9, "width moved at 11:11:11 PM");
         });
 }

@@ -24,26 +24,23 @@
         <conv:ThicknessScaleConverter x:Key="ThicknessScale" />
     </Window.Resources>
 
-    <!-- Tabular figures give every digit the same advance, so the clock neither shuffles its own
-    characters as it ticks nor resizes an auto-width window on every second. -->
-    <Border
-        BorderThickness="0"
-        CornerRadius="0"
-        Background="{Binding CardBackground}"
-        TextElement.FontFeatures="+tnum">
+    <!-- Every line is a StableWidthTextBlock: the digits draw with the font's own proportional widths,
+    but each line reserves the width it would need if they were tabular, so a tick that only changes
+    which digits are showing never resizes the window. -->
+    <Border BorderThickness="0" CornerRadius="0" Background="{Binding CardBackground}">
         <Panel>
             <!-- Full layout: time over date. -->
             <StackPanel
                 VerticalAlignment="Center"
                 Margin="{Binding Scale, Converter={StaticResource ThicknessScale}, ConverterParameter='28,0,28,0'}"
                 IsVisible="{Binding !IsCompact}">
-                <TextBlock
+                <views:StableWidthTextBlock
                     FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=80}"
                     FontWeight="{Binding ClockWeight}"
                     TextAlignment="{Binding TextAlignment}"
                     Foreground="{DynamicResource Widget.Text.Primary}"
                     Text="{Binding TimeText}" />
-                <TextBlock
+                <views:StableWidthTextBlock
                     FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=28}"
                     FontWeight="{Binding ClockWeight}"
                     TextAlignment="{Binding TextAlignment}"
@@ -51,7 +48,9 @@
                     Text="{Binding DateText}" />
             </StackPanel>
 
-            <!-- Compact layout: time and date on one line. -->
+            <!-- Compact layout: time and date on one line. The two lines pin their text to facing
+            edges so the reserved slack lands on the outside of the row and the gap between them
+            stays constant. -->
             <StackPanel
                 Orientation="Horizontal"
                 VerticalAlignment="Center"
@@ -59,14 +58,16 @@
                 Margin="{Binding Scale, Converter={StaticResource ThicknessScale}, ConverterParameter='20,0'}"
                 Spacing="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=16}"
                 IsVisible="{Binding IsCompact}">
-                <TextBlock
+                <views:StableWidthTextBlock
                     VerticalAlignment="Center"
+                    TextAlignment="Right"
                     FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=26}"
                     FontWeight="{Binding ClockWeight}"
                     Foreground="{DynamicResource Widget.Text.Primary}"
                     Text="{Binding TimeText}" />
-                <TextBlock
+                <views:StableWidthTextBlock
                     VerticalAlignment="Center"
+                    TextAlignment="Left"
                     FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=26}"
                     FontWeight="{Binding ClockWeight}"
                     Foreground="{DynamicResource Widget.Text.Label}"

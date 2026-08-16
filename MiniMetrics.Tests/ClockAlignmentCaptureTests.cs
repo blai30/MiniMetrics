@@ -37,5 +37,10 @@ public class ClockAlignmentCaptureTests
 
                 viewModel.Tick(new(2026, 6, 16, 1, 26, 42, TimeSpan.Zero));
                 Assert.IsNotNull(Capture.Window(window, "clock-align-2-narrow"));
+
+                // Worst case for the width StableWidthTextBlock reserves: every digit is the one
+                // Inter draws narrowest, so the gap left over inside the card is at its widest.
+                viewModel.Tick(new(2026, 6, 16, 23, 11, 11, TimeSpan.Zero));
+                Assert.IsNotNull(Capture.Window(window, "clock-align-3-narrow-digits"));
             }, CancellationToken.None);
 }
