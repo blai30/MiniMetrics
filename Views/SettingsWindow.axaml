@@ -494,9 +494,11 @@
                                         PlaceholderText="Search font...">
                                         <AutoCompleteBox.ItemTemplate>
                                             <DataTemplate x:DataType="sys:String">
+                                                <!-- Rows stay in the UI font: drawing each in its own
+                                                face would load every family scrolled past, and Avalonia
+                                                never releases a loaded font. -->
                                                 <TextBlock
                                                     Width="210"
-                                                    FontFamily="{Binding Converter={StaticResource StringToFontFamily}}"
                                                     TextTrimming="CharacterEllipsis"
                                                     Text="{Binding}" />
                                             </DataTemplate>

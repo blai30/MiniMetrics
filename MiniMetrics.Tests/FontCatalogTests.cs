@@ -28,6 +28,13 @@ public class FontCatalogTests
     }
 
     [TestMethod]
+    public void Drops_names_the_typeface_parser_rejects_or_that_are_garbled()
+    {
+        var result = FontCatalog.Arrange(["Arial", "Eras  ITC", " Leading", "Trailing ", "\0W\0e\0b", "Verdana"]);
+        CollectionAssert.AreEqual(new[] { "Inter", "Arial", "Verdana" }, result.ToArray());
+    }
+
+    [TestMethod]
     public void Empty_input_yields_just_inter()
     {
         var result = FontCatalog.Arrange([]);

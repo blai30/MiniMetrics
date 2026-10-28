@@ -633,6 +633,32 @@ public class SettingsViewModelTests
     }
 
     [TestMethod]
+    public void A_pending_font_search_raises_no_change()
+    {
+        var viewModel = new SettingsViewModel(new() { WidgetFontFamily = "Arial" }, true, new FakeFontCatalog("Arial"));
+        var changes = Capture(viewModel);
+
+        // The search box clears its selection to null while the user types.
+        viewModel.WidgetFontFamily = null;
+
+        Assert.AreEqual(0, changes.Count);
+        Assert.IsFalse(viewModel.WidgetFontFamilyModified);
+    }
+
+    [TestMethod]
+    public void A_scale_change_during_a_font_search_keeps_the_last_picked_font()
+    {
+        var viewModel = new SettingsViewModel(new() { WidgetFontFamily = "Arial" }, true, new FakeFontCatalog("Arial"));
+        var changes = Capture(viewModel);
+
+        viewModel.WidgetFontFamily = null;
+        viewModel.CpuScale = 150;
+
+        var style = (SettingChange.WidgetStyle)changes.Single();
+        Assert.AreEqual("Arial", style.Family);
+    }
+
+    [TestMethod]
     public void Font_family_unmodified_at_default()
     {
         var viewModel = new SettingsViewModel(new(), true, new FakeFontCatalog("Arial"));

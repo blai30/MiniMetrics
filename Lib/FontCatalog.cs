@@ -12,7 +12,7 @@ public static class FontCatalog
     public static IReadOnlyList<string> Arrange(IEnumerable<string> systemFamilies)
     {
         var rest = systemFamilies
-            .Where(name => !string.IsNullOrWhiteSpace(name))
+            .Where(IsUsableName)
             .Where(name =>
                 !string.Equals(name, WidgetStyleProfile.DefaultFamilyName, StringComparison.OrdinalIgnoreCase))
             .Distinct(StringComparer.OrdinalIgnoreCase)
@@ -20,4 +20,13 @@ public static class FontCatalog
 
         return [WidgetStyleProfile.DefaultFamilyName, .. rest];
     }
+
+    // Loading fonts makes Avalonia register extra family names as a side effect, some of which its own
+    // typeface parser rejects (a doubled space throws FormatException during layout) or which are
+    // garbled (NUL-interleaved names from symbol fonts). Those never reach the picker.
+    private static bool IsUsableName(string? name) =>
+        !string.IsNullOrWhiteSpace(name)
+        && name.Length == name.Trim().Length
+        && !name.Contains("  ", StringComparison.Ordinal)
+        && !name.Any(char.IsControl);
 }

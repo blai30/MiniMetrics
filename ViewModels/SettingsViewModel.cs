@@ -83,9 +83,13 @@ public partial class SettingsViewModel : ObservableObject
     public IReadOnlyList<WidgetFontWeight> WidgetFontWeights { get; } =
         [WidgetFontWeight.Light, WidgetFontWeight.Regular, WidgetFontWeight.Bold];
 
+    // Null while the user is typing in the font search box (it clears its selection); _fontFamily keeps
+    // the last real pick so a pending or abandoned search never restyles the widgets.
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(WidgetFontFamilyModified))]
-    public partial string WidgetFontFamily { get; set; }
+    public partial string? WidgetFontFamily { get; set; }
+
+    private string _fontFamily = WidgetStyleProfile.DefaultFamilyName;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CpuScaleModified))]
@@ -269,7 +273,8 @@ public partial class SettingsViewModel : ObservableObject
     public bool CpuScaleModified => CpuScale != 100;
     public bool GpuScaleModified => GpuScale != 100;
     public bool ClockScaleModified => ClockScale != 100;
-    public bool WidgetFontFamilyModified => WidgetFontFamily != WidgetStyleProfile.DefaultFamilyName;
+    public bool WidgetFontFamilyModified =>
+        WidgetFontFamily is not null && WidgetFontFamily != WidgetStyleProfile.DefaultFamilyName;
     public bool WidgetFontWeightModified => WidgetFontWeight != Defaults.WidgetFontWeight;
     public bool ClockAlignmentModified => ClockAlignment != Defaults.ClockAlignment;
     public bool ClockWidthModified => ClockWidthMode != Defaults.ClockWidthMode;
@@ -423,8 +428,12 @@ public partial class SettingsViewModel : ObservableObject
     partial void OnDateTimeCompactChanged(bool value) =>
         SettingChanged?.Invoke(new SettingChange.Compact("clock", value));
 
-    partial void OnWidgetFontFamilyChanged(string value) =>
+    partial void OnWidgetFontFamilyChanged(string? value)
+    {
+        if (value is null) return;
+        _fontFamily = value;
         RaiseWidgetStyle("cpu");
+    }
 
     partial void OnCpuScaleChanged(int value) =>
         RaiseWidgetStyle("cpu");
@@ -473,7 +482,7 @@ public partial class SettingsViewModel : ObservableObject
             "clock" => ClockScale,
             _ => 100,
         };
-        SettingChanged?.Invoke(new SettingChange.WidgetStyle(widget, WidgetFontFamily, scale, WidgetFontWeight));
+        SettingChanged?.Invoke(new SettingChange.WidgetStyle(widget, _fontFamily, scale, WidgetFontWeight));
     }
 
     // Picks the saved zone by id, else the machine's local zone (matched from the list so the

@@ -24,11 +24,13 @@ public readonly record struct WidgetStyleProfile(
     private const int MinScalePercent = 50;
     private const int MaxScalePercent = 200;
 
+    // The font source for a saved family name: blank or the Inter sentinel mean the bundled font.
+    public static string ResolveFamily(string? family) =>
+        string.IsNullOrEmpty(family) || family == DefaultFamilyName ? BundledInter : family;
+
     public static WidgetStyleProfile Resolve(string? family, int scalePercent, WidgetFontWeight weight)
     {
-        string resolvedFamily = string.IsNullOrEmpty(family) || family == DefaultFamilyName
-            ? BundledInter
-            : family;
+        string resolvedFamily = ResolveFamily(family);
 
         double scale = Math.Clamp(scalePercent, MinScalePercent, MaxScalePercent) / 100.0;
 
