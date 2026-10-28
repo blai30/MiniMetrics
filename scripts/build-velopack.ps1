@@ -49,7 +49,7 @@ if ($Version -notmatch "^[0-9]+\.[0-9]+\.[0-9]+$") {
 
 # Pin to the Velopack library version referenced by MiniMetrics.csproj so a newer vpk does not emit
 # packages the pinned in-app updater cannot apply.
-$vpkVersion = "1.2.0"
+$vpkVersion = "1.2.161"
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
 Push-Location $repoRoot

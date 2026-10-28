@@ -74,7 +74,17 @@ jobs:
         # Pin to the Velopack library version referenced by MiniMetrics.csproj so the packer and the
         # in-app update runtime stay in lockstep; a newer vpk could emit packages the pinned runtime
         # cannot apply.
-        run: dotnet tool install -g vpk --version 1.2.0
+        run: dotnet tool install -g vpk --version 1.2.161
+
+      # vpk pack only builds a delta package when the previous release's full package is in its output
+      # folder. Best effort: with no earlier published release (or an API hiccup) the pack ships full
+      # packages only. Unauthenticated on purpose: with a token the API also lists drafts, and an
+      # unpublished draft would become the delta base that no installed client has.
+      - name: Download previous releases for delta generation
+        continue-on-error: true
+        run: |
+          vpk download github --repoUrl https://github.com/${{ github.repository }} --channel win -o velopack/default
+          vpk download github --repoUrl https://github.com/${{ github.repository }} --channel selfcontained -o velopack/sc
 
       # Default download: framework-dependent. No --channel is passed, so it uses Velopack's built-in
       # default channel (win), which is what the feed files (releases.win.json, the nupkg, RELEASES-win)
@@ -126,7 +136,12 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $assets = Get-ChildItem -Path velopack/default, velopack/sc -File | ForEach-Object { $_.FullName }
+          # Attach this version's files only: the previous full packages were downloaded just to build
+          # the deltas. This version's full packages are MiniMetrics-<ver>-full.nupkg and
+          # MiniMetrics-<ver>-selfcontained-full.nupkg.
+          $assets = Get-ChildItem -Path velopack/default, velopack/sc -File |
+            Where-Object { $_.Name -notlike '*-full.nupkg' -or $_.Name -like "MiniMetrics-$env:VERSION-*" } |
+            ForEach-Object { $_.FullName }
           gh release create "v$env:VERSION" `
             --draft `
             --generate-notes `
