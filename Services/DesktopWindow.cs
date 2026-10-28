@@ -12,6 +12,8 @@ public sealed class DesktopWindow(Window window)
     private const uint WsExToolwindow = 0x00000080;
     private const uint WsExNoactivate = 0x08000000;
     private const uint WsExTransparent = 0x00000020;
+    private const uint WsExLayered = 0x00080000;
+    private const uint LwaAlpha = 0x00000002;
 
     private const uint WmWindowposchanging = 0x0046;
     private const uint SwpNosize = 0x0001;
@@ -60,16 +62,19 @@ public sealed class DesktopWindow(Window window)
         SetWindowPos(hwnd, insertAfter, 0, 0, 0, 0, SwpNomove | SwpNosize | SwpNoactivate);
     }
 
-    // When enabled, the mouse passes through the widget to the desktop beneath it.
+    // When enabled, the mouse passes through the widget to the desktop beneath it. Windows skips only
+    // windows that are both layered and transparent in hit testing; WS_EX_TRANSPARENT alone changes
+    // nothing for windows on other threads. A layered window stays invisible until its attributes are
+    // set, so it is made fully opaque at the layer level (the per-pixel alpha still applies).
     public void SetClickThrough(bool enabled)
     {
         if (!OperatingSystem.IsWindows() || !TryGetHandle(out IntPtr hwnd)) return;
 
+        const long clickThrough = WsExLayered | WsExTransparent;
         long exStyle = GetWindowLongPtr(hwnd, GwlExstyle).ToInt64();
-        exStyle = enabled
-            ? exStyle | WsExTransparent
-            : exStyle & ~(long)WsExTransparent;
+        exStyle = enabled ? exStyle | clickThrough : exStyle & ~clickThrough;
         SetWindowLongPtr(hwnd, GwlExstyle, new(exStyle));
+        if (enabled) SetLayeredWindowAttributes(hwnd, 0, 255, LwaAlpha);
     }
 
     private bool TryGetHandle(out IntPtr hwnd)
@@ -104,4 +109,7 @@ public sealed class DesktopWindow(Window window)
 
     [DllImport("user32.dll", EntryPoint = "SetWindowLongPtrW")]
     private static extern IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
+
+    [DllImport("user32.dll")]
+    private static extern bool SetLayeredWindowAttributes(IntPtr hWnd, uint key, byte alpha, uint flags);
 }
