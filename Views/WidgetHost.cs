@@ -20,14 +20,15 @@ public sealed class WidgetHost(
     private readonly DesktopWindow _desktop = new(window);
     private bool _alwaysOnTop;
 
+    // Set once the window closes, which only happens while the app shuts down. A snapshot or tray click
+    // still queued at that point must not show it again: Avalonia throws on re-showing a closed window.
+    private bool _closed;
+
     // Runs the first time the window opens, before on-screen recovery, only when no position has been
     // saved yet. Lets the GPU widget seat itself beside the CPU widget on first appearance.
     public Action? OnFirstPlacement { get; set; }
 
     public bool IsVisible => window.IsVisible;
-
-    // The underlying window, needed only to nominate the desktop lifetime's MainWindow.
-    public Window Window => window;
 
     // Physical-pixel rectangle for edge snapping and peer placement.
     public EdgeSnap.Rect Rect => RectOf(window);
@@ -46,6 +47,7 @@ public sealed class WidgetHost(
         if (readPosition() is { } saved) window.Position = new(saved.X, saved.Y);
 
         window.PositionChanged += (_, _) => savePosition(window.Position.X, window.Position.Y);
+        window.Closed += (_, _) => _closed = true;
 
         window.Opened += (_, _) =>
         {
@@ -78,11 +80,15 @@ public sealed class WidgetHost(
     // Shows the widget and reasserts its z-order band, which a fresh Show can otherwise reset.
     public void Show()
     {
+        if (_closed) return;
         window.Show();
         _desktop.SetAlwaysOnTop(_alwaysOnTop);
     }
 
-    public void Hide() => window.Hide();
+    public void Hide()
+    {
+        if (!_closed) window.Hide();
+    }
 
     public void SetLocked(bool locked)
     {

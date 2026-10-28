@@ -45,10 +45,21 @@ public abstract class OverlayWindow : Window
 
     protected OverlayWindow()
     {
+        // A widget is desktop furniture: showing it must not take focus or the foreground.
+        ShowActivated = false;
+
         // A widget whose content is already present when it first opens (the GPU widget shown reactively
         // once a snapshot confirms a GPU, the clock shown from the tray after it is already ticking) gets
         // no later measure pass, so SizeToContent never grows it. Force one once it is open.
         Opened += (_, _) => Dispatcher.UIThread.Post(ReapplyAutoWidth, DispatcherPriority.Loaded);
+    }
+
+    // Widgets close only with the app. A user close (Alt+F4 on a widget that took focus from a click)
+    // would destroy a window the app later shows again from the tray or the next snapshot.
+    protected override void OnClosing(WindowClosingEventArgs e)
+    {
+        if (e.CloseReason == WindowCloseReason.WindowClosing && !e.IsProgrammatic) e.Cancel = true;
+        base.OnClosing(e);
     }
 
     // Apply the current compact state when the view model is attached, and keep reacting to changes.

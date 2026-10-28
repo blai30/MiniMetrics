@@ -181,6 +181,17 @@ public class SettingsControllerTests
     }
 
     [TestMethod]
+    public void An_unchanged_position_schedules_no_write()
+    {
+        var (controller, _, scheduler) = NewController();
+        controller.SetCpuPosition(10, 20);
+
+        controller.SetCpuPosition(10, 20);
+
+        Assert.AreEqual(1, scheduler.ScheduleCount);
+    }
+
+    [TestMethod]
     public void SetTimeZone_defers_the_write()
     {
         var (controller, store, _) = NewController();

@@ -174,8 +174,10 @@ public sealed class SettingsController
         ScheduleSave();
     }
 
+    // Showing a widget re-reports the position it was restored to; an unchanged position is not saved.
     public void SetCpuPosition(int x, int y)
     {
+        if (_settings.X == x && _settings.Y == y) return;
         _settings.X = x;
         _settings.Y = y;
         ScheduleSave();
@@ -183,6 +185,7 @@ public sealed class SettingsController
 
     public void SetGpuPosition(int x, int y)
     {
+        if (_settings.GpuX == x && _settings.GpuY == y) return;
         _settings.GpuX = x;
         _settings.GpuY = y;
         ScheduleSave();
@@ -190,6 +193,7 @@ public sealed class SettingsController
 
     public void SetDateTimePosition(int x, int y)
     {
+        if (_settings.DateTimeX == x && _settings.DateTimeY == y) return;
         _settings.DateTimeX = x;
         _settings.DateTimeY = y;
         ScheduleSave();

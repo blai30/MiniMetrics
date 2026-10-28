@@ -40,7 +40,7 @@ public class App : Application
     private WidgetHost _dateTimeHost = null!;
     private WidgetHost[] _hosts = [];
     private WidgetChrome _chrome = null!;
-    private DispatcherTimer? _clockTimer;
+    private DispatcherTimer _clockTimer = null!;
     private DispatcherTimer? _trimTimer;
 
     private TrayMenuController _tray = null!;
@@ -72,16 +72,22 @@ public class App : Application
             CreateWidgetHosts();
             StartTrimTimer();
 
-            desktop.MainWindow = _cpuHost.Window;
+            // No MainWindow is nominated: the lifetime shows it after startup, which would bring back a CPU
+            // widget the user hid. ShutdownMode.OnExplicitShutdown means nothing else needs one.
             ShowWidgets();
             BuildTray();
 
+            // Raised only when Windows ends the session: Shutdown() (tray Quit, relaunch, uninstall) skips
+            // it. Release the sensors here so the driver is not closed under a read in flight.
             desktop.ShutdownRequested += (_, _) =>
             {
                 _settingsController.Flush();
                 _poller.Dispose();
                 (_source as IDisposable)?.Dispose();
             };
+
+            // Raised on every exit path, so an edit still waiting on the save debounce is never lost.
+            desktop.Exit += (_, _) => _settingsController.Flush();
 
             RunLaunchChecks();
         }
@@ -250,15 +256,35 @@ public class App : Application
         // The GPU window is shown reactively by UpdateGpuWindowVisibility once the first
         // snapshot confirms a GPU is present.
 
-        if (!_settings.DateTimeHidden) _dateTimeHost.Show();
+        // The clock only ticks while it is shown; it is hidden by default.
+        _clockTimer = new();
+        _clockTimer.Tick += (_, _) => TickClock();
+        if (!_settings.DateTimeHidden) ShowClock();
 
         _poller.Start();
+    }
 
-        // Drive the clock once per second. Tick immediately so the widget shows the time at once.
-        _dateTimeViewModel.Tick(DateTimeOffset.Now);
-        _clockTimer = new() { Interval = TimeSpan.FromSeconds(1) };
-        _clockTimer.Tick += (_, _) => _dateTimeViewModel.Tick(DateTimeOffset.Now);
+    // Ticks before showing, so the window never opens on a stale time, then keeps ticking each second.
+    private void ShowClock()
+    {
+        TickClock();
         _clockTimer.Start();
+        _dateTimeHost.Show();
+    }
+
+    private void HideClock()
+    {
+        _clockTimer.Stop();
+        _dateTimeHost.Hide();
+    }
+
+    // Renders the current time and re-arms the timer for just after the next second boundary, so the
+    // displayed seconds stay in step with the system clock instead of drifting.
+    private void TickClock()
+    {
+        var now = DateTimeOffset.Now;
+        _dateTimeViewModel.Tick(now);
+        _clockTimer.Interval = ClockFormatting.UntilNextSecond(now);
     }
 
     private void RunLaunchChecks()
@@ -304,13 +330,16 @@ public class App : Application
             // startup is on, migrate the registration to match the current elevation need. Because the
             // process is already elevated, this creates or removes the scheduled task with no prompt,
             // which is what keeps enabling a CPU sensor to a single UAC prompt overall.
-            if (_elevationCoordinator.IsElevated() && _startupManager.IsEnabled())
+            // Queried once: the task check spawns schtasks.exe. Sync either reaches the target or leaves
+            // the prior registration in place, so startup stays enabled either way.
+            bool enabled = _startupManager.IsEnabled();
+            if (enabled && _elevationCoordinator.IsElevated())
             {
                 _startupManager.Sync(true, RequiresElevation());
             }
 
             showRunAtStartup = true;
-            runAtStartupChecked = _startupManager.IsEnabled();
+            runAtStartupChecked = enabled;
         }
 
         _tray = new(new(
@@ -382,11 +411,11 @@ public class App : Application
         bool hidden = _settingsController.ToggleDateTimeHidden();
         if (hidden)
         {
-            _dateTimeHost.Hide();
+            HideClock();
         }
         else
         {
-            _dateTimeHost.Show();
+            ShowClock();
         }
 
         _tray.SetClockChecked(!hidden);

@@ -17,6 +17,35 @@ public class ClockFormattingTests
         TimeZoneInfo.CreateCustomTimeZone($"Test{hours}", TimeSpan.FromHours(hours), $"Test{hours}", $"Test{hours}");
 
     [TestMethod]
+    public void Next_tick_lands_just_after_the_next_second()
+    {
+        var now = Instant.AddMilliseconds(250);
+
+        var next = now + ClockFormatting.UntilNextSecond(now);
+
+        Assert.AreEqual(43, next.Second);
+        Assert.IsTrue(next.Millisecond < 20, $"landed {next.Millisecond} ms into the second");
+    }
+
+    [TestMethod]
+    public void A_tick_on_the_boundary_waits_for_the_following_second()
+    {
+        var delay = ClockFormatting.UntilNextSecond(Instant);
+
+        Assert.IsTrue(delay > TimeSpan.FromSeconds(1));
+        Assert.IsTrue(delay < TimeSpan.FromSeconds(1.02));
+    }
+
+    [TestMethod]
+    public void Next_tick_does_not_depend_on_the_offset()
+    {
+        var utc = Instant.AddMilliseconds(600);
+        var india = utc.ToOffset(TimeSpan.FromMinutes(330));
+
+        Assert.AreEqual(ClockFormatting.UntilNextSecond(utc), ClockFormatting.UntilNextSecond(india));
+    }
+
+    [TestMethod]
     public void Render_blank_time_uses_default_long_time()
     {
         Assert.AreEqual("2:26:42 PM",

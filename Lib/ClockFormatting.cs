@@ -18,6 +18,15 @@ public static class ClockFormatting
     // A fixed instant used only to probe whether a custom format string renders.
     private static readonly DateTimeOffset Sample = new(2026, 6, 16, 14, 26, 42, TimeSpan.Zero);
 
+    // Lands each tick just after the second boundary. Timers round to milliseconds and can fire a
+    // little early; without the lead an early tick would render the second that is ending again.
+    private static readonly TimeSpan TickLead = TimeSpan.FromMilliseconds(5);
+
+    // The delay from now until just after the next whole second, so a clock re-armed with it on every
+    // tick shows each second as it starts instead of drifting and skipping one every few minutes.
+    public static TimeSpan UntilNextSecond(DateTimeOffset now) =>
+        TimeSpan.FromTicks(TimeSpan.TicksPerSecond - now.UtcTicks % TimeSpan.TicksPerSecond) + TickLead;
+
     // Converts the instant into the zone, then renders it with customFormat when that is non-blank and
     // valid, otherwise with defaultFormat. A bad custom format can never throw out of here, so a
     // corrupt saved value cannot crash the widget.
