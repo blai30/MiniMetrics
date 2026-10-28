@@ -37,7 +37,7 @@ public readonly record struct WidgetStyleProfile(
         {
             WidgetFontWeight.Light => (600, 500, 400),
             WidgetFontWeight.Bold => (800, 700, 600),
-            _ => (700, 600, 500)
+            _ => (700, 600, 500),
         };
 
         return new(resolvedFamily, scale, strong, unit, clock);

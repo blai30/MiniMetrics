@@ -108,4 +108,14 @@ public class ElevationCoordinatorTests
         Assert.IsTrue(coordinator.RequiresElevation(Enabled()));
         Assert.IsFalse(coordinator.RequiresElevation(Disabled()));
     }
+
+    [TestMethod]
+    public void RelaunchElevated_delegates_to_elevation()
+    {
+        var elevation = new FakeElevation { RelaunchSucceeds = false };
+        var coordinator = new ElevationCoordinator(elevation, new FakeDriverProbe());
+
+        Assert.IsFalse(coordinator.RelaunchElevated(@"C:\MiniMetrics.exe"));
+        Assert.AreEqual(@"C:\MiniMetrics.exe", elevation.RelaunchedWith);
+    }
 }

@@ -14,7 +14,7 @@ public class ScaleConverterTests
 
         object result = converter.Convert(1.5, typeof(double), "42", CultureInfo.InvariantCulture);
 
-        Assert.AreEqual(63.0, (double)result!, 1e-9);
+        Assert.AreEqual(63.0, (double)result, 1e-9);
     }
 
     [TestMethod]
@@ -24,7 +24,7 @@ public class ScaleConverterTests
 
         object result = converter.Convert(1.0, typeof(double), "18", CultureInfo.InvariantCulture);
 
-        Assert.AreEqual(18.0, (double)result!, 1e-9);
+        Assert.AreEqual(18.0, (double)result, 1e-9);
     }
 
     [TestMethod]
@@ -34,7 +34,7 @@ public class ScaleConverterTests
 
         object result = converter.Convert(1.5, typeof(Thickness), "20,14,20,16", CultureInfo.InvariantCulture);
 
-        Assert.AreEqual(new(30, 21, 30, 24), (Thickness)result!);
+        Assert.AreEqual(new(30, 21, 30, 24), (Thickness)result);
     }
 
     [TestMethod]
@@ -44,6 +44,6 @@ public class ScaleConverterTests
 
         object result = converter.Convert(2.0, typeof(Thickness), "18,0", CultureInfo.InvariantCulture);
 
-        Assert.AreEqual(new(36, 0, 36, 0), (Thickness)result!);
+        Assert.AreEqual(new(36, 0, 36, 0), (Thickness)result);
     }
 }

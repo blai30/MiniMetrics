@@ -86,7 +86,7 @@ public class MetricActivatorTests
             Scheduler = scheduler,
             Elevation = elevation,
             Startup = startupOps,
-            Source = source
+            Source = source,
         };
     }
 
@@ -138,7 +138,7 @@ public class MetricActivatorTests
     [TestMethod]
     public void Apply_shows_driver_install_prompt_when_driver_missing()
     {
-        var harness = NewHarness(false, false);
+        var harness = NewHarness();
 
         var result = harness.Activator.Apply("cpu.temp", true);
 

@@ -60,7 +60,7 @@ public sealed class TrayMenuController
         _cpuShowHideItem = new("Show CPU widget")
         {
             ToggleType = MenuItemToggleType.CheckBox,
-            IsChecked = state.CpuChecked
+            IsChecked = state.CpuChecked,
         };
         _cpuShowHideItem.Click += (_, _) => ToggleCpuRequested?.Invoke();
         _menu.Add(_cpuShowHideItem);
@@ -68,7 +68,7 @@ public sealed class TrayMenuController
         _gpuShowHideItem = new("Show GPU widget")
         {
             ToggleType = MenuItemToggleType.CheckBox,
-            IsChecked = state.GpuChecked
+            IsChecked = state.GpuChecked,
         };
         _gpuShowHideItem.Click += (_, _) => ToggleGpuRequested?.Invoke();
         _menu.Add(_gpuShowHideItem);
@@ -76,7 +76,7 @@ public sealed class TrayMenuController
         _clockShowHideItem = new("Show clock widget")
         {
             ToggleType = MenuItemToggleType.CheckBox,
-            IsChecked = state.ClockChecked
+            IsChecked = state.ClockChecked,
         };
         _clockShowHideItem.Click += (_, _) => ToggleClockRequested?.Invoke();
         _menu.Add(_clockShowHideItem);
@@ -86,7 +86,7 @@ public sealed class TrayMenuController
         _lockItem = new("Lock position")
         {
             ToggleType = MenuItemToggleType.CheckBox,
-            IsChecked = state.LockChecked
+            IsChecked = state.LockChecked,
         };
         _lockItem.Click += (_, _) => ToggleLockRequested?.Invoke();
         _menu.Add(_lockItem);
@@ -94,7 +94,7 @@ public sealed class TrayMenuController
         _alwaysOnTopItem = new("Always on top")
         {
             ToggleType = MenuItemToggleType.CheckBox,
-            IsChecked = state.AlwaysOnTopChecked
+            IsChecked = state.AlwaysOnTopChecked,
         };
         _alwaysOnTopItem.Click += (_, _) => ToggleAlwaysOnTopRequested?.Invoke();
         _menu.Add(_alwaysOnTopItem);
@@ -102,7 +102,7 @@ public sealed class TrayMenuController
         _snapItem = new("Snap to edges")
         {
             ToggleType = MenuItemToggleType.CheckBox,
-            IsChecked = state.SnapChecked
+            IsChecked = state.SnapChecked,
         };
         _snapItem.Click += (_, _) => ToggleSnapRequested?.Invoke();
         _menu.Add(_snapItem);
@@ -112,7 +112,7 @@ public sealed class TrayMenuController
             _runAtStartupItem = new("Run at startup")
             {
                 ToggleType = MenuItemToggleType.CheckBox,
-                IsChecked = state.RunAtStartupChecked
+                IsChecked = state.RunAtStartupChecked,
             };
             _runAtStartupItem.Click += (_, _) => RunAtStartupRequested?.Invoke();
             _menu.Add(_runAtStartupItem);
@@ -150,7 +150,7 @@ public sealed class TrayMenuController
         {
             Icon = icon,
             ToolTipText = toolTip,
-            Menu = _menu
+            Menu = _menu,
         };
 
         // Left-click opens Settings; right-click still shows the context menu above.
@@ -192,12 +192,16 @@ public sealed class TrayMenuController
 
         _updateAvailableItem = new(UpdateItemHeader(version));
         if (canApplyInApp)
+        {
             _updateAvailableItem.Click += (_, _) => ApplyUpdateRequested?.Invoke();
+        }
         else
+        {
             _updateAvailableItem.Click += (_, _) =>
             {
                 if (_updateUrl is not null) OpenReleasePageRequested?.Invoke(_updateUrl);
             };
+        }
 
         _menu.Items.Insert(0, _updateAvailableItem);
         _menu.Items.Insert(1, new NativeMenuItemSeparator());

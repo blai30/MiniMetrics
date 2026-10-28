@@ -5,7 +5,12 @@ namespace MiniMetrics.ViewModels;
 // single Close button. Immutable; built through the static factories.
 public sealed class UpdatePromptViewModel
 {
-    private UpdatePromptViewModel(bool isActionable, bool canInstall, string heading, string body, string? version,
+    private UpdatePromptViewModel(
+        bool isActionable,
+        bool canInstall,
+        string heading,
+        string body,
+        string? version,
         string? url)
     {
         IsActionable = isActionable;

@@ -22,7 +22,7 @@ public class UpdatePromptWindowTests
         UpdatePromptViewModel.ForInstallReady("1.1.2", "1.1.1", "https://example.invalid"),
         UpdatePromptViewModel.ForAvailable("1.1.2", "1.1.1", "https://example.invalid"),
         UpdatePromptViewModel.ForUpToDate("1.1.2"),
-        UpdatePromptViewModel.ForFailed()
+        UpdatePromptViewModel.ForFailed(),
     ];
 
     [TestMethod]

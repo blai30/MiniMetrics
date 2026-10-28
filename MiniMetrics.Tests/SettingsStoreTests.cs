@@ -21,7 +21,7 @@ public class SettingsStoreTests
             Locked = true,
             Hidden = false,
             AlwaysOnTop = true,
-            Visibility = { ["gpu"] = false, ["cpu"] = true }
+            Visibility = { ["gpu"] = false, ["cpu"] = true },
         };
 
         store.Save(settings);
@@ -44,7 +44,7 @@ public class SettingsStoreTests
         var settings = new Settings
         {
             BackgroundColor = "#1A1F2B",
-            Opacity = 73
+            Opacity = 73,
         };
 
         store.Save(settings);
@@ -143,7 +143,7 @@ public class SettingsStoreTests
             DateTimeX = 200,
             DateTimeY = 760,
             DateTimeHidden = false,
-            TimeZoneId = "UTC"
+            TimeZoneId = "UTC",
         };
 
         store.Save(settings);
@@ -164,7 +164,7 @@ public class SettingsStoreTests
         {
             GpuX = 1234,
             GpuY = 567,
-            GpuHidden = true
+            GpuHidden = true,
         };
 
         store.Save(settings);
@@ -213,7 +213,7 @@ public class SettingsStoreTests
             UpdateCheckEnabled = false,
             UpdateFrequency = UpdateCheckFrequency.Weekly,
             LastUpdateCheckUtc = when,
-            SkippedUpdateVersion = "1.3.0"
+            SkippedUpdateVersion = "1.3.0",
         });
 
         var loaded = store.Load();
@@ -235,7 +235,7 @@ public class SettingsStoreTests
             ClockTimeFormat = "HH:mm",
             ClockDateFormat = "yyyy-MM-dd",
             ClockTimeFormatHover = "HH:mm:ss",
-            ClockDateFormatHover = "u"
+            ClockDateFormatHover = "u",
         });
 
         var loaded = store.Load();

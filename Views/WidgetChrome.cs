@@ -12,21 +12,33 @@ public sealed class WidgetChrome(SettingsController controller, IReadOnlyList<IW
     public bool ToggleLocked()
     {
         bool locked = controller.ToggleLocked();
-        foreach (var target in targets) target.SetLocked(locked);
+        foreach (var target in targets)
+        {
+            target.SetLocked(locked);
+        }
+
         return locked;
     }
 
     public bool ToggleAlwaysOnTop()
     {
         bool onTop = controller.ToggleAlwaysOnTop();
-        foreach (var target in targets) target.SetAlwaysOnTop(onTop);
+        foreach (var target in targets)
+        {
+            target.SetAlwaysOnTop(onTop);
+        }
+
         return onTop;
     }
 
     public bool ToggleSnap()
     {
         bool snap = controller.ToggleSnapToEdges();
-        foreach (var target in targets) target.SetSnapEnabled(snap);
+        foreach (var target in targets)
+        {
+            target.SetSnapEnabled(snap);
+        }
+
         return snap;
     }
 }

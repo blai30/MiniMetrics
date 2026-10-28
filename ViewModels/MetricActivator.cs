@@ -21,7 +21,7 @@ public enum MetricActivationOutcome
     Relaunching,
 
     // The relaunch UAC prompt was declined: put the metric back to off.
-    RelaunchDeclined
+    RelaunchDeclined,
 }
 
 // The outcome of applying one metric visibility change, plus whether startup registration was

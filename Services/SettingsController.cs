@@ -83,9 +83,13 @@ public sealed class SettingsController
     public void SetAppearance(bool targetIsDark, string backgroundColor, int opacity)
     {
         if (targetIsDark)
+        {
             _settings.BackgroundColor = backgroundColor;
+        }
         else
+        {
             _settings.LightBackgroundColor = backgroundColor;
+        }
 
         _settings.Opacity = opacity;
         ScheduleSave();
@@ -234,7 +238,11 @@ public sealed class SettingsController
         foreach (string card in MetricRegistry.Cards)
         {
             if (!visibility.TryGetValue(card, out bool value)) continue;
-            foreach (var entry in MetricRegistry.ForCard(card)) visibility.TryAdd(entry.Key, value);
+            foreach (var entry in MetricRegistry.ForCard(card))
+            {
+                visibility.TryAdd(entry.Key, value);
+            }
+
             visibility.Remove(card);
         }
     }
@@ -244,8 +252,12 @@ public sealed class SettingsController
     private void SeedElevationDefaults()
     {
         foreach (var entry in MetricRegistry.All)
+        {
             if (entry.RequiresElevation)
+            {
                 _settings.Visibility.TryAdd(entry.Key, false);
+            }
+        }
     }
 
     // Migrates the old global WidgetScale property to the new per-widget WidgetScales dictionary. All

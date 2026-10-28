@@ -22,8 +22,11 @@ public static class ClockFormatting
     // valid, otherwise with defaultFormat. A bad custom format can never throw out of here, so a
     // corrupt saved value cannot crash the widget.
     public static string Render(
-        DateTimeOffset instant, TimeZoneInfo zone,
-        string? customFormat, string defaultFormat, CultureInfo culture)
+        DateTimeOffset instant,
+        TimeZoneInfo zone,
+        string? customFormat,
+        string defaultFormat,
+        CultureInfo culture)
     {
         var local = TimeZoneInfo.ConvertTime(instant, zone);
         if (string.IsNullOrWhiteSpace(customFormat)) return local.ToString(defaultFormat, culture);
@@ -47,7 +50,7 @@ public static class ClockFormatting
 
         try
         {
-            Sample.ToString(format, culture);
+            _ = Sample.ToString(format, culture);
             return true;
         }
         catch (Exception ex) when (ex is FormatException or ArgumentOutOfRangeException)

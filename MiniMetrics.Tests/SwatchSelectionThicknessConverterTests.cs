@@ -9,7 +9,7 @@ public class SwatchSelectionThicknessConverterTests
 {
     private static readonly SwatchSelectionThicknessConverter Converter = new();
 
-    private static object? Convert(object? swatch, object? selected) =>
+    private static object Convert(object? swatch, object? selected) =>
         Converter.Convert([swatch, selected], typeof(Thickness), null, CultureInfo.InvariantCulture);
 
     [TestMethod]

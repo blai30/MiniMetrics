@@ -6,5 +6,5 @@ public enum WidgetFontWeight
 {
     Light,
     Regular,
-    Bold
+    Bold,
 }

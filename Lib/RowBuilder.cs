@@ -8,7 +8,7 @@ public enum RowColor
     Cyan,
     Green,
     Amber,
-    Violet
+    Violet,
 }
 
 // Health band for a temperature reading, used to color-code the temperature text.
@@ -20,7 +20,7 @@ public enum TempLevel
     Cool,
     Warm,
     Hot,
-    Critical
+    Critical,
 }
 
 // A single display row. Value is the bold primary number. Temp is an optional color-coded
@@ -42,6 +42,7 @@ public static class RowBuilder
         var rows = new List<MetricRow>();
 
         if (snapshot.Cpu is { } cpu)
+        {
             rows.Add(new(
                 "cpu",
                 "CPU",
@@ -55,8 +56,10 @@ public static class RowBuilder
                 cpu.PowerWatts is { } cpuPower ? MetricFormatting.FormatPower(cpuPower) : "—",
                 cpu.UsagePercent,
                 RowColor.Cyan));
+        }
 
         if (snapshot.Memory is { } memory)
+        {
             rows.Add(new(
                 "ram",
                 "RAM",
@@ -66,6 +69,7 @@ public static class RowBuilder
                 $"/ {MetricFormatting.FormatGiB(memory.TotalBytes, 0)} GB",
                 Percent(memory.UsedBytes, memory.TotalBytes),
                 RowColor.Green));
+        }
 
         if (snapshot.Gpu is not { } gpu) return rows;
         rows.Add(new(

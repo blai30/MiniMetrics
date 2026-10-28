@@ -16,9 +16,15 @@ public sealed class UpdateVisitor : IVisitor
         // for a full day by default. The widget only ever reads the latest Value, so that history
         // is dead weight that grows once per second for every sensor. Setting the window to zero
         // turns history tracking off and keeps the footprint flat.
-        foreach (var sensor in hardware.Sensors) sensor.ValuesTimeWindow = TimeSpan.Zero;
+        foreach (var sensor in hardware.Sensors)
+        {
+            sensor.ValuesTimeWindow = TimeSpan.Zero;
+        }
 
-        foreach (var sub in hardware.SubHardware) sub.Accept(this);
+        foreach (var sub in hardware.SubHardware)
+        {
+            sub.Accept(this);
+        }
     }
 
     public void VisitSensor(ISensor sensor)

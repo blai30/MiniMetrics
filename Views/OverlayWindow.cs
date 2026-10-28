@@ -65,11 +65,15 @@ public abstract class OverlayWindow : Window
         if (DataContext is not ICompactWidget widget) return;
 
         if (e.PropertyName == nameof(ICompactWidget.IsCompact))
+        {
             ApplyCompact(widget);
+        }
         else if (widget.IsCompact && IsAutoWidthTrigger(e.PropertyName))
             // The compact content changed membership (e.g. the GPU widget's rows arrived on the first
             // snapshot); re-fit the width once the new content has been laid out.
+        {
             Dispatcher.UIThread.Post(ReapplyAutoWidth, DispatcherPriority.Loaded);
+        }
     }
 
     // Names the view-model properties whose change should re-fit the compact width. Default: none beyond

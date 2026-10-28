@@ -117,7 +117,7 @@ public partial class DateTimeWidgetViewModel : ObservableObject, IWidgetDisplay,
         {
             ClockAlignment.Center => (TextAlignment.Center, HorizontalAlignment.Center),
             ClockAlignment.Right => (TextAlignment.Right, HorizontalAlignment.Right),
-            _ => (TextAlignment.Left, HorizontalAlignment.Left)
+            _ => (TextAlignment.Left, HorizontalAlignment.Left),
         };
 
     // Advances the clock to a new instant (called once per second by App) and reformats.

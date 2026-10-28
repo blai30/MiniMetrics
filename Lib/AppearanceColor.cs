@@ -35,7 +35,9 @@ public static class AppearanceColor
         if (byte.TryParse(trimmed.AsSpan(0, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out byte red)
             && byte.TryParse(trimmed.AsSpan(2, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out byte green)
             && byte.TryParse(trimmed.AsSpan(4, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out byte blue))
+        {
             return (red, green, blue);
+        }
 
         return null;
     }

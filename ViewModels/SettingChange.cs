@@ -13,6 +13,14 @@ public abstract record SettingChange
     {
     }
 
+    // A change to the clock widget's own display, applied to the clock alone.
+    public abstract record Clock : SettingChange
+    {
+        private protected Clock()
+        {
+        }
+    }
+
     // Background color or opacity changed for the variant currently being edited.
     public sealed record Appearance(bool IsDark, string Color, int Opacity) : SettingChange;
 
@@ -22,18 +30,18 @@ public abstract record SettingChange
 
     public sealed record Compact(string Widget, bool IsCompact) : SettingChange;
 
-    public sealed record Alignment(ClockAlignment Value) : SettingChange;
+    public sealed record Alignment(ClockAlignment Value) : Clock;
 
     // Resolved time zone id, or null for the machine's local zone.
-    public sealed record TimeZone(string? ZoneId) : SettingChange;
+    public sealed record TimeZone(string? ZoneId) : Clock;
 
-    public sealed record ClockFormats(string? Time, string? Date, string? TimeHover, string? DateHover) : SettingChange;
+    public sealed record ClockFormats(string? Time, string? Date, string? TimeHover, string? DateHover) : Clock;
 
-    public sealed record ClockLocale(CultureInfo Locale) : SettingChange;
+    public sealed record ClockLocale(CultureInfo Locale) : Clock;
 
     public sealed record UpdatePreferences(bool Enabled, UpdateCheckFrequency Frequency) : SettingChange;
 
     public sealed record WidgetStyle(string Widget, string Family, int Scale, WidgetFontWeight Weight) : SettingChange;
 
-    public sealed record ClockWidth(ClockWidthMode Mode, int CustomWidth) : SettingChange;
+    public sealed record ClockWidth(ClockWidthMode Mode, int CustomWidth) : Clock;
 }

@@ -16,7 +16,7 @@ public class StableWidthTextBlockTests
             Text = text,
             FontSize = 80,
             FontFamily = new("Inter"),
-            FontWeight = FontWeight.Medium
+            FontWeight = FontWeight.Medium,
         };
         block.Measure(Size.Infinity);
         return block;

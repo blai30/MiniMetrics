@@ -2,7 +2,6 @@ using System.Globalization;
 using Avalonia;
 using Avalonia.Headless;
 using Avalonia.Styling;
-using Avalonia.Threading;
 using MiniMetrics.Models;
 using MiniMetrics.ViewModels;
 using MiniMetrics.Views;
@@ -31,7 +30,7 @@ public class ClockAlignmentCaptureTests
 
                 var window = new DateTimeWindow { DataContext = viewModel };
                 window.Show();
-                window.Position = new PixelPoint(1000, 100);
+                window.Position = new(1000, 100);
 
                 Assert.IsNotNull(Capture.Window(window, "clock-align-1-wide"));
 

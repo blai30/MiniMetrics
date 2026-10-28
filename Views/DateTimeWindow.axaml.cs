@@ -31,17 +31,25 @@ public partial class DateTimeWindow : OverlayWindow
         if (DataContext is not DateTimeWidgetViewModel vm) return;
 
         if (e.PropertyName == nameof(DateTimeWidgetViewModel.WidthMode))
+        {
             ApplyWidthMode(vm);
+        }
         else if (e.PropertyName == nameof(DateTimeWidgetViewModel.ScaledWidth) && vm.WidthMode == ClockWidthMode.Fixed)
+        {
             Width = vm.ScaledWidth;
+        }
         else if (e.PropertyName == nameof(DateTimeWidgetViewModel.ScaledHeight))
+        {
             Height = vm.ScaledHeight;
+        }
         else if (e.PropertyName == nameof(DateTimeWidgetViewModel.IsCompact))
         {
             // OverlayWindow.ApplyCompact sets width to ScaledWidth when leaving compact mode.
             // Re-apply our width mode so Fixed stays fixed and Auto reverts to content-sizing.
             if (!vm.IsCompact)
+            {
                 ApplyWidthMode(vm);
+            }
         }
     }
 

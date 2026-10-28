@@ -17,14 +17,14 @@ public class HeadlessSmokeTests
                 {
                     Width = 200,
                     Height = 100,
-                    Content = new TextBlock { Text = "headless ok" }
+                    Content = new TextBlock { Text = "headless ok" },
                 };
                 window.Show();
 
                 var frame = Capture.Window(window, "_smoke");
 
                 Assert.IsNotNull(frame);
-                Assert.IsTrue(frame!.PixelSize.Width > 0);
+                Assert.IsTrue(frame.PixelSize.Width > 0);
                 Assert.IsTrue(frame.PixelSize.Height > 0);
             }, CancellationToken.None);
 }

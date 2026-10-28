@@ -9,7 +9,9 @@ public static class CapturePaths
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
         while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "MiniMetrics.slnx")))
+        {
             directory = directory.Parent;
+        }
 
         string root = directory?.FullName ?? AppContext.BaseDirectory;
         string captures = Path.Combine(root, "captures");

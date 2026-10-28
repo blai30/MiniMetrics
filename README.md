@@ -46,8 +46,8 @@ updates itself in place; the choice is just two preferences:
 
 - **Install or portable?** The installers (`-Setup.exe`) put MiniMetrics in your user profile with a Start Menu
   shortcut. The portable builds (`-Portable.zip`) run from wherever you unzip them. Both keep themselves up to date.
-- **Do you have the [.NET 10 Runtime](https://dotnet.microsoft.com/download/dotnet/10.0)?** The default builds need it
-  (they are smaller). If you do not have it, or are unsure, use a `selfcontained` build; it bundles the runtime and
+- **Do you have
+  the [.NET 10 Runtime](https://dotnet.microsoft.com/download/dotnet/10.0)?** The default builds need it (they are smaller). If you do not have it, or are unsure, use a `selfcontained` build; it bundles the runtime and
   needs nothing else.
 
 | Download                                 | Needs .NET 10 Runtime |

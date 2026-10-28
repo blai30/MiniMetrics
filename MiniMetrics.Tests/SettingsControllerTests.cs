@@ -74,7 +74,7 @@ public class SettingsControllerTests
     [TestMethod]
     public void SetAppearance_writes_the_light_color_when_targeting_light()
     {
-        var (controller, store, scheduler) = NewController();
+        var (controller, store, _) = NewController();
 
         controller.SetAppearance(false, "#FAFBFF", 80);
         controller.Flush();

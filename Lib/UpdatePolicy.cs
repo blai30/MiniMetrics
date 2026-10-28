@@ -18,7 +18,7 @@ public static class UpdatePolicy
             UpdateCheckFrequency.Daily => TimeSpan.FromDays(1),
             UpdateCheckFrequency.Weekly => TimeSpan.FromDays(7),
             UpdateCheckFrequency.Monthly => TimeSpan.FromDays(30),
-            _ => TimeSpan.Zero
+            _ => TimeSpan.Zero,
         };
 
         return nowUtc - lastCheckUtc.Value >= interval;
@@ -33,8 +33,8 @@ public static class UpdatePolicy
 
         bool available = latest > Normalize(currentVersion);
         bool skipped = skippedVersion is not null
-                       && TryParseVersion(skippedVersion, out var skip)
-                       && skip == latest;
+            && TryParseVersion(skippedVersion, out var skip)
+            && skip == latest;
 
         return new(available, available && !skipped, latest);
     }

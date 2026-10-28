@@ -17,7 +17,7 @@ public static class WidthAnchor
         {
             ClockAlignment.Right => delta,
             ClockAlignment.Center => delta / 2,
-            _ => 0
+            _ => 0,
         };
 
         return left - (int)Math.Round(shift, MidpointRounding.AwayFromZero);

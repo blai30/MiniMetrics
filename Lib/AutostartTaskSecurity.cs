@@ -19,10 +19,14 @@ public static class AutostartTaskSecurity
         var dacl = descriptor.DiscretionaryAcl ?? new RawAcl(GenericAcl.AclRevision, 1);
 
         foreach (var entry in dacl)
+        {
             if (entry is CommonAce { AceType: AceType.AccessAllowed } existing
                 && existing.SecurityIdentifier.Equals(user)
                 && (existing.AccessMask & DeleteAndReadControl) == DeleteAndReadControl)
+            {
                 return existingSddl;
+            }
+        }
 
         dacl.InsertAce(dacl.Count, new CommonAce(
             AceFlags.None, AceQualifier.AccessAllowed, DeleteAndReadControl, user, false, null));

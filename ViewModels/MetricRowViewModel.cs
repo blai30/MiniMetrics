@@ -9,7 +9,9 @@ public partial class MetricRowViewModel : ObservableObject
     [ObservableProperty] public partial string Key { get; set; } = "";
     [ObservableProperty] public partial string Label { get; set; } = "";
     [ObservableProperty] public partial string Value { get; set; } = "";
-    [ObservableProperty] public partial string Temp { get; set; } = "";
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasTemp))]
+    public partial string Temp { get; set; } = "";
     [ObservableProperty] public partial TempLevel TempLevel { get; set; }
     [ObservableProperty] public partial string Detail { get; set; } = "";
     [ObservableProperty] public partial double BarPercent { get; set; }
@@ -30,8 +32,6 @@ public partial class MetricRowViewModel : ObservableObject
 
     // True when this row has a temperature to show, used to collapse the temp slot otherwise.
     public bool HasTemp => Temp.Length > 0;
-
-    partial void OnTempChanged(string value) => OnPropertyChanged(nameof(HasTemp));
 
     // Re-raises the accent-bearing properties so the theme-aware converters re-evaluate after the
     // active theme variant changes. The underlying values are unchanged.

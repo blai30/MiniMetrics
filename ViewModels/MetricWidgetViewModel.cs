@@ -57,7 +57,10 @@ public partial class MetricWidgetViewModel(string computeKey, string memoryKey)
     // change. Called by App when the resolved variant changes.
     public void RefreshThemeColors()
     {
-        foreach (var row in Rows) row.NotifyThemeChanged();
+        foreach (var row in Rows)
+        {
+            row.NotifyThemeChanged();
+        }
     }
 
     // Applies the resolved style to the window-level bindings and stamps each row so the templates,
@@ -71,7 +74,10 @@ public partial class MetricWidgetViewModel(string computeKey, string memoryKey)
         StrongWeight = (FontWeight)profile.StrongWeight;
         UnitWeight = (FontWeight)profile.UnitWeight;
 
-        foreach (var row in Rows) StampStyle(row);
+        foreach (var row in Rows)
+        {
+            StampStyle(row);
+        }
     }
 
     private void StampStyle(MetricRowViewModel row)
@@ -92,11 +98,13 @@ public partial class MetricWidgetViewModel(string computeKey, string memoryKey)
 
         // Remove rows that no longer exist (the GPU widget drops both rows when the GPU is gone).
         for (int i = Rows.Count - 1; i >= 0; i--)
+        {
             if (built.All(b => b.Key != Rows[i].Key))
             {
                 Rows.RemoveAt(i);
                 membershipChanged = true;
             }
+        }
 
         // Add or update rows, keeping them in the order produced by the builder.
         for (int i = 0; i < built.Count; i++)
@@ -133,7 +141,10 @@ public partial class MetricWidgetViewModel(string computeKey, string memoryKey)
     {
         _visibility = visibility;
 
-        foreach (var row in Rows) ApplyVisibility(row);
+        foreach (var row in Rows)
+        {
+            ApplyVisibility(row);
+        }
     }
 
     // Re-applies the bound visibility to the row owning this key, if this widget owns it. Called after

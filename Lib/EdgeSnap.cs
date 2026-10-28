@@ -21,8 +21,14 @@ public static class EdgeSnap
     // Snaps one axis to the nearest candidate within threshold. Candidates are gathered from the
     // screen edges first (so the leading screen edge wins ties) then each peer's adjacency and
     // alignment targets. Strict "<" keeps the earlier candidate when distances tie.
-    private static int SnapAxis(int position, int size, int areaStart, int areaSize,
-        IReadOnlyList<Rect> peers, bool xAxis, int threshold)
+    private static int SnapAxis(
+        int position,
+        int size,
+        int areaStart,
+        int areaSize,
+        IReadOnlyList<Rect> peers,
+        bool xAxis,
+        int threshold)
     {
         int areaEnd = areaStart + areaSize;
         int best = position;

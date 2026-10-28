@@ -719,7 +719,8 @@
                                     </Viewbox>
                                     <StackPanel>
                                         <TextBlock Classes="settingLabel" Text="Width" />
-                                        <TextBlock Classes="settingDesc" Text="Auto adjusts to content or Fixed sets a custom width" />
+                                        <TextBlock Classes="settingDesc"
+                                                   Text="Auto adjusts to content or Fixed sets a custom width" />
                                     </StackPanel>
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Classes="control">
@@ -738,7 +739,8 @@
                                 </StackPanel>
                             </Grid>
                         </Border>
-                        <Border Classes="rowFrame" IsVisible="{Binding ClockWidthMode, Converter={StaticResource EnumEquals}, ConverterParameter=Fixed}">
+                        <Border Classes="rowFrame"
+                                IsVisible="{Binding ClockWidthMode, Converter={StaticResource EnumEquals}, ConverterParameter=Fixed}">
                             <Grid Classes="row" ColumnDefinitions="*,Auto">
                                 <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12">
                                     <Viewbox Classes="rowIcon" VerticalAlignment="Center">
@@ -746,7 +748,8 @@
                                     </Viewbox>
                                     <StackPanel>
                                         <TextBlock Classes="settingLabel" Text="Custom width" />
-                                        <TextBlock Classes="settingDesc" Text="Width in pixels (scaled by widget scale)" />
+                                        <TextBlock Classes="settingDesc"
+                                                   Text="Width in pixels (scaled by widget scale)" />
                                     </StackPanel>
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Classes="control">

@@ -37,7 +37,7 @@ public sealed class DesktopWindow(Window window)
         // sits above the wallpaper but below all other windows like a Rainmeter skin, or the
         // topmost band when always-on-top is enabled.
         Win32Properties.AddWndProcHookCallback(window,
-            (IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam, ref bool handled) =>
+            (_, msg, _, lParam, ref _) =>
             {
                 if (msg != WmWindowposchanging) return IntPtr.Zero;
                 var pos = Marshal.PtrToStructure<Windowpos>(lParam);

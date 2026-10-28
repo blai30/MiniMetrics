@@ -22,7 +22,7 @@ public sealed class WindowsElevation : IElevation
         {
             FileName = exePath,
             UseShellExecute = true,
-            Verb = "runas"
+            Verb = "runas",
         };
 
         try

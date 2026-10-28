@@ -34,10 +34,10 @@ public sealed class MetricIconConverter : IValueConverter
                 "cpu.temp" or "gpu.temp" => Thermometer,
                 "cpu.power" or "gpu.power" => Zap,
                 "ram.usage" or "vram.usage" => MemoryStick,
-                _ => null
+                _ => null,
             }
             : null;
 
-    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
         throw new NotSupportedException();
 }

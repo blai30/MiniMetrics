@@ -5,7 +5,7 @@ namespace MiniMetrics.Services;
 public enum UninstallOutcome
 {
     Completed,
-    Aborted
+    Aborted,
 }
 
 // Drives the in-app uninstall in the required order. The scheduled task is removed first because it is the

@@ -20,9 +20,9 @@ using Velopack.Sources;
 
 namespace MiniMetrics;
 
-public partial class App : Application
+public class App : Application
 {
-    private MetricsPoller? _poller;
+    private MetricsPoller _poller = null!;
     private ISensorSource? _source;
     private ElevationCoordinator _elevationCoordinator = null!;
     private SettingsController _settingsController = null!;
@@ -65,189 +65,225 @@ public partial class App : Application
         {
             desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
-            var settingsStore = new SettingsStore(SettingsStore.DefaultPath);
-            _settingsController = new(
-                settingsStore.Load(),
-                settingsStore,
-                new DispatcherSaveScheduler(TimeSpan.FromMilliseconds(600)));
-            _settings = _settingsController.Current;
-
-            ApplyThemeVariant();
-            ActualThemeVariantChanged += OnActualThemeVariantChanged;
-
-            _currentVersion = Assembly.GetEntryAssembly()?.GetName().Version ?? new Version(0, 0, 0);
-
-            // Decide the update mode once. An installed Velopack build updates in place; a portable or dev
-            // build links to the release page. The installed build runs from "<root>\current\", so the
-            // stable root stub is one directory up.
-            var updateManager =
-                new UpdateManager(new GithubSource("https://github.com/blai30/MiniMetrics", null, false));
-            _isInstalled = updateManager.IsInstalled;
-            _rootStubPath = _isInstalled
-                ? Path.Combine(Directory.GetParent(AppContext.BaseDirectory)!.FullName, "MiniMetrics.exe")
-                : null;
-
-            _updateFlow = _isInstalled
-                ? new VelopackUpdateFlow(updateManager, _settingsController, () => DateTimeOffset.UtcNow)
-                : new UpdateService(
-                    new GitHubReleaseSource(), _currentVersion, _settingsController, () => DateTimeOffset.UtcNow);
-
-            _cpuViewModel = new("cpu", "ram");
-            _cpuViewModel.BindVisibility(_settings.Visibility);
-            _cpuViewModel.IsCompact = _settings.CpuCompact;
-
-            _gpuViewModel = new("gpu", "vram");
-            _gpuViewModel.BindVisibility(_settings.Visibility);
-            _gpuViewModel.IsCompact = _settings.GpuCompact;
-
-            _dateTimeViewModel = new();
-            _dateTimeViewModel.SetTimeZone(SettingsApplier.ResolveTimeZone(_settings.TimeZoneId));
-            _dateTimeViewModel.SetLocale(SettingsApplier.ResolveLocale(_settings.ClockLocaleId));
-            _dateTimeViewModel.SetFormats(
-                _settings.ClockTimeFormat, _settings.ClockDateFormat,
-                _settings.ClockTimeFormatHover, _settings.ClockDateFormatHover);
-            _dateTimeViewModel.IsCompact = _settings.DateTimeCompact;
-            _dateTimeViewModel.SetAlignment(_settings.ClockAlignment);
-            _dateTimeViewModel.SetWidthMode(_settings.ClockWidthMode, _settings.ClockCustomWidth);
-
-            _widgets = [_cpuViewModel, _gpuViewModel, _dateTimeViewModel];
-            _applier = new(
-                _settingsController, _cpuViewModel, _gpuViewModel, _dateTimeViewModel,
-                _widgets, ApplyThemeVariant, ResolvedIsDark);
-            _applier.ApplyAppearance();
-
-            _fontCatalog = new SystemFontCatalog();
-            _applier.ApplyStyle();
-
-            _source = OperatingSystem.IsWindows()
-                ? new HardwareSensorSource(new LibreHardwareTree())
-                : new MockSensorSource();
-
-            IElevation elevation = OperatingSystem.IsWindows()
-                ? new WindowsElevation()
-                : new NoopElevation();
-
-            IDriverProbe driverProbe = OperatingSystem.IsWindows()
-                ? new WindowsDriverProbe()
-                : new NoopDriverProbe();
-
-            _elevationCoordinator = new(elevation, driverProbe);
-
-            _widgetCoordinator = new(_settingsController, _cpuViewModel, _gpuViewModel, _source);
-
-            // Owns the elevation sequence a metric toggle implies. Resolves the startup manager lazily
-            // because BuildTray creates it after this point (and only on Windows).
-            _metricActivator = new(
-                _widgetCoordinator,
-                _elevationCoordinator,
-                _settingsController,
-                () => _startupManager,
-                Environment.ProcessPath!);
-
-            // Release any device whose widget is hidden or whose every metric is hidden before the
-            // first poll runs.
-            _widgetCoordinator.ApplyActiveDevices();
-
-            _poller = new(_source, TimeSpan.FromSeconds(1));
-            _poller.SnapshotReady += snapshot =>
-                Dispatcher.UIThread.Post(() =>
-                {
-                    _cpuViewModel.ApplySnapshot(snapshot);
-                    _gpuViewModel.ApplySnapshot(snapshot);
-
-                    // The GPU widget appears only once a GPU is actually present and not hidden.
-                    UpdateGpuWindowVisibility();
-                });
-
-            _cpuHost = CreateHost(
-                new MetricWidgetWindow { DataContext = _cpuViewModel },
-                () => _settings is { X: { } x, Y: { } y } ? (x, y) : null,
-                _settingsController.SetCpuPosition);
-
-            _gpuHost = CreateHost(
-                new MetricWidgetWindow { DataContext = _gpuViewModel },
-                () => _settings is { GpuX: { } x, GpuY: { } y } ? (x, y) : null,
-                _settingsController.SetGpuPosition);
-
-            _dateTimeHost = CreateHost(
-                new DateTimeWindow { DataContext = _dateTimeViewModel },
-                () => _settings is { DateTimeX: { } x, DateTimeY: { } y } ? (x, y) : null,
-                _settingsController.SetDateTimePosition);
-
-            _hosts = [_cpuHost, _gpuHost, _dateTimeHost];
-            _chrome = new(_settingsController, _hosts);
-
-            // On first appearance with no saved position, the GPU widget sits flush-right of the CPU widget.
-            _gpuHost.OnFirstPlacement = () =>
-            {
-                var cpu = _cpuHost.Rect;
-                _gpuHost.MoveTo(cpu.X + cpu.Width, cpu.Y);
-            };
-
-            // Each widget snaps against the others only while they are actually shown.
-            _cpuHost.SnapAgainst(_gpuHost, _dateTimeHost);
-            _gpuHost.SnapAgainst(_cpuHost, _dateTimeHost);
-            _dateTimeHost.SnapAgainst(_cpuHost, _gpuHost);
-
-            // The CLR, JIT and Avalonia commit far more than the idle widgets keep touching, so the
-            // resident set balloons at startup. Trim it back to the working pages once warmup has
-            // settled (first tick), then top up periodically. The 60s steady interval keeps a trim
-            // from landing mid-drag, where evicted pages would refault and stutter the move.
-            _trimTimer = new() { Interval = TimeSpan.FromSeconds(10) };
-            _trimTimer.Tick += (_, _) =>
-            {
-                MemoryTrimmer.Trim();
-                _trimTimer!.Interval = TimeSpan.FromSeconds(60);
-            };
-            _trimTimer.Start();
+            LoadSettings();
+            CreateUpdateFlow();
+            CreateWidgetViewModels();
+            CreateServices();
+            CreateWidgetHosts();
+            StartTrimTimer();
 
             desktop.MainWindow = _cpuHost.Window;
-            if (!_settings.Hidden) _cpuHost.Show();
-
-            // The GPU window is shown reactively by UpdateGpuWindowVisibility once the first
-            // snapshot confirms a GPU is present.
-
-            if (!_settings.DateTimeHidden) _dateTimeHost.Show();
-
-            _poller.Start();
-
-            // Drive the clock once per second. Tick immediately so the widget shows the time at once.
-            _dateTimeViewModel.Tick(DateTimeOffset.Now);
-            _clockTimer = new() { Interval = TimeSpan.FromSeconds(1) };
-            _clockTimer.Tick += (_, _) => _dateTimeViewModel.Tick(DateTimeOffset.Now);
-            _clockTimer.Start();
-
+            ShowWidgets();
             BuildTray();
 
             desktop.ShutdownRequested += (_, _) =>
             {
                 _settingsController.Flush();
-                _poller?.Dispose();
+                _poller.Dispose();
                 (_source as IDisposable)?.Dispose();
             };
 
-            // A driver-backed metric is enabled but PawnIO is missing: the launch gate did not relaunch
-            // elevated (elevation alone cannot read the sensors), so surface the one-time install step
-            // rather than leaving the metric silently blank.
-            if (OperatingSystem.IsWindows() && _elevationCoordinator.NeedsDriverInstallPrompt(_settings.Visibility))
-                ShowPawnIoPrompt();
-
-            // Run the launch-time update check a few seconds after startup so it never competes with the
-            // startup burst, and only when enabled and the cadence is due.
-            if (_settings.UpdateCheckEnabled
-                && UpdatePolicy.IsDue(_settings.LastUpdateCheckUtc, _settings.UpdateFrequency, DateTimeOffset.UtcNow))
-            {
-                var updateTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
-                updateTimer.Tick += (_, _) =>
-                {
-                    updateTimer.Stop();
-                    RunUpdateCheck(false);
-                };
-                updateTimer.Start();
-            }
+            RunLaunchChecks();
         }
 
         base.OnFrameworkInitializationCompleted();
+    }
+
+    private void LoadSettings()
+    {
+        var settingsStore = new SettingsStore(SettingsStore.DefaultPath);
+        _settingsController = new(
+            settingsStore.Load(),
+            settingsStore,
+            new DispatcherSaveScheduler(TimeSpan.FromMilliseconds(600)));
+        _settings = _settingsController.Current;
+
+        ApplyThemeVariant();
+        ActualThemeVariantChanged += OnActualThemeVariantChanged;
+    }
+
+    private void CreateUpdateFlow()
+    {
+        _currentVersion = Assembly.GetEntryAssembly()?.GetName().Version ?? new Version(0, 0, 0);
+
+        // Decide the update mode once. An installed Velopack build updates in place; a portable or dev
+        // build links to the release page. The installed build runs from "<root>\current\", so the
+        // stable root stub is one directory up.
+        var updateManager =
+            new UpdateManager(new GithubSource("https://github.com/blai30/MiniMetrics", null, false));
+        _isInstalled = updateManager.IsInstalled;
+        _rootStubPath = _isInstalled
+            ? Path.Combine(Directory.GetParent(AppContext.BaseDirectory)!.FullName, "MiniMetrics.exe")
+            : null;
+
+        _updateFlow = _isInstalled
+            ? new VelopackUpdateFlow(updateManager, _settingsController, () => DateTimeOffset.UtcNow)
+            : new UpdateService(
+                new GitHubReleaseSource(), _currentVersion, _settingsController, () => DateTimeOffset.UtcNow);
+    }
+
+    private void CreateWidgetViewModels()
+    {
+        _cpuViewModel = new("cpu", "ram");
+        _cpuViewModel.BindVisibility(_settings.Visibility);
+        _cpuViewModel.IsCompact = _settings.CpuCompact;
+
+        _gpuViewModel = new("gpu", "vram");
+        _gpuViewModel.BindVisibility(_settings.Visibility);
+        _gpuViewModel.IsCompact = _settings.GpuCompact;
+
+        _dateTimeViewModel = new();
+        _dateTimeViewModel.SetTimeZone(SettingsApplier.ResolveTimeZone(_settings.TimeZoneId));
+        _dateTimeViewModel.SetLocale(SettingsApplier.ResolveLocale(_settings.ClockLocaleId));
+        _dateTimeViewModel.SetFormats(
+            _settings.ClockTimeFormat, _settings.ClockDateFormat,
+            _settings.ClockTimeFormatHover, _settings.ClockDateFormatHover);
+        _dateTimeViewModel.IsCompact = _settings.DateTimeCompact;
+        _dateTimeViewModel.SetAlignment(_settings.ClockAlignment);
+        _dateTimeViewModel.SetWidthMode(_settings.ClockWidthMode, _settings.ClockCustomWidth);
+
+        _widgets = [_cpuViewModel, _gpuViewModel, _dateTimeViewModel];
+        _applier = new(
+            _settingsController, _cpuViewModel, _gpuViewModel, _dateTimeViewModel,
+            _widgets, ApplyThemeVariant, ResolvedIsDark);
+        _applier.ApplyAppearance();
+
+        _fontCatalog = new SystemFontCatalog();
+        _applier.ApplyStyle();
+    }
+
+    private void CreateServices()
+    {
+        _source = OperatingSystem.IsWindows()
+            ? new HardwareSensorSource(new LibreHardwareTree())
+            : new MockSensorSource();
+
+        IElevation elevation = OperatingSystem.IsWindows()
+            ? new WindowsElevation()
+            : new NoopElevation();
+
+        IDriverProbe driverProbe = OperatingSystem.IsWindows()
+            ? new WindowsDriverProbe()
+            : new NoopDriverProbe();
+
+        _elevationCoordinator = new(elevation, driverProbe);
+
+        _widgetCoordinator = new(_settingsController, _cpuViewModel, _gpuViewModel, _source);
+
+        // Owns the elevation sequence a metric toggle implies. Resolves the startup manager lazily
+        // because BuildTray creates it after this point (and only on Windows).
+        _metricActivator = new(
+            _widgetCoordinator,
+            _elevationCoordinator,
+            _settingsController,
+            () => _startupManager,
+            Environment.ProcessPath!);
+
+        // Release any device whose widget is hidden or whose every metric is hidden before the
+        // first poll runs.
+        _widgetCoordinator.ApplyActiveDevices();
+
+        _poller = new(_source, TimeSpan.FromSeconds(1));
+        _poller.SnapshotReady += snapshot =>
+            Dispatcher.UIThread.Post(() =>
+            {
+                _cpuViewModel.ApplySnapshot(snapshot);
+                _gpuViewModel.ApplySnapshot(snapshot);
+
+                // The GPU widget appears only once a GPU is actually present and not hidden.
+                UpdateGpuWindowVisibility();
+            });
+    }
+
+    private void CreateWidgetHosts()
+    {
+        _cpuHost = CreateHost(
+            new MetricWidgetWindow { DataContext = _cpuViewModel },
+            () => _settings is { X: { } x, Y: { } y } ? (x, y) : null,
+            _settingsController.SetCpuPosition);
+
+        _gpuHost = CreateHost(
+            new MetricWidgetWindow { DataContext = _gpuViewModel },
+            () => _settings is { GpuX: { } x, GpuY: { } y } ? (x, y) : null,
+            _settingsController.SetGpuPosition);
+
+        _dateTimeHost = CreateHost(
+            new DateTimeWindow { DataContext = _dateTimeViewModel },
+            () => _settings is { DateTimeX: { } x, DateTimeY: { } y } ? (x, y) : null,
+            _settingsController.SetDateTimePosition);
+
+        _hosts = [_cpuHost, _gpuHost, _dateTimeHost];
+        _chrome = new(_settingsController, _hosts);
+
+        // On first appearance with no saved position, the GPU widget sits flush-right of the CPU widget.
+        _gpuHost.OnFirstPlacement = () =>
+        {
+            var cpu = _cpuHost.Rect;
+            _gpuHost.MoveTo(cpu.X + cpu.Width, cpu.Y);
+        };
+
+        // Each widget snaps against the others only while they are actually shown.
+        _cpuHost.SnapAgainst(_gpuHost, _dateTimeHost);
+        _gpuHost.SnapAgainst(_cpuHost, _dateTimeHost);
+        _dateTimeHost.SnapAgainst(_cpuHost, _gpuHost);
+    }
+
+    private void StartTrimTimer()
+    {
+        // The CLR, JIT and Avalonia commit far more than the idle widgets keep touching, so the
+        // resident set balloons at startup. Trim it back to the working pages once warmup has
+        // settled (first tick), then top up periodically. The 60s steady interval keeps a trim
+        // from landing mid-drag, where evicted pages would refault and stutter the move.
+        _trimTimer = new() { Interval = TimeSpan.FromSeconds(10) };
+        _trimTimer.Tick += (_, _) =>
+        {
+            MemoryTrimmer.Trim();
+            _trimTimer!.Interval = TimeSpan.FromSeconds(60);
+        };
+        _trimTimer.Start();
+    }
+
+    private void ShowWidgets()
+    {
+        if (!_settings.Hidden) _cpuHost.Show();
+
+        // The GPU window is shown reactively by UpdateGpuWindowVisibility once the first
+        // snapshot confirms a GPU is present.
+
+        if (!_settings.DateTimeHidden) _dateTimeHost.Show();
+
+        _poller.Start();
+
+        // Drive the clock once per second. Tick immediately so the widget shows the time at once.
+        _dateTimeViewModel.Tick(DateTimeOffset.Now);
+        _clockTimer = new() { Interval = TimeSpan.FromSeconds(1) };
+        _clockTimer.Tick += (_, _) => _dateTimeViewModel.Tick(DateTimeOffset.Now);
+        _clockTimer.Start();
+    }
+
+    private void RunLaunchChecks()
+    {
+        // A driver-backed metric is enabled but PawnIO is missing: the launch gate did not relaunch
+        // elevated (elevation alone cannot read the sensors), so surface the one-time install step
+        // rather than leaving the metric silently blank.
+        if (OperatingSystem.IsWindows() && _elevationCoordinator.NeedsDriverInstallPrompt(_settings.Visibility))
+        {
+            ShowPawnIoPrompt();
+        }
+
+        // Run the launch-time update check a few seconds after startup so it never competes with the
+        // startup burst, and only when enabled and the cadence is due.
+        if (_settings.UpdateCheckEnabled
+            && UpdatePolicy.IsDue(_settings.LastUpdateCheckUtc, _settings.UpdateFrequency, DateTimeOffset.UtcNow))
+        {
+            var updateTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
+            updateTimer.Tick += (_, _) =>
+            {
+                updateTimer.Stop();
+                RunUpdateCheck(false);
+            };
+            updateTimer.Start();
+        }
     }
 
     private void BuildTray()
@@ -269,7 +305,9 @@ public partial class App : Application
             // process is already elevated, this creates or removes the scheduled task with no prompt,
             // which is what keeps enabling a CPU sensor to a single UAC prompt overall.
             if (_elevationCoordinator.IsElevated() && _startupManager.IsEnabled())
+            {
                 _startupManager.Sync(true, RequiresElevation());
+            }
 
             showRunAtStartup = true;
             runAtStartupChecked = _startupManager.IsEnabled();
@@ -298,7 +336,9 @@ public partial class App : Application
         if (OperatingSystem.IsWindows() && _isInstalled)
             // The controller only surfaces the uninstall item under this same condition, so the handler
             // is only ever reachable on the platform it supports.
+        {
             _tray.UninstallRequested += OnUninstall;
+        }
 
         _tray.QuitRequested += () =>
         {
@@ -317,9 +357,13 @@ public partial class App : Application
     {
         bool hidden = _settingsController.ToggleCpuHidden();
         if (hidden)
+        {
             _cpuHost.Hide();
+        }
         else
+        {
             _cpuHost.Show();
+        }
 
         _tray.SetCpuChecked(!hidden);
         _widgetCoordinator.ApplyActiveDevices();
@@ -337,9 +381,13 @@ public partial class App : Application
     {
         bool hidden = _settingsController.ToggleDateTimeHidden();
         if (hidden)
+        {
             _dateTimeHost.Hide();
+        }
         else
+        {
             _dateTimeHost.Show();
+        }
 
         _tray.SetClockChecked(!hidden);
     }
@@ -379,7 +427,7 @@ public partial class App : Application
         {
             AppTheme.Light => ThemeVariant.Light,
             AppTheme.Dark => ThemeVariant.Dark,
-            _ => ThemeVariant.Default
+            _ => ThemeVariant.Default,
         };
     }
 
@@ -433,7 +481,9 @@ public partial class App : Application
         try
         {
             if (_settingsHost.Current?.DataContext is SettingsViewModel viewModel)
+            {
                 viewModel.ToggleFor(key).IsVisible = false;
+            }
         }
         finally
         {
@@ -449,7 +499,9 @@ public partial class App : Application
     {
         bool shouldShow = !_settings.GpuHidden && _gpuViewModel.HasContent;
         if (shouldShow && !_gpuHost.IsVisible)
+        {
             _gpuHost.Show();
+        }
         else if (!shouldShow && _gpuHost.IsVisible) _gpuHost.Hide();
     }
 
@@ -497,7 +549,9 @@ public partial class App : Application
 
         if (coordinator.Run() == UninstallOutcome.Completed
             && ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        {
             desktop.Shutdown();
+        }
     }
 
     private static void LaunchVelopackUninstaller()
@@ -507,7 +561,7 @@ public partial class App : Application
         {
             FileName = updateExe,
             Arguments = "--uninstall",
-            UseShellExecute = false
+            UseShellExecute = false,
         });
     }
 

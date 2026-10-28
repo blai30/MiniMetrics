@@ -41,7 +41,7 @@ public class DeviceActivationTests
         {
             ["cpu.usage"] = false,
             ["cpu.temp"] = false,
-            ["cpu.power"] = false
+            ["cpu.power"] = false,
         };
         var result = DeviceActivation.Compute(visibility, true, true);
         Assert.IsFalse(result.Cpu);
@@ -64,7 +64,7 @@ public class DeviceActivationTests
         {
             ["gpu.usage"] = false,
             ["gpu.temp"] = false,
-            ["gpu.power"] = false
+            ["gpu.power"] = false,
         };
         var result = DeviceActivation.Compute(visibility, true, true);
         Assert.IsTrue(result.Gpu);
@@ -78,7 +78,7 @@ public class DeviceActivationTests
             ["gpu.usage"] = false,
             ["gpu.temp"] = false,
             ["gpu.power"] = false,
-            ["vram.usage"] = false
+            ["vram.usage"] = false,
         };
         var result = DeviceActivation.Compute(visibility, true, true);
         Assert.IsFalse(result.Gpu);

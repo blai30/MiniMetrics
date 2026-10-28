@@ -17,7 +17,7 @@ public sealed class BoolToOpacityConverter : IValueConverter
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
         => value is true ? 1.0 : 0.0;
 
-    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => throw new NotSupportedException();
 }
 
@@ -36,12 +36,12 @@ public sealed class RowColorToBrushConverter : IValueConverter
             GradientStops =
             {
                 new(Color.Parse(from), 0),
-                new(Color.Parse(to), 1)
-            }
+                new(Color.Parse(to), 1),
+            },
         };
     }
 
-    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => throw new NotSupportedException();
 }
 
@@ -54,7 +54,7 @@ public sealed class TempLevelToBrushConverter : IValueConverter
         return new SolidColorBrush(Color.Parse(ThemePalette.TempColor(level, isDark)));
     }
 
-    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => throw new NotSupportedException();
 }
 
@@ -66,7 +66,7 @@ public sealed class StringToFontFamilyConverter : IValueConverter
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
         value is string name && !string.IsNullOrWhiteSpace(name) ? new(name) : FontFamily.Default;
 
-    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => throw new NotSupportedException();
 }
 
@@ -79,7 +79,7 @@ public sealed class UpdateFrequencyLabelConverter : IValueConverter
         UpdateCheckFrequency.Daily => "Daily",
         UpdateCheckFrequency.Weekly => "Weekly",
         UpdateCheckFrequency.Monthly => "Monthly",
-        _ => value?.ToString() ?? string.Empty
+        _ => value?.ToString() ?? string.Empty,
     };
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
@@ -93,7 +93,7 @@ public sealed class IndexEqualsConverter : IValueConverter
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
         value is int index && parameter is string text && int.TryParse(text, out int target) && index == target;
 
-    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => throw new NotSupportedException();
 }
 
@@ -105,7 +105,9 @@ public sealed class SwatchSelectionThicknessConverter : IMultiValueConverter
     public object Convert(IList<object?> values, Type targetType, object? parameter, CultureInfo culture)
     {
         if (values.Count < 2 || values[0] is not string swatch || values[1] is not string selected)
+        {
             return new Thickness(0);
+        }
 
         return string.Equals(swatch.Trim(), selected.Trim(), StringComparison.OrdinalIgnoreCase)
             ? new Thickness(2)
@@ -121,6 +123,6 @@ public sealed class EnumEqualsConverter : IValueConverter
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
         value is Enum @enum && parameter is string name && @enum.ToString() == name;
 
-    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => throw new NotSupportedException();
 }

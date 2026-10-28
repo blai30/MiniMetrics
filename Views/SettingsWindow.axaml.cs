@@ -36,7 +36,8 @@ public partial class SettingsWindow : Window
     // list, the current selection stays listed until the user types, typing filters leniently over the
     // item's display name and key, and opening highlights the text so the first keystroke starts fresh.
     private void SetUpSearchableDropDown(
-        AutoCompleteBox box, Func<object?, (string Display, string Key)?> parts)
+        AutoCompleteBox box,
+        Func<object?, (string Display, string Key)?> parts)
     {
         string selectionText = parts(box.SelectedItem)?.Display ?? "";
         box.SelectionChanged += (_, _) => selectionText = parts(box.SelectedItem)?.Display ?? "";
@@ -47,7 +48,7 @@ public partial class SettingsWindow : Window
 
             string query = (search ?? "").Trim();
             return string.Equals(query, selectionText, StringComparison.CurrentCultureIgnoreCase)
-                   || FuzzySearch.Matches(part.Display, part.Key, query);
+                || FuzzySearch.Matches(part.Display, part.Key, query);
         };
 
         // Pressing anywhere in the field drops the list open like a dropdown.
@@ -133,7 +134,7 @@ public partial class SettingsWindow : Window
                 nameof(GpuScaleInput) => viewModel.GpuScale,
                 nameof(ClockScaleInput) => viewModel.ClockScale,
                 nameof(ClockCustomWidthInput) => viewModel.ClockCustomWidth,
-                _ => input.Value
+                _ => input.Value,
             };
         }
     }

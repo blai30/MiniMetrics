@@ -56,14 +56,28 @@ public sealed class SettingsApplier
                 ApplyAppearance();
                 break;
             case SettingChange.Theme theme:
-                _controller.SetTheme(theme.Value);
-                _applyThemeVariant();
-                ApplyAppearance();
-                RefreshAccents();
+                ApplyTheme(theme.Value);
                 break;
             case SettingChange.Compact compact:
                 ApplyCompact(compact.Widget, compact.IsCompact);
                 break;
+            case SettingChange.UpdatePreferences updates:
+                _controller.SetUpdatePreferences(updates.Enabled, updates.Frequency);
+                break;
+            case SettingChange.WidgetStyle style:
+                _controller.SetWidgetStyle(style.Widget, style.Family, style.Scale, style.Weight);
+                ApplyStyle();
+                break;
+            case SettingChange.Clock clock:
+                ApplyClock(clock);
+                break;
+        }
+    }
+
+    private void ApplyClock(SettingChange.Clock change)
+    {
+        switch (change)
+        {
             case SettingChange.Alignment alignment:
                 _controller.SetClockAlignment(alignment.Value);
                 _dateTime.SetAlignment(alignment.Value);
@@ -81,18 +95,19 @@ public sealed class SettingsApplier
                 _controller.SetClockLocale(locale.Locale.Name);
                 _dateTime.SetLocale(locale.Locale);
                 break;
-            case SettingChange.UpdatePreferences updates:
-                _controller.SetUpdatePreferences(updates.Enabled, updates.Frequency);
-                break;
-            case SettingChange.WidgetStyle style:
-                _controller.SetWidgetStyle(style.Widget, style.Family, style.Scale, style.Weight);
-                ApplyStyle();
-                break;
             case SettingChange.ClockWidth width:
                 _controller.SetClockWidth(width.Mode, width.CustomWidth);
                 ApplyClockWidth();
                 break;
         }
+    }
+
+    private void ApplyTheme(AppTheme theme)
+    {
+        _controller.SetTheme(theme);
+        _applyThemeVariant();
+        ApplyAppearance();
+        RefreshAccents();
     }
 
     // Pushes the current opacity and the resolved theme's background color to every widget through the
@@ -101,7 +116,10 @@ public sealed class SettingsApplier
     {
         var settings = _controller.Current;
         string background = _resolvedIsDark() ? settings.BackgroundColor : settings.LightBackgroundColor;
-        foreach (var widget in _widgets) widget.ApplyAppearance(background, settings.Opacity);
+        foreach (var widget in _widgets)
+        {
+            widget.ApplyAppearance(background, settings.Opacity);
+        }
     }
 
     // Resolves one style profile for each widget from the current settings and pushes it to the widget
@@ -109,23 +127,23 @@ public sealed class SettingsApplier
     public void ApplyStyle()
     {
         var settings = _controller.Current;
-        
+
         // Apply style to each widget by referencing the specific widget view models
         var cpuProfile = WidgetStyleProfile.Resolve(
-            settings.WidgetFontFamily, 
-            settings.WidgetScales.GetValueOrDefault("cpu", 100), 
+            settings.WidgetFontFamily,
+            settings.WidgetScales.GetValueOrDefault("cpu", 100),
             settings.WidgetFontWeight);
         _cpu.ApplyStyle(cpuProfile);
 
         var gpuProfile = WidgetStyleProfile.Resolve(
-            settings.WidgetFontFamily, 
-            settings.WidgetScales.GetValueOrDefault("gpu", 100), 
+            settings.WidgetFontFamily,
+            settings.WidgetScales.GetValueOrDefault("gpu", 100),
             settings.WidgetFontWeight);
         _gpu.ApplyStyle(gpuProfile);
 
         var clockProfile = WidgetStyleProfile.Resolve(
-            settings.WidgetFontFamily, 
-            settings.WidgetScales.GetValueOrDefault("clock", 100), 
+            settings.WidgetFontFamily,
+            settings.WidgetScales.GetValueOrDefault("clock", 100),
             settings.WidgetFontWeight);
         _dateTime.ApplyStyle(clockProfile);
 

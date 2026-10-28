@@ -64,8 +64,12 @@ public sealed class WidgetHost(
         {
             var rects = new List<EdgeSnap.Rect>(peers.Length);
             foreach (var peer in peers)
+            {
                 if (peer.IsVisible)
+                {
                     rects.Add(peer.Rect);
+                }
+            }
 
             return rects;
         };

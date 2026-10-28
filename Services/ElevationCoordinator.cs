@@ -16,7 +16,7 @@ public enum MetricEnableAction
 
     // The metric needs elevation but PawnIO is missing, so elevation alone cannot read it: point the
     // user at the driver installer instead of prompting for elevation that cannot help.
-    DriverInstallPrompt
+    DriverInstallPrompt,
 }
 
 // Owns the single elevation predicate and the decisions derived from it, so Program (the launch gate)

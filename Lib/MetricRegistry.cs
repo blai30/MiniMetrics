@@ -27,7 +27,7 @@ public static class MetricRegistry
         new("gpu.usage", "gpu", "Usage", false),
         new("gpu.temp", "gpu", "Temperature", false),
         new("gpu.power", "gpu", "Power", false),
-        new("vram.usage", "vram", "Usage", false)
+        new("vram.usage", "vram", "Usage", false),
     ];
 
     // The distinct card keys, in declaration order. These double as the legacy whole-card keys that

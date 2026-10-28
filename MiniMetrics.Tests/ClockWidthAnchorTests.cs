@@ -1,5 +1,4 @@
 using System.Globalization;
-using Avalonia;
 using Avalonia.Headless;
 using Avalonia.Threading;
 using MiniMetrics.Models;
@@ -34,14 +33,15 @@ public class ClockWidthAnchorTests
     // Shows a clock at a known position on the wide time, then reformats to the narrow time and
     // reports the window edges (physical pixels) before and after the resize.
     private static (double WideLeft, double WideRight, double NarrowLeft, double NarrowRight) Resize(
-        ClockAlignment alignment, ClockWidthMode mode = ClockWidthMode.Auto)
+        ClockAlignment alignment,
+        ClockWidthMode mode = ClockWidthMode.Auto)
     {
         var viewModel = NewVm(alignment, mode);
         viewModel.Tick(Wide);
 
         var window = new DateTimeWindow { DataContext = viewModel };
         window.Show();
-        window.Position = new PixelPoint(Left, 100);
+        window.Position = new(Left, 100);
         Dispatcher.UIThread.RunJobs();
 
         double wideLeft = window.Position.X;
@@ -102,7 +102,7 @@ public class ClockWidthAnchorTests
 
             var window = new DateTimeWindow { DataContext = viewModel };
             window.Show();
-            window.Position = new PixelPoint(Left, 100);
+            window.Position = new(Left, 100);
             Dispatcher.UIThread.RunJobs();
 
             viewModel.Tick(Narrow);

@@ -9,7 +9,8 @@ public class UpdateServiceTests
     private static readonly DateTimeOffset Now = new(2026, 6, 17, 12, 0, 0, TimeSpan.Zero);
 
     private static (UpdateService service, SettingsController controller) NewService(
-        IReleaseSource source, Settings? settings = null)
+        IReleaseSource source,
+        Settings? settings = null)
     {
         string path = Path.Combine(Path.GetTempPath(), "dm-tests", Path.GetRandomFileName(), "settings.json");
         var controller =

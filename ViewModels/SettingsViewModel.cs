@@ -41,8 +41,8 @@ public partial class SettingsViewModel : ObservableObject
     private static readonly string[] LightSwatches =
         ["#EEF1F5", "#E4E8EF", "#FFFFFF", "#EAF1F8", "#F3EEF7", "#EAF3EE"];
 
-    private string _darkColor = "";
-    private string _lightColor = "";
+    private string _darkColor;
+    private string _lightColor;
 
     // Which variant the color editor currently writes to. Under System it follows the OS as captured
     // when the window opened.
@@ -50,7 +50,7 @@ public partial class SettingsViewModel : ObservableObject
     {
         AppTheme.Light => false,
         AppTheme.Dark => true,
-        _ => field
+        _ => field,
     };
 
     public IReadOnlyList<string> Swatches => EditingVariantIsDark ? DarkSwatches : LightSwatches;
@@ -59,7 +59,7 @@ public partial class SettingsViewModel : ObservableObject
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(TimeZoneModified))]
-    public partial TimeZoneInfo SelectedTimeZone { get; set; }
+    public partial TimeZoneInfo? SelectedTimeZone { get; set; }
 
     [ObservableProperty] public partial bool UpdateCheckEnabled { get; set; }
 
@@ -123,7 +123,7 @@ public partial class SettingsViewModel : ObservableObject
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(LocaleModified))]
-    public partial CultureInfo SelectedLocale { get; set; }
+    public partial CultureInfo? SelectedLocale { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(TimeSample))]
@@ -154,19 +154,22 @@ public partial class SettingsViewModel : ObservableObject
 
     // The zone used for previews mirrors the clock's resolved zone selection. SelectedTimeZone can be
     // momentarily null while the user types in the time zone search box, so fall back to local then.
-    private TimeZoneInfo PreviewZone => UseLocalTime ? TimeZoneInfo.Local : SelectedTimeZone;
+    private TimeZoneInfo PreviewZone => UseLocalTime ? TimeZoneInfo.Local : SelectedTimeZone ?? TimeZoneInfo.Local;
+
+    // The locale box clears its selection the same way, so previews fall back to the default locale.
+    private CultureInfo PreviewCulture => SelectedLocale ?? _defaultLocale;
 
     public string TimeSample => ClockFormatting.Render(
-        PreviewInstant, PreviewZone, ClockTimeFormat, ClockFormatting.DefaultTimeFormat, SelectedLocale);
+        PreviewInstant, PreviewZone, ClockTimeFormat, ClockFormatting.DefaultTimeFormat, PreviewCulture);
 
     public string DateSample => ClockFormatting.Render(
-        PreviewInstant, PreviewZone, ClockDateFormat, ClockFormatting.DefaultDateFormat, SelectedLocale);
+        PreviewInstant, PreviewZone, ClockDateFormat, ClockFormatting.DefaultDateFormat, PreviewCulture);
 
     public string TimeHoverSample => ClockFormatting.Render(
-        PreviewInstant, PreviewZone, ClockTimeFormatHover, ClockFormatting.DefaultTimeFormatHover, SelectedLocale);
+        PreviewInstant, PreviewZone, ClockTimeFormatHover, ClockFormatting.DefaultTimeFormatHover, PreviewCulture);
 
     public string DateHoverSample => ClockFormatting.Render(
-        PreviewInstant, PreviewZone, ClockDateFormatHover, ClockFormatting.DefaultDateFormatHover, SelectedLocale);
+        PreviewInstant, PreviewZone, ClockDateFormatHover, ClockFormatting.DefaultDateFormatHover, PreviewCulture);
 
     public string TimeFormatError => FormatError(ClockTimeFormat);
     public string DateFormatError => FormatError(ClockDateFormat);
@@ -174,14 +177,14 @@ public partial class SettingsViewModel : ObservableObject
     public string DateHoverFormatError => FormatError(ClockDateFormatHover);
 
     private string FormatError(string? format) =>
-        ClockFormatting.IsValidFormat(format, SelectedLocale) ? "" : "Invalid format";
+        ClockFormatting.IsValidFormat(format, PreviewCulture) ? "" : "Invalid format";
 
     public IReadOnlyList<UpdateCheckFrequency> UpdateFrequencies { get; } =
     [
         UpdateCheckFrequency.EveryLaunch,
         UpdateCheckFrequency.Daily,
         UpdateCheckFrequency.Weekly,
-        UpdateCheckFrequency.Monthly
+        UpdateCheckFrequency.Monthly,
     ];
 
     // The metric visibility checkboxes, grouped by card, built from the registry.
@@ -344,9 +347,13 @@ public partial class SettingsViewModel : ObservableObject
     partial void OnBackgroundColorChanged(string value)
     {
         if (EditingVariantIsDark)
+        {
             _darkColor = value;
+        }
         else
+        {
             _lightColor = value;
+        }
 
         RaiseAppearance();
     }
@@ -362,7 +369,7 @@ public partial class SettingsViewModel : ObservableObject
         OnPropertyChanged(nameof(Swatches));
     }
 
-    partial void OnSelectedTimeZoneChanged(TimeZoneInfo value)
+    partial void OnSelectedTimeZoneChanged(TimeZoneInfo? value)
     {
         // The time zone search box clears its selection to null while the user types a filter; ignore
         // that so we never persist or dereference a null zone.
@@ -385,7 +392,7 @@ public partial class SettingsViewModel : ObservableObject
     partial void OnClockDateFormatHoverChanged(string? value) =>
         RaiseClockFormats();
 
-    partial void OnSelectedLocaleChanged(CultureInfo value)
+    partial void OnSelectedLocaleChanged(CultureInfo? value)
     {
         // The locale box clears its selection to null while the user types a filter; ignore that so we
         // never persist a null locale or dereference it downstream.
@@ -464,7 +471,7 @@ public partial class SettingsViewModel : ObservableObject
             "cpu" => CpuScale,
             "gpu" => GpuScale,
             "clock" => ClockScale,
-            _ => 100
+            _ => 100,
         };
         SettingChanged?.Invoke(new SettingChange.WidgetStyle(widget, WidgetFontFamily, scale, WidgetFontWeight));
     }
@@ -475,12 +482,20 @@ public partial class SettingsViewModel : ObservableObject
     {
         string targetId = id ?? TimeZoneInfo.Local.Id;
         foreach (var zone in zones)
+        {
             if (zone.Id == targetId)
+            {
                 return zone;
+            }
+        }
 
         foreach (var zone in zones)
+        {
             if (zone.Id == TimeZoneInfo.Local.Id)
+            {
                 return zone;
+            }
+        }
 
         // Last resort if the system list somehow lacks the local zone; the dropdown shows no
         // selection in that case.
@@ -495,16 +510,28 @@ public partial class SettingsViewModel : ObservableObject
     {
         string targetName = id ?? CultureInfo.CurrentCulture.Name;
         foreach (var culture in locales)
+        {
             if (culture.Name == targetName)
+            {
                 return culture;
+            }
+        }
 
         foreach (var culture in locales)
+        {
             if (culture.Name == CultureInfo.CurrentCulture.Name)
+            {
                 return culture;
+            }
+        }
 
         foreach (var culture in locales)
+        {
             if (culture.Parent.Name == CultureInfo.CurrentCulture.Name)
+            {
                 return culture;
+            }
+        }
 
         return locales.Count > 0 ? locales[0] : CultureInfo.CurrentCulture;
     }

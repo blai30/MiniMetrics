@@ -25,7 +25,7 @@ public class StableWidthTextBlock : TextBlock
         var constraint = availableSize.Deflate(Padding);
         var tabular = new TextLayout(
             Text,
-            new Typeface(FontFamily, FontStyle, FontWeight, FontStretch),
+            new(FontFamily, FontStyle, FontWeight, FontStretch),
             FontSize,
             Foreground,
             TextAlignment,

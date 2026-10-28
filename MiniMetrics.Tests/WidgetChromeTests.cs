@@ -1,4 +1,3 @@
-using MiniMetrics.Models;
 using MiniMetrics.Services;
 using MiniMetrics.Views;
 

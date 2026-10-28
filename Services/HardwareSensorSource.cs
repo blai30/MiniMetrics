@@ -62,9 +62,9 @@ public sealed class HardwareSensorSource(IHardwareTree tree, Func<ulong>? instal
             // placeholder. Intel exposes "CPU Package"; AMD surfaces "Core (Tctl/Tdie)" for temperature
             // and "Package" for power.
             double? temp = Available(tree.Read(HardwareKind.Cpu, SensorKind.Temperature, "CPU Package")) ??
-                           Available(tree.Read(HardwareKind.Cpu, SensorKind.Temperature, "Core (Tctl/Tdie)"));
+                Available(tree.Read(HardwareKind.Cpu, SensorKind.Temperature, "Core (Tctl/Tdie)"));
             double? power = Available(tree.Read(HardwareKind.Cpu, SensorKind.Power, "CPU Package")) ??
-                            Available(tree.Read(HardwareKind.Cpu, SensorKind.Power, "Package"));
+                Available(tree.Read(HardwareKind.Cpu, SensorKind.Power, "Package"));
             cpu = new(load, temp, power);
         }
 
@@ -94,16 +94,16 @@ public sealed class HardwareSensorSource(IHardwareTree tree, Func<ulong>? instal
             // "D3D Dedicated Memory" counters, AMD's "GPU SoC"/"GPU PPT" power rails).
             double load = tree.Read(HardwareKind.Gpu, SensorKind.Load, "GPU Core") ?? 0;
             double temp = tree.Read(HardwareKind.Gpu, SensorKind.Temperature, "GPU Core")
-                          ?? tree.Read(HardwareKind.Gpu, SensorKind.Temperature, "GPU Hot Spot") ?? 0;
+                ?? tree.Read(HardwareKind.Gpu, SensorKind.Temperature, "GPU Hot Spot") ?? 0;
             double power = tree.Read(HardwareKind.Gpu, SensorKind.Power, "GPU Package")
-                           ?? tree.Read(HardwareKind.Gpu, SensorKind.Power, "GPU Power")
-                           ?? tree.Read(HardwareKind.Gpu, SensorKind.Power, "GPU SoC")
-                           ?? tree.Read(HardwareKind.Gpu, SensorKind.Power, "GPU PPT") ?? 0;
+                ?? tree.Read(HardwareKind.Gpu, SensorKind.Power, "GPU Power")
+                ?? tree.Read(HardwareKind.Gpu, SensorKind.Power, "GPU SoC")
+                ?? tree.Read(HardwareKind.Gpu, SensorKind.Power, "GPU PPT") ?? 0;
             double vramUsedMib = tree.Read(HardwareKind.Gpu, SensorKind.SmallData, "GPU Memory Used")
-                                 ?? tree.Read(HardwareKind.Gpu, SensorKind.SmallData, "D3D Dedicated Memory Used") ?? 0;
+                ?? tree.Read(HardwareKind.Gpu, SensorKind.SmallData, "D3D Dedicated Memory Used") ?? 0;
             double vramTotalMib = tree.Read(HardwareKind.Gpu, SensorKind.SmallData, "GPU Memory Total")
-                                  ?? tree.Read(HardwareKind.Gpu, SensorKind.SmallData, "D3D Dedicated Memory Total") ??
-                                  0;
+                ?? tree.Read(HardwareKind.Gpu, SensorKind.SmallData, "D3D Dedicated Memory Total") ??
+                0;
 
             gpu = new(
                 load,

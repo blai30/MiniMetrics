@@ -9,13 +9,13 @@ public class GitHubReleaseSourceTests
     public void ParseRelease_reads_tag_and_url()
     {
         const string json = """
-                            { "tag_name": "v1.3.0", "html_url": "https://github.com/blai30/MiniMetrics/releases/tag/v1.3.0", "draft": false }
-                            """;
+            { "tag_name": "v1.3.0", "html_url": "https://github.com/blai30/MiniMetrics/releases/tag/v1.3.0", "draft": false }
+            """;
 
         var release = GitHubReleaseSource.ParseRelease(json);
 
         Assert.IsNotNull(release);
-        Assert.AreEqual("v1.3.0", release!.TagName);
+        Assert.AreEqual("v1.3.0", release.TagName);
         Assert.AreEqual("https://github.com/blai30/MiniMetrics/releases/tag/v1.3.0", release.HtmlUrl);
     }
 

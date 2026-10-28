@@ -135,7 +135,7 @@ public sealed class WindowsStartupOperations : IStartupOperations
             Arguments = arguments,
             UseShellExecute = elevated,
             CreateNoWindow = true,
-            WindowStyle = ProcessWindowStyle.Hidden
+            WindowStyle = ProcessWindowStyle.Hidden,
         };
 
         if (elevated)

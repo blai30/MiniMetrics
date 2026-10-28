@@ -21,8 +21,8 @@ public class SettingsViewModelTests
             ["gpu.usage"] = true,
             ["gpu.temp"] = true,
             ["gpu.power"] = true,
-            ["vram.usage"] = true
-        }
+            ["vram.usage"] = true,
+        },
     };
 
     // Records every change raised on the single SettingChanged channel after the view model is seeded.
@@ -143,7 +143,7 @@ public class SettingsViewModelTests
     {
         var settings = new Settings { BackgroundColor = "#0F121D", LightBackgroundColor = "#EEF1F5" };
 
-        var viewModel = new SettingsViewModel(settings, true);
+        var viewModel = new SettingsViewModel(settings);
 
         Assert.AreEqual(AppTheme.System, viewModel.Theme);
         Assert.IsTrue(viewModel.EditingVariantIsDark);
@@ -154,7 +154,7 @@ public class SettingsViewModelTests
     public void Switching_to_light_loads_the_light_color_and_swatches()
     {
         var settings = new Settings { BackgroundColor = "#0F121D", LightBackgroundColor = "#EEF1F5" };
-        var viewModel = new SettingsViewModel(settings, true);
+        var viewModel = new SettingsViewModel(settings);
         var changes = Capture(viewModel);
 
         viewModel.Theme = AppTheme.Light;
@@ -169,7 +169,7 @@ public class SettingsViewModelTests
     public void Editing_color_under_each_theme_keeps_both_independently()
     {
         var settings = new Settings { BackgroundColor = "#0F121D", LightBackgroundColor = "#EEF1F5" };
-        var viewModel = new SettingsViewModel(settings, true);
+        var viewModel = new SettingsViewModel(settings);
 
         viewModel.BackgroundColor = "#101010"; // edits dark
         viewModel.Theme = AppTheme.Light;
@@ -186,7 +186,7 @@ public class SettingsViewModelTests
 
         var viewModel = new SettingsViewModel(settings);
 
-        Assert.AreEqual("UTC", viewModel.SelectedTimeZone.Id);
+        Assert.AreEqual("UTC", viewModel.SelectedTimeZone?.Id);
     }
 
     [TestMethod]
@@ -194,7 +194,7 @@ public class SettingsViewModelTests
     {
         var viewModel = new SettingsViewModel(SampleSettings());
 
-        Assert.AreEqual(TimeZoneInfo.Local.Id, viewModel.SelectedTimeZone.Id);
+        Assert.AreEqual(TimeZoneInfo.Local.Id, viewModel.SelectedTimeZone?.Id);
     }
 
     [TestMethod]
@@ -203,7 +203,7 @@ public class SettingsViewModelTests
         var viewModel = new SettingsViewModel(new() { TimeZoneId = "UTC" });
         var changes = Capture(viewModel);
 
-        var target = TimeZoneInfo.GetSystemTimeZones().First(tz => tz.Id != viewModel.SelectedTimeZone.Id);
+        var target = TimeZoneInfo.GetSystemTimeZones().First(tz => tz.Id != viewModel.SelectedTimeZone?.Id);
         viewModel.SelectedTimeZone = target;
 
         Assert.AreEqual(1, changes.Count);
@@ -338,7 +338,7 @@ public class SettingsViewModelTests
     {
         var viewModel = new SettingsViewModel(new() { ClockLocaleId = "fr-FR" });
 
-        Assert.AreEqual("fr-FR", viewModel.SelectedLocale.Name);
+        Assert.AreEqual("fr-FR", viewModel.SelectedLocale?.Name);
     }
 
     [TestMethod]
@@ -352,7 +352,9 @@ public class SettingsViewModelTests
 
         var current = CultureInfo.CurrentCulture;
         if (viewModel.Locales.Any(culture => culture.Name == current.Name))
-            Assert.AreEqual(current.Name, viewModel.SelectedLocale.Name);
+        {
+            Assert.AreEqual(current.Name, viewModel.SelectedLocale?.Name);
+        }
     }
 
     [TestMethod]
@@ -387,7 +389,7 @@ public class SettingsViewModelTests
         var viewModel = new SettingsViewModel(new() { ClockLocaleId = "en-US" });
         var changes = Capture(viewModel);
 
-        viewModel.SelectedLocale = null!;
+        viewModel.SelectedLocale = null;
 
         Assert.AreEqual(0, changes.Count);
     }
@@ -451,7 +453,7 @@ public class SettingsViewModelTests
         {
             WidgetFontFamily = "Cascadia Code",
             WidgetScales = new() { { "cpu", 130 }, { "gpu", 140 }, { "clock", 150 } },
-            WidgetFontWeight = WidgetFontWeight.Bold
+            WidgetFontWeight = WidgetFontWeight.Bold,
         };
 
         var viewModel = new SettingsViewModel(settings, true, new FakeFontCatalog("Cascadia Code"));
@@ -596,7 +598,7 @@ public class SettingsViewModelTests
     {
         var settings = new Settings { BackgroundColor = "#0F121D", LightBackgroundColor = "#EEF1F5" };
 
-        var darkVm = new SettingsViewModel(settings, true);
+        var darkVm = new SettingsViewModel(settings);
         Assert.IsFalse(darkVm.BackgroundColorModified);
 
         var lightVm = new SettingsViewModel(settings, false);
@@ -608,7 +610,7 @@ public class SettingsViewModelTests
     {
         var settings = new Settings { BackgroundColor = "#101010", LightBackgroundColor = "#EEF1F5" };
 
-        var darkVm = new SettingsViewModel(settings, true);
+        var darkVm = new SettingsViewModel(settings);
         Assert.IsTrue(darkVm.BackgroundColorModified);
 
         // Light variant default is untouched, so under light the flag is clear.
@@ -620,7 +622,7 @@ public class SettingsViewModelTests
     public void Restoring_background_color_resets_the_current_variant_only()
     {
         var settings = new Settings { BackgroundColor = "#101010", LightBackgroundColor = "#EEF1F5" };
-        var viewModel = new SettingsViewModel(settings, true);
+        var viewModel = new SettingsViewModel(settings);
         var changes = Capture(viewModel);
 
         viewModel.RestoreBackgroundColorCommand.Execute(null);
@@ -666,12 +668,12 @@ public class SettingsViewModelTests
         var viewModel = new SettingsViewModel(SampleSettings());
         var changes = Capture(viewModel);
 
-        var other = viewModel.TimeZones.First(zone => zone.Id != viewModel.SelectedTimeZone.Id);
+        var other = viewModel.TimeZones.First(zone => zone.Id != viewModel.SelectedTimeZone?.Id);
         viewModel.SelectedTimeZone = other;
         Assert.IsTrue(viewModel.TimeZoneModified);
 
         viewModel.RestoreTimeZoneCommand.Execute(null);
-        Assert.AreEqual(TimeZoneInfo.Local.Id, viewModel.SelectedTimeZone.Id);
+        Assert.AreEqual(TimeZoneInfo.Local.Id, viewModel.SelectedTimeZone?.Id);
         Assert.IsFalse(viewModel.TimeZoneModified);
         Assert.IsTrue(changes.Any(change => change is SettingChange.TimeZone));
     }
@@ -696,7 +698,7 @@ public class SettingsViewModelTests
         var viewModel = new SettingsViewModel(new() { ClockLocaleId = "en-US" });
 
         // The AutoCompleteBox clears its selection to null while the user types; the flag getter must not throw.
-        viewModel.SelectedLocale = null!;
+        viewModel.SelectedLocale = null;
         Assert.IsFalse(viewModel.LocaleModified);
     }
 
@@ -706,7 +708,7 @@ public class SettingsViewModelTests
         var viewModel = new SettingsViewModel(new() { TimeZoneId = "UTC" });
 
         // The time zone AutoCompleteBox clears its selection to null while the user types; the getter must not throw.
-        viewModel.SelectedTimeZone = null!;
+        viewModel.SelectedTimeZone = null;
         Assert.IsFalse(viewModel.TimeZoneModified);
     }
 

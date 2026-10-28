@@ -8,7 +8,7 @@ public enum UpdateOutcome
     UpToDate,
     UpdateAvailable,
     Failed,
-    Busy
+    Busy,
 }
 
 // The result of an update check. Version is the display string (no leading v); ReleaseUrl is set only

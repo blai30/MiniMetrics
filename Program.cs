@@ -21,6 +21,7 @@ internal sealed class Program
         // can't show UI or be canceled, so it clears the run key and removes the autostart task non-elevated.
         var velopackApp = VelopackApp.Build();
         if (OperatingSystem.IsWindows())
+        {
             velopackApp = velopackApp.OnBeforeUninstallFastCallback(_ =>
             {
                 if (!OperatingSystem.IsWindows()) return;
@@ -31,6 +32,8 @@ internal sealed class Program
                 // are removed; admin-only tasks from older versions remain (documented manual cleanup).
                 if (operations.TaskExists()) operations.RemoveTaskNonElevated();
             });
+        }
+
         velopackApp.Run();
 
         // Persist otherwise-silent crashes; covers the rest of the startup sequence below.
@@ -73,7 +76,7 @@ internal sealed class Program
         var settings = new SettingsStore(SettingsStore.DefaultPath).Load();
         var coordinator = new ElevationCoordinator(new WindowsElevation(), new WindowsDriverProbe());
         return coordinator.ShouldRelaunch(settings.Visibility) &&
-               coordinator.RelaunchElevated(Environment.ProcessPath!);
+            coordinator.RelaunchElevated(Environment.ProcessPath!);
     }
 
     // Avalonia configuration, don't remove; also used by visual designer.

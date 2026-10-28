@@ -60,7 +60,7 @@ public class SettingsApplierTests
             Cpu = new("cpu", "ram"),
             Gpu = new("gpu", "vram"),
             DateTime = new(),
-            Widget = widget
+            Widget = widget,
         };
 
         // The delegates close over this same harness so a test can flip IsDark and read ThemeVariantApplied.

@@ -18,6 +18,6 @@ public sealed class ScaleConverter : IValueConverter
         return baseValue * scale;
     }
 
-    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => throw new NotSupportedException();
 }

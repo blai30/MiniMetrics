@@ -14,8 +14,7 @@ public static class Capture
     {
         Dispatcher.UIThread.RunJobs();
         var frame = window.CaptureRenderedFrame();
-        if (frame is not null)
-            frame.Save(Path.Combine(CapturePaths.OutputDirectory(), name + ".png"));
+        frame?.Save(Path.Combine(CapturePaths.OutputDirectory(), name + ".png"), PngBitmapEncoderOptions.Default);
 
         return frame;
     }

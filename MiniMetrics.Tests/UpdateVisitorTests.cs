@@ -30,7 +30,7 @@ public class UpdateVisitorTests
         var root = new FakeHardware
         {
             Sensors = [rootSensor],
-            SubHardware = [sub]
+            SubHardware = [sub],
         };
 
         root.Accept(new UpdateVisitor());

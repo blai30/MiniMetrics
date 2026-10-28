@@ -43,7 +43,9 @@ public sealed class GitHubReleaseSource : IReleaseSource
 
             if (!root.TryGetProperty("tag_name", out var tag) || tag.ValueKind != JsonValueKind.String ||
                 !root.TryGetProperty("html_url", out var url) || url.ValueKind != JsonValueKind.String)
+            {
                 return null;
+            }
 
             string? tagName = tag.GetString();
             string? htmlUrl = url.GetString();

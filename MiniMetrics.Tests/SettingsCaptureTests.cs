@@ -26,7 +26,7 @@ public class SettingsCaptureTests
                 var frame = Capture.Window(window, "settings-dark");
 
                 Assert.IsNotNull(frame);
-                Assert.IsTrue(frame!.PixelSize.Width >= 640);
+                Assert.IsTrue(frame.PixelSize.Width >= 640);
                 Assert.IsNotNull(window.FindControl<ListBox>("SectionList"));
             }, CancellationToken.None);
 

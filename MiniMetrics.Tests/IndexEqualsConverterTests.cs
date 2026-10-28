@@ -8,7 +8,7 @@ public class IndexEqualsConverterTests
 {
     private static readonly IndexEqualsConverter Converter = new();
 
-    private static object? Convert(object? value, string parameter) =>
+    private static object Convert(object? value, string parameter) =>
         Converter.Convert(value, typeof(bool), parameter, CultureInfo.InvariantCulture);
 
     [TestMethod]
