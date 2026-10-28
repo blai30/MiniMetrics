@@ -83,6 +83,9 @@ internal sealed class Program
     public static AppBuilder BuildAvaloniaApp()
         => AppBuilder.Configure<App>()
             .UsePlatformDetect()
+            // Small widgets that redraw once a second rasterize cheaper on the CPU than keeping a D3D11
+            // device (ANGLE, GPU driver threads, swap chains) alive all day. Ignored off Windows.
+            .With(new Win32PlatformOptions { RenderingMode = [Win32RenderingMode.Software] })
             .WithInterFont()
             .LogToTrace();
 }

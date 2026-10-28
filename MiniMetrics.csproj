@@ -16,7 +16,15 @@
 
     <ItemGroup>
         <Folder Include="Models\" />
-        <AvaloniaResource Include="Assets\**" />
+        <!-- Only the tray icon is loaded at runtime; the other Assets files are design sources. -->
+        <AvaloniaResource Include="Assets\minimetrics.ico" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <!-- Workstation GC sizes gen0 from the largest CPU cache (48 MB on a 96 MB-L3 X3D part), so a widget
+        that allocates a few KB per tick commits tens of MB of garbage between collections. Undocumented
+        but honored; re-check GC.GetConfigurationVariables()["GCGen0MaxBudget"] after .NET upgrades. -->
+        <RuntimeHostConfigurationOption Include="System.GC.Gen0MaxBudget" Value="4194304" />
     </ItemGroup>
 
     <ItemGroup>

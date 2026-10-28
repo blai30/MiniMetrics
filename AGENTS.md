@@ -135,10 +135,33 @@ shown reactively once a snapshot confirms a GPU is present.
 - **Sensor reads must stay off the UI thread.** Window-drag stutter traced back to the poll loop capturing the UI
   `SynchronizationContext`; `MetricsPoller` uses `Task.Run` and only lightweight `ApplySnapshot` posts reach the UI
   thread. Do not move sensor work onto the dispatcher.
-- **LibreHardwareMonitor retains a 1-day value history per sensor.** That is the real memory growth source, not a GC
-  problem (GC tuning moved the needle ~2 MB). `UpdateVisitor` sets `sensor.ValuesTimeWindow = TimeSpan.Zero` on every
-  update; `Services/MemoryTrimmer.cs` calls native `EmptyWorkingSet` on a timer (once ~10 s after warmup, then every 60
-  s, spaced so a trim does not land mid-drag). Keep both.
+- **LibreHardwareMonitor retains a 1-day value history per sensor.** That is the real memory growth source.
+  `UpdateVisitor` sets `sensor.ValuesTimeWindow = TimeSpan.Zero` on every update; `Services/MemoryTrimmer.cs` calls
+  native `EmptyWorkingSet` on a timer (once ~10 s after warmup, then every 60 s, spaced so a trim does not land
+  mid-drag). Keep both.
+- **The gen0 budget is capped on purpose** (`System.GC.Gen0MaxBudget` = 4 MB in `MiniMetrics.csproj`). Workstation GC
+  sizes gen0 from the largest CPU cache (48 MB on a 96 MB-L3 X3D part), so even a few KB per tick commits tens of MB
+  of garbage between collections. The old "GC tuning moved the needle ~2 MB" note measured the trimmed working set,
+  which hides this. The knob is undocumented: re-check `GC.GetConfigurationVariables()` after .NET upgrades.
+- **Widgets render in software on purpose** (`Win32RenderingMode.Software` in `Program.BuildAvaloniaApp`). The GPU
+  default loads ANGLE plus the full D3D11 driver stack (~145 MB commit and ~135 driver threads on an NVIDIA machine)
+  for three windows that redraw once a second, at no CPU saving. Per-pixel transparency still works through the
+  redirection surface and DWM blur-behind. Do not restore the default without measuring.
+- **Only the CPU and the preferred GPU are refreshed.** `LibreHardwareTree.Refresh` updates those two devices
+  directly rather than `Computer.Accept`, which would also update every other GPU (an integrated GPU next to a
+  discrete one costs ~6.5 ms CPU per tick). Resolved devices are cached until `SetEnabled` rebuilds the groups, and
+  each device's sensor array is re-taken after every update so lazily activated sensors appear on the same tick.
+- **Device activation is applied on the poll thread.** `HardwareSensorSource.SetActiveDevices` only records the
+  request; the next `Read` applies it, because rebuilding a LibreHardwareMonitor device group takes a few hundred
+  milliseconds and must not freeze the UI thread.
+- **Only the active widget layout is realized.** The metric and clock windows pick their full or compact
+  `DataTemplate` through a `compact` class on one `ContentControl`, so the hidden layout holds no controls and does
+  no per-tick text work. Keep new layout variants inside those templates.
+- **No lifetime `MainWindow`, and widgets never close on their own.** The desktop lifetime shows its `MainWindow`
+  after startup, which brought back a CPU widget the user had hidden. `OverlayWindow` shows without activation and
+  cancels user closes (Alt+F4), and `WidgetHost` ignores Show/Hide once its window has closed during shutdown,
+  because Avalonia throws on re-showing a closed window. `Shutdown()` does not raise `ShutdownRequested` (only an
+  OS session end does), so anything that must run on every exit, like the settings flush, belongs on `Exit`.
 - **Never enable LibreHardwareMonitor's memory group.** `IsMemoryEnabled` also detects every DIMM and polls its SPD
   thermal sensor over SMBus through PawnIO on each refresh (`MemoryGroup.TryAddDimms`, with a background retry when
   detection fails), sharing the bus with RGB controllers and other hardware tools. `LibreHardwareTree` keeps it off and
@@ -149,8 +172,10 @@ shown reactively once a snapshot confirms a GPU is present.
   so values do not shift their neighbors as they change.
 - **The clock deliberately does not use tabular figures.** They were tried and rejected on looks: Inter's `1` is far
   narrower than its `8`, so `+tnum` pads it out and a time like `11:11:11` renders 73 px wider and visibly loose. The
-  clock instead uses `Views/StableWidthTextBlock`, which measures with `+tnum` but draws without it, so each line
-  reserves the width its text *could* need while the glyphs keep their natural proportional advances. Without that,
+  clock instead uses `Views/StableWidthTextBlock`, which measures its text's digit shape (every digit as `0`) with
+  `+tnum` but draws without it, so each line reserves the width its text *could* need while the glyphs keep their
+  natural proportional advances. The shape matters because even Inter's tabular digits are not all equal (its `4` is
+  narrower), and it lets the reservation be cached until the shape changes. Without that,
   proportional digits swing the rendered time's width by ~15 px from one second to the next and resize the window on
   every tick in `ClockWidthMode.Auto`. The reserved slack lands on whichever side `TextAlignment` does not pin the text
   to, which is why the compact row pins its two lines to facing edges (the gap between them would otherwise breathe).
