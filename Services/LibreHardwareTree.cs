@@ -6,20 +6,31 @@ using LibreHardwareMonitor.Hardware;
 namespace MiniMetrics.Services;
 
 // The LibreHardwareMonitor adapter behind IHardwareTree. It owns every library-specific quirk: the
-// HardwareType/SensorType mapping, picking the physical "Total Memory" node over "Virtual Memory",
-// and matching sensors by name. Verified manually on Windows against real hardware; the testable
-// logic lives in HardwareSensorSource.
+// HardwareType/SensorType mapping, picking the preferred GPU, and matching sensors by name. Verified
+// manually on Windows against real hardware; the testable logic lives in HardwareSensorSource.
 public sealed class LibreHardwareTree : IHardwareTree
 {
     private readonly Computer _computer;
     private readonly UpdateVisitor _visitor = new();
     private bool _memoryEnabled = true;
 
+    // The CPU and preferred GPU are resolved once and reused until SetEnabled rebuilds the device
+    // groups (the only way LibreHardwareMonitor replaces CPU or GPU hardware objects).
+    private bool _resolved;
+    private IHardware? _cpu;
+    private IHardware? _gpu;
+
+    // Each device's active sensors, re-taken after every update so a sensor activated lazily during the
+    // update is readable on the same tick. Hardware.Sensors copies its list, so it is read once per tick.
+    private ISensor[] _cpuSensors = [];
+    private ISensor[] _gpuSensors = [];
+    private (ulong TotalBytes, ulong AvailableBytes)? _memory;
+
     public LibreHardwareTree()
     {
         // The memory group stays off: besides RAM usage it detects every DIMM and polls its SPD
         // thermal sensor over SMBus through PawnIO each refresh, a bus shared with RGB controllers
-        // and other hardware tools. RAM usage is read directly from Windows instead (ReadMemory).
+        // and other hardware tools. RAM usage is read directly from Windows instead (Refresh).
         _computer = new()
         {
             IsCpuEnabled = true,
@@ -30,17 +41,55 @@ public sealed class LibreHardwareTree : IHardwareTree
     }
 
     // Toggling IsXxxEnabled adds or removes the hardware from the tree, so a released device stops
-    // being refreshed by Accept() and its sensors are no longer read.
+    // being refreshed and its sensors are no longer read.
     public void SetEnabled(bool cpu, bool memory, bool gpu)
     {
+        // LibreHardwareMonitor only builds its Intel GPU group while the CPU group is loaded, so load the
+        // CPU group for the moment the GPU groups are rebuilt, then apply the real CPU flag.
+        if (gpu && !_computer.IsGpuEnabled) _computer.IsCpuEnabled = true;
+
+        _computer.IsGpuEnabled = gpu;
         _computer.IsCpuEnabled = cpu;
         _memoryEnabled = memory;
-        _computer.IsGpuEnabled = gpu;
+        _resolved = false;
     }
 
-    public void Refresh() => _computer.Accept(_visitor);
+    // Updates only the devices the widget reads. Computer.Accept would also update every other GPU
+    // (an integrated GPU next to the discrete one), which costs several milliseconds per tick for
+    // values that are never shown.
+    public void Refresh()
+    {
+        Resolve();
 
-    public bool HasGpu => PreferredGpuType(_computer.Hardware.Select(h => h.HardwareType)) is not null;
+        _cpu?.Accept(_visitor);
+        _gpu?.Accept(_visitor);
+        _cpuSensors = _cpu?.Sensors ?? [];
+        _gpuSensors = _gpu?.Sensors ?? [];
+        _memory = _memoryEnabled ? PhysicalMemory.Usage() : null;
+    }
+
+    public bool HasGpu
+    {
+        get
+        {
+            Resolve();
+            return _gpu is not null;
+        }
+    }
+
+    private void Resolve()
+    {
+        if (_resolved) return;
+
+        var hardware = _computer.Hardware;
+        _cpu = hardware.FirstOrDefault(h => h.HardwareType == HardwareType.Cpu);
+        _gpu = PreferredGpuType(hardware.Select(h => h.HardwareType)) is { } gpuType
+            ? hardware.FirstOrDefault(h => h.HardwareType == gpuType)
+            : null;
+        _cpuSensors = [];
+        _gpuSensors = [];
+        _resolved = true;
+    }
 
     // Vendor preference order. A hybrid system (Intel iGPU + NVIDIA/AMD dGPU) enumerates the integrated
     // GPU first, so picking the first match would report the iGPU and miss the discrete card. Prefer the
@@ -63,28 +112,28 @@ public sealed class LibreHardwareTree : IHardwareTree
         return null;
     }
 
-    public double? Read(HardwareKind device, SensorKind sensor, string nameContains)
+    public double? Read(HardwareKind device, SensorKind sensor, string nameContains) => device switch
     {
-        if (device == HardwareKind.Memory)
+        HardwareKind.Memory => _memory is var (total, available)
+            ? MemoryReading(sensor, nameContains, total, available)
+            : null,
+        HardwareKind.Cpu => Find(_cpuSensors, Map(sensor), nameContains),
+        HardwareKind.Gpu => Find(_gpuSensors, Map(sensor), nameContains),
+        _ => null,
+    };
+
+    private static double? Find(ISensor[] sensors, SensorType type, string nameContains)
+    {
+        foreach (var sensor in sensors)
         {
-            return _memoryEnabled ? ReadMemory(sensor, nameContains) : null;
+            if (sensor.SensorType == type && sensor.Name.Contains(nameContains, StringComparison.OrdinalIgnoreCase))
+            {
+                return sensor.Value;
+            }
         }
 
-        var hardware = Find(device);
-        if (hardware is null) return null;
-
-        var type = Map(sensor);
-        var match = hardware.Sensors.FirstOrDefault(s =>
-            s.SensorType == type &&
-            s.Name.Contains(nameContains, StringComparison.OrdinalIgnoreCase));
-
-        return match?.Value;
+        return null;
     }
-
-    private static double? ReadMemory(SensorKind sensor, string nameContains) =>
-        PhysicalMemory.Usage() is var (total, available)
-            ? MemoryReading(sensor, nameContains, total, available)
-            : null;
 
     // Mirrors the "Memory Used" / "Memory Available" GiB sensors of LibreHardwareMonitor's "Total
     // Memory" node, so HardwareSensorSource reads RAM the same way it always has.
@@ -93,33 +142,15 @@ public sealed class LibreHardwareTree : IHardwareTree
         if (sensor != SensorKind.Data) return null;
 
         const double bytesPerGib = 1024d * 1024d * 1024d;
-        (string Name, double Gib)[] sensors =
-        [
-            ("Memory Used", (totalBytes - availableBytes) / bytesPerGib),
-            ("Memory Available", availableBytes / bytesPerGib),
-        ];
-
-        foreach ((string name, double gib) in sensors)
+        if ("Memory Used".Contains(nameContains, StringComparison.OrdinalIgnoreCase))
         {
-            if (name.Contains(nameContains, StringComparison.OrdinalIgnoreCase))
-            {
-                return gib;
-            }
+            return (totalBytes - availableBytes) / bytesPerGib;
         }
 
-        return null;
+        return "Memory Available".Contains(nameContains, StringComparison.OrdinalIgnoreCase)
+            ? availableBytes / bytesPerGib
+            : null;
     }
-
-    private IHardware? Find(HardwareKind device) => device switch
-    {
-        HardwareKind.Cpu => _computer.Hardware.FirstOrDefault(h => h.HardwareType == HardwareType.Cpu),
-
-        HardwareKind.Gpu => PreferredGpuType(_computer.Hardware.Select(h => h.HardwareType)) is { } gpuType
-            ? _computer.Hardware.FirstOrDefault(h => h.HardwareType == gpuType)
-            : null,
-
-        _ => null,
-    };
 
     private static SensorType Map(SensorKind sensor) => sensor switch
     {

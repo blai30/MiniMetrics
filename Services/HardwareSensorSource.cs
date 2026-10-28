@@ -13,31 +13,28 @@ public sealed class HardwareSensorSource(IHardwareTree tree, Func<ulong>? instal
 {
     private readonly ulong _installedMemoryBytes = (installedMemoryBytes ?? PhysicalMemory.InstalledBytes)();
 
-    // Serializes every touch of the underlying tree. SetActiveDevices runs on the UI thread while Read
-    // runs on the poll thread, and both enumerate/mutate the same LibreHardwareMonitor hardware
-    // collection; concurrent access there can fault the PawnIO driver. The lock keeps tree access
-    // single-threaded without moving the read off the poll thread.
+    // Serializes every touch of the underlying tree, which Read and Dispose can reach from different
+    // threads; concurrent access to the LibreHardwareMonitor hardware collection can fault the PawnIO
+    // driver.
     private readonly Lock _treeLock = new();
 
     private bool _cpuActive = true;
     private bool _memoryActive = true;
     private bool _gpuActive = true;
 
+    // The device set most recently requested by SetActiveDevices and not yet applied to the tree.
+    private DeviceSet? _pending;
+
+    private sealed record DeviceSet(bool Cpu, bool Memory, bool Gpu);
+
     // installedMemoryBytes defaults to the firmware-reported installed RAM; tests inject a fixed value.
     // It is read once because installed memory does not change while the process runs.
 
     // Releases or restores devices. A released device is both unloaded from the tree and skipped when
-    // building the snapshot, so the app stops reading it entirely once all its metrics are hidden.
-    public void SetActiveDevices(bool cpu, bool memory, bool gpu)
-    {
-        lock (_treeLock)
-        {
-            _cpuActive = cpu;
-            _memoryActive = memory;
-            _gpuActive = gpu;
-            tree.SetEnabled(cpu, memory, gpu);
-        }
-    }
+    // building the snapshot, so the app stops reading it entirely once all its metrics are hidden. The
+    // request is applied by the next Read on the poll thread: rebuilding a device group takes a few
+    // hundred milliseconds, which must not freeze the UI thread that calls this. Rapid requests coalesce.
+    public void SetActiveDevices(bool cpu, bool memory, bool gpu) => Volatile.Write(ref _pending, new(cpu, memory, gpu));
 
     public MetricsSnapshot Read()
     {
@@ -49,6 +46,14 @@ public sealed class HardwareSensorSource(IHardwareTree tree, Func<ulong>? instal
 
     private MetricsSnapshot ReadLocked()
     {
+        if (Interlocked.Exchange(ref _pending, null) is { } devices)
+        {
+            _cpuActive = devices.Cpu;
+            _memoryActive = devices.Memory;
+            _gpuActive = devices.Gpu;
+            tree.SetEnabled(devices.Cpu, devices.Memory, devices.Gpu);
+        }
+
         tree.Refresh();
 
         CpuMetrics? cpu = null;
@@ -124,5 +129,11 @@ public sealed class HardwareSensorSource(IHardwareTree tree, Func<ulong>? instal
 
     private static ulong MibToBytes(double mib) => (ulong)(mib * 1024d * 1024d);
 
-    public void Dispose() => tree.Dispose();
+    public void Dispose()
+    {
+        lock (_treeLock)
+        {
+            tree.Dispose();
+        }
+    }
 }

@@ -187,8 +187,9 @@ public class HardwareSensorSourceTests
         var source = new HardwareSensorSource(tree);
 
         source.SetActiveDevices(false, true, false);
+        source.Read();
 
-        // The unload call actually reaches the tree, so the process drops its handle to the device.
+        // The unload call reaches the tree on the next read, so the process drops its handle to the device.
         Assert.IsFalse(tree.CpuEnabled);
         Assert.IsTrue(tree.MemoryEnabled);
         Assert.IsFalse(tree.GpuEnabled);
