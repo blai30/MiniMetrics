@@ -87,47 +87,13 @@ public partial class MetricWidgetViewModel(string computeKey, string memoryKey)
         row.UnitWeight = UnitWeight;
     }
 
-    // Reconciles the bound row collection against the freshly built rows this widget owns, updating
-    // existing rows in place so bindings stay alive and the UI animates smoothly.
+    // Reconciles the bound rows against the two rows this widget owns, updating existing rows in place
+    // so bindings stay alive. The compute row always sits first, the memory row after it. Both calls
+    // must run, hence the non-short-circuiting |.
     public void ApplySnapshot(MetricsSnapshot snapshot)
     {
-        var built = RowBuilder.Build(snapshot)
-            .Where(r => r.Key == computeKey || r.Key == memoryKey)
-            .ToList();
-        bool membershipChanged = false;
-
-        // Remove rows that no longer exist (the GPU widget drops both rows when the GPU is gone).
-        for (int i = Rows.Count - 1; i >= 0; i--)
-        {
-            if (built.All(b => b.Key != Rows[i].Key))
-            {
-                Rows.RemoveAt(i);
-                membershipChanged = true;
-            }
-        }
-
-        // Add or update rows, keeping them in the order produced by the builder.
-        for (int i = 0; i < built.Count; i++)
-        {
-            var row = built[i];
-            var existing = Rows.FirstOrDefault(r => r.Key == row.Key);
-            if (existing is null)
-            {
-                existing = new() { Key = row.Key };
-                Rows.Insert(i < Rows.Count ? i : Rows.Count, existing);
-                StampStyle(existing);
-                membershipChanged = true;
-            }
-
-            existing.Label = row.Label;
-            existing.Value = row.Value;
-            existing.Temp = row.Temp;
-            existing.TempLevel = row.TempLevel;
-            existing.Detail = row.Detail;
-            existing.BarPercent = row.BarPercent;
-            existing.Color = row.Color;
-            ApplyVisibility(existing);
-        }
+        bool membershipChanged = Reconcile(computeKey, RowBuilder.Build(snapshot, computeKey), 0)
+            | Reconcile(memoryKey, RowBuilder.Build(snapshot, memoryKey), Rows.Count);
 
         if (!membershipChanged) return;
         OnPropertyChanged(nameof(Compute));
@@ -135,8 +101,49 @@ public partial class MetricWidgetViewModel(string computeKey, string memoryKey)
         OnPropertyChanged(nameof(HasContent));
     }
 
+    // Updates, adds, or removes the row for one key. Returns true when the row was added or removed.
+    private bool Reconcile(string key, MetricRow? row, int insertAt)
+    {
+        int index = IndexOf(key);
+        if (row is null)
+        {
+            if (index < 0) return false;
+
+            // The device is gone or released (the GPU widget drops both rows when the GPU is gone).
+            Rows.RemoveAt(index);
+            return true;
+        }
+
+        bool added = index < 0;
+        var existing = added ? new() { Key = key } : Rows[index];
+        existing.Label = row.Label;
+        existing.Value = row.Value;
+        existing.Temp = row.Temp;
+        existing.TempLevel = row.TempLevel;
+        existing.Detail = row.Detail;
+        existing.BarPercent = row.BarPercent;
+        existing.Color = row.Color;
+
+        if (!added) return false;
+
+        StampStyle(existing);
+        ApplyVisibility(existing);
+        Rows.Insert(insertAt, existing);
+        return true;
+    }
+
+    private int IndexOf(string key)
+    {
+        for (int i = 0; i < Rows.Count; i++)
+        {
+            if (Rows[i].Key == key) return i;
+        }
+
+        return -1;
+    }
+
     // Binds the widget to the live visibility map. The widget reads from it directly rather than
-    // copying, so a later change to the map is reflected on the next RefreshVisibility or snapshot.
+    // copying, so a later change to the map is reflected on the next RefreshVisibility.
     public void BindVisibility(IReadOnlyDictionary<string, bool> visibility)
     {
         _visibility = visibility;

@@ -28,6 +28,19 @@
         <conv:ScaleConverter x:Key="Scale" />
         <conv:ThicknessScaleConverter x:Key="ThicknessScale" />
 
+        <!-- A bare track and indicator. The stock Fluent template also carries a hidden percentage label
+        that stays bound and is re-formatted and re-shaped on every value change. -->
+        <ControlTheme x:Key="MetricBar" TargetType="ProgressBar">
+            <Setter Property="Background" Value="{DynamicResource Widget.Bar.Track}" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Background="{TemplateBinding Background}">
+                        <Border Name="PART_Indicator" HorizontalAlignment="Left" Background="{TemplateBinding Foreground}" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+        </ControlTheme>
+
         <!-- A compute metric (CPU, GPU): temperature is the hero number, usage is the strong
         second, and an optional power draw sits at the top right. -->
         <DataTemplate x:Key="ComputeTemplate" x:DataType="vm:MetricRowViewModel">
@@ -105,7 +118,7 @@
                     MinHeight="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=5}"
                     Opacity="{Binding UsageVisible, Converter={StaticResource BoolToOpacity}}"
                     Foreground="{Binding Color, Converter={StaticResource RowColorToBrush}}"
-                    Classes="metric"
+                    Theme="{StaticResource MetricBar}"
                     Minimum="0"
                     Maximum="100"
                     Value="{Binding BarPercent}" />
@@ -226,44 +239,18 @@
                     Height="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=5}"
                     MinHeight="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=5}"
                     Foreground="{Binding Color, Converter={StaticResource RowColorToBrush}}"
-                    Classes="metric"
+                    Theme="{StaticResource MetricBar}"
                     Minimum="0"
                     Maximum="100"
                     Value="{Binding BarPercent}" />
             </StackPanel>
         </DataTemplate>
-    </Window.Resources>
 
-    <Window.Styles>
-        <Style Selector="ProgressBar.metric">
-            <Setter Property="MinWidth" Value="0" />
-            <Setter Property="CornerRadius" Value="0" />
-            <Setter Property="Background" Value="{DynamicResource Widget.Bar.Track}" />
-        </Style>
-        <Style Selector="ProgressBar.metric /template/ Border#PART_Indicator">
-            <Setter Property="CornerRadius" Value="0" />
-        </Style>
-        <!-- Stretch the track to the control height so the bar reads as a filled track, not a thin line.
-        The ProgressBarTrack part name is theme-template specific; verify the usage bars still render as a
-        filled track under the Simple theme and adjust this selector if the part name differs. -->
-        <Style Selector="ProgressBar.metric /template/ Border#ProgressBarTrack">
-            <Setter Property="CornerRadius" Value="0" />
-            <Setter Property="Height" Value="NaN" />
-            <Setter Property="VerticalAlignment" Value="Stretch" />
-        </Style>
-    </Window.Styles>
-
-    <Border
-        BorderThickness="0"
-        CornerRadius="0"
-        Background="{Binding CardBackground}"
-        TextElement.FontFeatures="+tnum">
-        <Panel>
-            <!-- Full layout: compute card stacked over memory card. -->
+        <!-- Full layout: compute card stacked over memory card. -->
+        <DataTemplate x:Key="FullLayout" x:DataType="vm:MetricWidgetViewModel">
             <Grid
                 RowDefinitions="*,Auto"
-                Margin="{Binding Scale, Converter={StaticResource ThicknessScale}, ConverterParameter='20,14,20,16'}"
-                IsVisible="{Binding !IsCompact}">
+                Margin="{Binding Scale, Converter={StaticResource ThicknessScale}, ConverterParameter='20,14,20,16'}">
                 <ContentControl
                     Grid.Row="0"
                     VerticalContentAlignment="Center"
@@ -277,14 +264,15 @@
                     ContentTemplate="{StaticResource MemoryTemplate}"
                     IsVisible="{Binding Memory.IsVisible, FallbackValue=False}" />
             </Grid>
+        </DataTemplate>
 
-            <!-- Compact layout: everything on one line, no bars. -->
+        <!-- Compact layout: everything on one line, no bars. -->
+        <DataTemplate x:Key="CompactLayout" x:DataType="vm:MetricWidgetViewModel">
             <StackPanel
                 Orientation="Horizontal"
                 Margin="{Binding Scale, Converter={StaticResource ThicknessScale}, ConverterParameter='18,0'}"
                 Spacing="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=18}"
-                VerticalAlignment="Center"
-                IsVisible="{Binding IsCompact}">
+                VerticalAlignment="Center">
                 <ContentControl
                     Content="{Binding Compute}"
                     ContentTemplate="{StaticResource ComputeCompactTemplate}"
@@ -294,6 +282,25 @@
                     ContentTemplate="{StaticResource MemoryCompactTemplate}"
                     IsVisible="{Binding Memory.IsVisible, FallbackValue=False}" />
             </StackPanel>
-        </Panel>
+        </DataTemplate>
+    </Window.Resources>
+
+    <Window.Styles>
+        <!-- Only the active layout is realized, so the hidden one neither holds controls nor re-shapes its
+        text on every tick. -->
+        <Style Selector="ContentControl#Layout">
+            <Setter Property="ContentTemplate" Value="{StaticResource FullLayout}" />
+        </Style>
+        <Style Selector="ContentControl#Layout.compact">
+            <Setter Property="ContentTemplate" Value="{StaticResource CompactLayout}" />
+        </Style>
+    </Window.Styles>
+
+    <Border
+        BorderThickness="0"
+        CornerRadius="0"
+        Background="{Binding CardBackground}"
+        TextElement.FontFeatures="+tnum">
+        <ContentControl Name="Layout" Content="{Binding}" Classes.compact="{Binding IsCompact}" />
     </Border>
 </views:OverlayWindow>

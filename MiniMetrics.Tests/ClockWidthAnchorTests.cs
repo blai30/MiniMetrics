@@ -134,6 +134,15 @@ public class ClockWidthAnchorTests
                 Assert.AreEqual(width, window.Bounds.Width, 1e-9, $"width moved at :{second:00}");
             }
 
+            // Tabular figures are not all equally wide in Inter (its "4" is narrower), so sweep a minute
+            // whose seconds pass through every digit in each position.
+            for (int second = 40; second < 60; second++)
+            {
+                viewModel.Tick(new(2026, 6, 16, 12, 40, second, TimeSpan.Zero));
+                Dispatcher.UIThread.RunJobs();
+                Assert.AreEqual(width, window.Bounds.Width, 1e-9, $"width moved at 12:40:{second:00}");
+            }
+
             // Same for the narrowest digits Inter draws, which are the worst case for that reservation.
             viewModel.Tick(new(2026, 6, 16, 23, 11, 11, TimeSpan.Zero));
             Dispatcher.UIThread.RunJobs();

@@ -38,6 +38,41 @@ public class StableWidthTextBlockTests
         });
 
     [TestMethod]
+    public Task A_digit_only_change_keeps_the_width_where_tabular_figures_differ()
+        => Run(() =>
+        {
+            // Inter's tabular "4" is narrower than its other tabular digits, so reserving the tabular
+            // width of the literal text would still move by a pixel here.
+            static double Width(string text)
+            {
+                var block = new StableWidthTextBlock
+                {
+                    Text = text,
+                    FontSize = 80,
+                    FontFamily = new(MiniMetrics.Lib.WidgetStyleProfile.BundledInter),
+                    FontWeight = FontWeight.Medium,
+                };
+                block.Measure(Size.Infinity);
+                return block.DesiredSize.Width;
+            }
+
+            Assert.AreEqual(Width("1:00:43 PM"), Width("1:00:44 PM"), 1e-9);
+        });
+
+    [TestMethod]
+    public Task Changing_the_font_size_measures_again()
+        => Run(() =>
+        {
+            var block = Measure<StableWidthTextBlock>("12:34:56 PM");
+            double small = block.DesiredSize.Width;
+
+            block.FontSize = 160;
+            block.Measure(Size.Infinity);
+
+            Assert.IsTrue(block.DesiredSize.Width > small * 1.5);
+        });
+
+    [TestMethod]
     public Task A_plain_TextBlock_is_the_one_that_moves()
         => Run(() =>
         {

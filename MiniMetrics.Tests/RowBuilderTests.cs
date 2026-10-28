@@ -19,6 +19,24 @@ public class RowBuilderTests
     }
 
     [TestMethod]
+    public void Bar_percent_is_rounded_to_a_tenth()
+    {
+        var rows = RowBuilder.Build(new(new(34.4567, null, null), new(1, 3), null));
+
+        Assert.AreEqual(34.5, rows.Single(r => r.Key == "cpu").BarPercent, 1e-9);
+        Assert.AreEqual(33.3, rows.Single(r => r.Key == "ram").BarPercent, 1e-9);
+    }
+
+    [TestMethod]
+    public void Building_one_card_matches_the_full_build()
+    {
+        var snapshot = WithGpu();
+
+        Assert.AreEqual(RowBuilder.Build(snapshot).Single(r => r.Key == "vram"), RowBuilder.Build(snapshot, "vram"));
+        Assert.IsNull(RowBuilder.Build(snapshot with { Gpu = null }, "gpu"));
+    }
+
+    [TestMethod]
     public void Build_formats_cpu_and_ram_rows()
     {
         var rows = RowBuilder.Build(WithGpu());

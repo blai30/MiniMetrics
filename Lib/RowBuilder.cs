@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using MiniMetrics.Models;
 
@@ -37,65 +38,75 @@ public sealed record MetricRow(
 
 public static class RowBuilder
 {
+    // Every row the snapshot supports, in card order.
     public static IReadOnlyList<MetricRow> Build(MetricsSnapshot snapshot)
     {
         var rows = new List<MetricRow>();
-
-        if (snapshot.Cpu is { } cpu)
+        foreach (string card in MetricRegistry.Cards)
         {
-            rows.Add(new(
-                "cpu",
-                "CPU",
-                MetricFormatting.FormatPercent(cpu.UsagePercent),
-                // CPU temperature is null when the PawnIO driver cannot read it; the hero slot shows a
-                // muted placeholder rather than going blank.
-                cpu.TempCelsius is { } cpuTemp ? MetricFormatting.FormatTempValue(cpuTemp) : "—",
-                cpu.TempCelsius is { } cpuTempForLevel ? LevelFor(cpuTempForLevel) : TempLevel.None,
-                // CPU power is null when the PawnIO driver cannot read it; the detail slot shows a muted
-                // placeholder rather than a misleading reading.
-                cpu.PowerWatts is { } cpuPower ? MetricFormatting.FormatPower(cpuPower) : "—",
-                cpu.UsagePercent,
-                RowColor.Cyan));
+            if (Build(snapshot, card) is { } row) rows.Add(row);
         }
 
-        if (snapshot.Memory is { } memory)
-        {
-            rows.Add(new(
-                "ram",
-                "RAM",
-                MetricFormatting.FormatGiB(memory.UsedBytes),
-                "",
-                TempLevel.None,
-                $"/ {MetricFormatting.FormatGiB(memory.TotalBytes, 0)} GB",
-                Percent(memory.UsedBytes, memory.TotalBytes),
-                RowColor.Green));
-        }
+        return rows;
+    }
 
-        if (snapshot.Gpu is not { } gpu) return rows;
-        rows.Add(new(
+    // The row for one card, or null when the snapshot has no section for it (the device is absent or
+    // released). Lets each widget format only the cards it owns.
+    public static MetricRow? Build(MetricsSnapshot snapshot, string card) => card switch
+    {
+        "cpu" when snapshot.Cpu is { } cpu => new(
+            "cpu",
+            "CPU",
+            MetricFormatting.FormatPercent(cpu.UsagePercent),
+            // CPU temperature is null when the PawnIO driver cannot read it; the hero slot shows a
+            // muted placeholder rather than going blank.
+            cpu.TempCelsius is { } cpuTemp ? MetricFormatting.FormatTempValue(cpuTemp) : "—",
+            cpu.TempCelsius is { } cpuTempForLevel ? LevelFor(cpuTempForLevel) : TempLevel.None,
+            // CPU power is null when the PawnIO driver cannot read it; the detail slot shows a muted
+            // placeholder rather than a misleading reading.
+            cpu.PowerWatts is { } cpuPower ? MetricFormatting.FormatPower(cpuPower) : "—",
+            Bar(cpu.UsagePercent),
+            RowColor.Cyan),
+
+        "ram" when snapshot.Memory is { } memory => new(
+            "ram",
+            "RAM",
+            MetricFormatting.FormatGiB(memory.UsedBytes),
+            "",
+            TempLevel.None,
+            $"/ {MetricFormatting.FormatGiB(memory.TotalBytes, 0)} GB",
+            Bar(Percent(memory.UsedBytes, memory.TotalBytes)),
+            RowColor.Green),
+
+        "gpu" when snapshot.Gpu is { } gpu => new(
             "gpu",
             "GPU",
             MetricFormatting.FormatPercent(gpu.UsagePercent),
             MetricFormatting.FormatTempValue(gpu.TempCelsius),
             LevelFor(gpu.TempCelsius),
             MetricFormatting.FormatPower(gpu.PowerWatts),
-            gpu.UsagePercent,
-            RowColor.Amber));
-        rows.Add(new(
+            Bar(gpu.UsagePercent),
+            RowColor.Amber),
+
+        "vram" when snapshot.Gpu is { } gpu => new(
             "vram",
             "VRAM",
             MetricFormatting.FormatGiB(gpu.VramUsedBytes),
             "",
             TempLevel.None,
             $"/ {MetricFormatting.FormatGiB(gpu.VramTotalBytes, 0)} GB",
-            Percent(gpu.VramUsedBytes, gpu.VramTotalBytes),
-            RowColor.Violet));
+            Bar(Percent(gpu.VramUsedBytes, gpu.VramTotalBytes)),
+            RowColor.Violet),
 
-        return rows;
-    }
+        _ => null,
+    };
 
     private static double Percent(ulong used, ulong total)
         => total == 0 ? 0 : (double)used / total * 100.0;
+
+    // Steps finer than 0.1% are below a device pixel, so rounding keeps the bars from re-laying out on
+    // nearly every tick for changes nobody can see.
+    private static double Bar(double percent) => Math.Round(percent, 1);
 
     // Shared temperature spectrum for both CPU and GPU readings.
     private static TempLevel LevelFor(double celsius)

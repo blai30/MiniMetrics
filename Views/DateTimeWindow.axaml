@@ -22,18 +22,16 @@
     <Window.Resources>
         <conv:ScaleConverter x:Key="Scale" />
         <conv:ThicknessScaleConverter x:Key="ThicknessScale" />
-    </Window.Resources>
 
-    <!-- Every line is a StableWidthTextBlock: the digits draw with the font's own proportional widths,
-    but each line reserves the width it would need if they were tabular, so a tick that only changes
-    which digits are showing never resizes the window. -->
-    <Border BorderThickness="0" CornerRadius="0" Background="{Binding CardBackground}">
-        <Panel>
-            <!-- Full layout: time over date. -->
+        <!-- Every line is a StableWidthTextBlock: the digits draw with the font's own proportional widths,
+        but each line reserves the width of its digit shape as tabular figures, so a tick that only
+        changes which digits are showing never resizes the window. -->
+
+        <!-- Full layout: time over date. -->
+        <DataTemplate x:Key="FullLayout" x:DataType="vm:DateTimeWidgetViewModel">
             <StackPanel
                 VerticalAlignment="Center"
-                Margin="{Binding Scale, Converter={StaticResource ThicknessScale}, ConverterParameter='28,0,28,0'}"
-                IsVisible="{Binding !IsCompact}">
+                Margin="{Binding Scale, Converter={StaticResource ThicknessScale}, ConverterParameter='28,0,28,0'}">
                 <views:StableWidthTextBlock
                     FontSize="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=80}"
                     FontWeight="{Binding ClockWeight}"
@@ -47,17 +45,18 @@
                     Foreground="{DynamicResource Widget.Text.Label}"
                     Text="{Binding DateText}" />
             </StackPanel>
+        </DataTemplate>
 
-            <!-- Compact layout: time and date on one line. The two lines pin their text to facing
-            edges so the reserved slack lands on the outside of the row and the gap between them
-            stays constant. -->
+        <!-- Compact layout: time and date on one line. The two lines pin their text to facing
+        edges so the reserved slack lands on the outside of the row and the gap between them
+        stays constant. -->
+        <DataTemplate x:Key="CompactLayout" x:DataType="vm:DateTimeWidgetViewModel">
             <StackPanel
                 Orientation="Horizontal"
                 VerticalAlignment="Center"
                 HorizontalAlignment="{Binding BlockAlignment}"
                 Margin="{Binding Scale, Converter={StaticResource ThicknessScale}, ConverterParameter='20,0'}"
-                Spacing="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=16}"
-                IsVisible="{Binding IsCompact}">
+                Spacing="{Binding Scale, Converter={StaticResource Scale}, ConverterParameter=16}">
                 <views:StableWidthTextBlock
                     VerticalAlignment="Center"
                     TextAlignment="Right"
@@ -73,6 +72,26 @@
                     Foreground="{DynamicResource Widget.Text.Label}"
                     Text="{Binding DateText}" />
             </StackPanel>
-        </Panel>
+        </DataTemplate>
+    </Window.Resources>
+
+    <Window.Styles>
+        <!-- Only the active layout is realized, so the hidden one neither holds controls nor re-shapes its
+        text on every tick. -->
+        <Style Selector="ContentControl#Layout">
+            <Setter Property="ContentTemplate" Value="{StaticResource FullLayout}" />
+        </Style>
+        <Style Selector="ContentControl#Layout.compact">
+            <Setter Property="ContentTemplate" Value="{StaticResource CompactLayout}" />
+        </Style>
+    </Window.Styles>
+
+    <Border BorderThickness="0" CornerRadius="0" Background="{Binding CardBackground}">
+        <ContentControl
+            Name="Layout"
+            HorizontalContentAlignment="Stretch"
+            VerticalContentAlignment="Stretch"
+            Content="{Binding}"
+            Classes.compact="{Binding IsCompact}" />
     </Border>
 </views:OverlayWindow>
