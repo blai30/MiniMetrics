@@ -40,6 +40,10 @@ internal sealed class FakeStartupOperations : IStartupOperations
         return true;
     }
 
+    public int ApplyTaskSettingsCalls;
+
+    public void ApplyTaskSettings() => ApplyTaskSettingsCalls++;
+
     public bool RemoveTask()
     {
         RemoveTaskCalls++;

@@ -37,6 +37,19 @@ public class StartupManagerTests
     }
 
     [TestMethod]
+    public void Keeping_an_existing_task_refreshes_its_settings()
+    {
+        var (manager, ops) = Build();
+        ops.TaskPresent = true;
+
+        bool ok = manager.Sync(true, true);
+
+        Assert.IsTrue(ok);
+        Assert.AreEqual(0, ops.CreateTaskCalls);
+        Assert.AreEqual(1, ops.ApplyTaskSettingsCalls);
+    }
+
+    [TestMethod]
     public void Disable_removes_run_key()
     {
         var (manager, ops) = Build();

@@ -48,8 +48,52 @@ public sealed class WindowsStartupOperations : IStartupOperations
             $"/Create /TN \"{TaskName}\" /TR \"\\\"{exePath}\\\"\" /SC ONLOGON /RL HIGHEST /F";
         if (RunSchtasks(arguments, true) != 0) return false;
 
+        ApplyTaskSettings();
         GrantCurrentUserDelete();
         return true;
+    }
+
+    // schtasks leaves Task Scheduler's defaults, which suit batch jobs, not an always-running widget: the
+    // task is stopped after 72 hours, never starts or is stopped on battery, and runs at priority 7
+    // (below-normal CPU, low I/O and memory priority). Rewrites only when a setting differs, then
+    // re-grants the user's delete right in case re-registering reset the task's security descriptor.
+    public void ApplyTaskSettings()
+    {
+        try
+        {
+            dynamic service = Activator.CreateInstance(Type.GetTypeFromProgID("Schedule.Service")!)!;
+            service.Connect();
+            dynamic folder = service.GetFolder(TaskFolderPath);
+            dynamic definition = folder.GetTask(TaskLeafName).Definition;
+            dynamic settings = definition.Settings;
+
+            const string runIndefinitely = "PT0S";
+            const int normalPriority = 4;
+            if (settings.ExecutionTimeLimit == runIndefinitely
+                && !settings.DisallowStartIfOnBatteries
+                && !settings.StopIfGoingOnBatteries
+                && settings.Priority == normalPriority)
+            {
+                return;
+            }
+
+            settings.ExecutionTimeLimit = runIndefinitely;
+            settings.DisallowStartIfOnBatteries = false;
+            settings.StopIfGoingOnBatteries = false;
+            settings.Priority = normalPriority;
+
+            const int taskUpdate = 0x4;
+            folder.RegisterTaskDefinition(
+                TaskLeafName, definition, taskUpdate, definition.Principal.UserId, null, definition.Principal.LogonType);
+        }
+        catch
+        {
+            // Best effort: without elevation, or if Task Scheduler rejects the update, the task keeps
+            // working with its previous settings.
+            return;
+        }
+
+        GrantCurrentUserDelete();
     }
 
     // New tasks grant the user delete rights, so the non-elevated delete succeeds with no prompt. Tasks

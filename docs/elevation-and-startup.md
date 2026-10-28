@@ -68,6 +68,11 @@ after that the scheduled task starts MiniMetrics elevated at every logon without
 would see the prompt come back is if you launch MiniMetrics by double-clicking the program directly instead of letting
 it start with Windows. If you run it from startup, as most people do, that one initial grant is the last prompt you see.
 
+The task is set up for an app that stays open all day: it has no time limit, it starts and keeps running on battery,
+and it runs at normal priority, the same as an app started from the ordinary startup entry. Task Scheduler's own
+defaults would stop it after 72 hours, skip it on battery, and run it at below-normal priority. A task created by an
+older version is updated to these settings the next time MiniMetrics runs elevated with startup enabled.
+
 ## Removing MiniMetrics and clearing the startup entry
 
 If you used the installer, either removal path now removes MiniMetrics completely. The tray menu's **Uninstall

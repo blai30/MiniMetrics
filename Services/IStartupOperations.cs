@@ -16,6 +16,10 @@ public interface IStartupOperations
     // Returns false if the elevation prompt was declined or the operation failed.
     bool CreateTask(string exePath);
 
+    // Brings an existing task's run settings up to date (tasks made by older versions use Task Scheduler's
+    // defaults). Best effort: it needs elevation and does nothing when the settings already match.
+    void ApplyTaskSettings();
+
     // Returns false if the elevation prompt was declined or the operation failed.
     bool RemoveTask();
 }
