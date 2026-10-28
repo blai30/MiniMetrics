@@ -41,6 +41,27 @@ public class MetricsPollerTests
             "Dispose did not return after the read finished");
     }
 
+    [TestMethod]
+    public void Pausing_stops_reads_and_resuming_reads_at_once()
+    {
+        int reads = 0;
+        var source = new BlockingSensorSource(() => Interlocked.Increment(ref reads));
+        using var poller = new MetricsPoller(source, TimeSpan.FromMilliseconds(20));
+        poller.Start();
+        SpinWait.SpinUntil(() => Volatile.Read(ref reads) > 2, TimeSpan.FromSeconds(5));
+
+        poller.Pause();
+        Thread.Sleep(60);
+        int paused = Volatile.Read(ref reads);
+        Thread.Sleep(200);
+
+        Assert.AreEqual(paused, Volatile.Read(ref reads), "the poller kept reading while paused");
+
+        poller.Resume();
+
+        Assert.IsTrue(SpinWait.SpinUntil(() => Volatile.Read(ref reads) > paused, TimeSpan.FromSeconds(5)));
+    }
+
     private sealed class BlockingSensorSource(Action onRead) : ISensorSource
     {
         public void SetActiveDevices(bool cpu, bool memory, bool gpu)

@@ -26,6 +26,11 @@ public sealed class LibreHardwareTree : IHardwareTree
     private ISensor[] _gpuSensors = [];
     private (ulong TotalBytes, ulong AvailableBytes)? _memory;
 
+    private bool _opened;
+
+    // The computer is opened by the first Refresh rather than here: opening loads the GPU vendor
+    // libraries and takes about half a second, which belongs on the poll thread, not the UI thread that
+    // builds this. Device flags set before then only decide which groups get opened at all.
     public LibreHardwareTree()
     {
         // The memory group stays off: besides RAM usage it detects every DIMM and polls its SPD
@@ -37,11 +42,11 @@ public sealed class LibreHardwareTree : IHardwareTree
             IsMemoryEnabled = false,
             IsGpuEnabled = true,
         };
-        _computer.Open();
     }
 
     // Toggling IsXxxEnabled adds or removes the hardware from the tree, so a released device stops
-    // being refreshed and its sensors are no longer read.
+    // being refreshed and its sensors are no longer read. Before the computer is open the setters only
+    // record the flags.
     public void SetEnabled(bool cpu, bool memory, bool gpu)
     {
         // LibreHardwareMonitor only builds its Intel GPU group while the CPU group is loaded, so load the
@@ -59,6 +64,7 @@ public sealed class LibreHardwareTree : IHardwareTree
     // values that are never shown.
     public void Refresh()
     {
+        EnsureOpen();
         Resolve();
 
         _cpu?.Accept(_visitor);
@@ -77,8 +83,31 @@ public sealed class LibreHardwareTree : IHardwareTree
         }
     }
 
+    // Opens once. As in SetEnabled, the CPU group is loaded while opening whenever the GPU is wanted, so
+    // the Intel GPU group gets built. A failed open is not retried every tick.
+    private void EnsureOpen()
+    {
+        if (_opened) return;
+        _opened = true;
+
+        bool cpu = _computer.IsCpuEnabled;
+        if (_computer.IsGpuEnabled) _computer.IsCpuEnabled = true;
+        try
+        {
+            _computer.Open();
+        }
+        catch (Exception exception)
+        {
+            CrashLog.Write("HardwareOpen", exception);
+        }
+
+        _computer.IsCpuEnabled = cpu;
+        _resolved = false;
+    }
+
     private void Resolve()
     {
+        if (!_opened) return;
         if (_resolved) return;
 
         var hardware = _computer.Hardware;

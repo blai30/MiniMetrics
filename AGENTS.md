@@ -151,6 +151,17 @@ shown reactively once a snapshot confirms a GPU is present.
   directly rather than `Computer.Accept`, which would also update every other GPU (an integrated GPU next to a
   discrete one costs ~6.5 ms CPU per tick). Resolved devices are cached until `SetEnabled` rebuilds the groups, and
   each device's sensor array is re-taken after every update so lazily activated sensors appear on the same tick.
+- **The hardware is opened on the poll thread.** `LibreHardwareTree` opens its `Computer` on the first `Refresh`, not
+  in its constructor, because opening loads the GPU vendor libraries (~0.5 s) and would hold up the UI thread at launch.
+  Devices hidden at launch are therefore never opened. The CPU widget is shown by the first snapshot, like the GPU
+  one, so it never appears as an empty card. LibreHardwareMonitor builds its Intel GPU group only while the CPU group
+  is enabled, so both `EnsureOpen` and `SetEnabled` enable the CPU group while the GPU groups are built.
+- **Polling pauses while nobody can see the widgets.** `Services/SessionActivity` listens for session lock and the
+  session display status on the CPU window and `App` pauses the poller and the clock until both clear. It uses the
+  session display GUID, not the console one, so a dark physical monitor does not pause a remote session.
+- **Lock position needs a layered window.** Windows skips only windows that are both `WS_EX_LAYERED` and
+  `WS_EX_TRANSPARENT` in hit testing, so `DesktopWindow.SetClickThrough` sets both and makes the layer opaque with
+  `SetLayeredWindowAttributes` (the per-pixel alpha still applies).
 - **Device activation is applied on the poll thread.** `HardwareSensorSource.SetActiveDevices` only records the
   request; the next `Read` applies it, because rebuilding a LibreHardwareMonitor device group takes a few hundred
   milliseconds and must not freeze the UI thread.

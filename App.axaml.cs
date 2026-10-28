@@ -41,6 +41,7 @@ public class App : Application
     private WidgetHost[] _hosts = [];
     private WidgetChrome _chrome = null!;
     private DispatcherTimer _clockTimer = null!;
+    private bool _firstSnapshotShown;
     private DispatcherTimer? _trimTimer;
 
     private TrayMenuController _tray = null!;
@@ -196,17 +197,38 @@ public class App : Application
                 _cpuViewModel.ApplySnapshot(snapshot);
                 _gpuViewModel.ApplySnapshot(snapshot);
 
+                // The first read also opens the hardware, so the CPU widget waits for it rather than
+                // opening as an empty card. It is shown before the GPU widget, which seats itself beside it.
+                if (!_firstSnapshotShown)
+                {
+                    _firstSnapshotShown = true;
+                    if (!_settings.Hidden) _cpuHost.Show();
+                }
+
                 // The GPU widget appears only once a GPU is actually present and not hidden.
                 UpdateGpuWindowVisibility();
             });
+
+        _clockTimer = new();
+        _clockTimer.Tick += (_, _) => TickClock();
     }
 
     private void CreateWidgetHosts()
     {
+        var cpuWindow = new MetricWidgetWindow { DataContext = _cpuViewModel };
         _cpuHost = CreateHost(
-            new MetricWidgetWindow { DataContext = _cpuViewModel },
+            cpuWindow,
             () => _settings is { X: { } x, Y: { } y } ? (x, y) : null,
             _settingsController.SetCpuPosition);
+
+        // Polling and the clock stop while the session is locked or its display is off. Any window can
+        // receive the notifications, shown or not; the CPU window lives as long as the app.
+        if (OperatingSystem.IsWindows())
+        {
+            var session = new SessionActivity();
+            session.ActiveChanged += OnSessionActiveChanged;
+            session.Attach(cpuWindow);
+        }
 
         _gpuHost = CreateHost(
             new MetricWidgetWindow { DataContext = _gpuViewModel },
@@ -251,14 +273,10 @@ public class App : Application
 
     private void ShowWidgets()
     {
-        if (!_settings.Hidden) _cpuHost.Show();
-
-        // The GPU window is shown reactively by UpdateGpuWindowVisibility once the first
-        // snapshot confirms a GPU is present.
+        // The CPU and GPU windows are shown by the first snapshot (see CreateServices): the GPU one only
+        // once it confirms a GPU is present.
 
         // The clock only ticks while it is shown; it is hidden by default.
-        _clockTimer = new();
-        _clockTimer.Tick += (_, _) => TickClock();
         if (!_settings.DateTimeHidden) ShowClock();
 
         _poller.Start();
@@ -276,6 +294,24 @@ public class App : Application
     {
         _clockTimer.Stop();
         _dateTimeHost.Hide();
+    }
+
+    // Nobody can see the widgets while the session is locked or the display is off, so nothing is read or
+    // rendered until it comes back; the first read and tick on return bring everything current at once.
+    private void OnSessionActiveChanged(bool active)
+    {
+        if (active)
+        {
+            _poller.Resume();
+            if (_settings.DateTimeHidden) return;
+            TickClock();
+            _clockTimer.Start();
+        }
+        else
+        {
+            _poller.Pause();
+            _clockTimer.Stop();
+        }
     }
 
     // Renders the current time and re-arms the timer for just after the next second boundary, so the

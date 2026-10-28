@@ -7,6 +7,7 @@ namespace MiniMetrics.Services;
 
 public sealed class MetricsPoller(ISensorSource source, TimeSpan interval) : IDisposable
 {
+    private readonly PeriodicTimer _timer = new(interval);
     private CancellationTokenSource? _cts;
     private Task? _loop;
 
@@ -22,15 +23,26 @@ public sealed class MetricsPoller(ISensorSource source, TimeSpan interval) : IDi
         _loop = Task.Run(() => RunAsync(_cts.Token));
     }
 
+    // Stops polling while nobody can see the widgets (session locked, display off). The loop stays parked
+    // on the timer, so pausing costs nothing.
+    public void Pause() => _timer.Period = Timeout.InfiniteTimeSpan;
+
+    // Resumes the regular cadence and reads once right away so the widgets are current when they reappear.
+    // Read is serialized by the source, so this extra read cannot overlap the loop's.
+    public void Resume()
+    {
+        _timer.Period = interval;
+        Task.Run(Emit);
+    }
+
     private async Task RunAsync(CancellationToken token)
     {
-        using var timer = new PeriodicTimer(interval);
         try
         {
             do
             {
                 Emit();
-            } while (await timer.WaitForNextTickAsync(token));
+            } while (await _timer.WaitForNextTickAsync(token));
         }
         catch (OperationCanceledException)
         {
@@ -70,6 +82,7 @@ public sealed class MetricsPoller(ISensorSource source, TimeSpan interval) : IDi
             // fault here is not actionable; disposing proceeds regardless.
         }
 
+        _timer.Dispose();
         _cts?.Dispose();
     }
 }
