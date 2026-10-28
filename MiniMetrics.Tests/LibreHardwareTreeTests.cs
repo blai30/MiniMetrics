@@ -38,4 +38,23 @@ public class LibreHardwareTreeTests
 
         Assert.IsNull(chosen);
     }
+
+    private const ulong BytesPerGib = 1024UL * 1024 * 1024;
+
+    [TestMethod]
+    public void Memory_reading_reports_used_and_available_in_gib()
+    {
+        double? used = LibreHardwareTree.MemoryReading(SensorKind.Data, "Memory Used", 32 * BytesPerGib, 12 * BytesPerGib);
+        double? available = LibreHardwareTree.MemoryReading(SensorKind.Data, "Memory Available", 32 * BytesPerGib, 12 * BytesPerGib);
+
+        Assert.AreEqual(20d, used);
+        Assert.AreEqual(12d, available);
+    }
+
+    [TestMethod]
+    public void Memory_reading_returns_null_for_unknown_sensors()
+    {
+        Assert.IsNull(LibreHardwareTree.MemoryReading(SensorKind.Temperature, "Memory Used", 32 * BytesPerGib, 12 * BytesPerGib));
+        Assert.IsNull(LibreHardwareTree.MemoryReading(SensorKind.Data, "DIMM", 32 * BytesPerGib, 12 * BytesPerGib));
+    }
 }

@@ -13,14 +13,18 @@ public sealed class LibreHardwareTree : IHardwareTree
 {
     private readonly Computer _computer;
     private readonly UpdateVisitor _visitor = new();
+    private bool _memoryEnabled = true;
 
     public LibreHardwareTree()
     {
+        // The memory group stays off: besides RAM usage it detects every DIMM and polls its SPD
+        // thermal sensor over SMBus through PawnIO each refresh, a bus shared with RGB controllers
+        // and other hardware tools. RAM usage is read directly from Windows instead (ReadMemory).
         _computer = new()
         {
             IsCpuEnabled = true,
-            IsMemoryEnabled = true,
-            IsGpuEnabled = true
+            IsMemoryEnabled = false,
+            IsGpuEnabled = true,
         };
         _computer.Open();
     }
@@ -30,7 +34,7 @@ public sealed class LibreHardwareTree : IHardwareTree
     public void SetEnabled(bool cpu, bool memory, bool gpu)
     {
         _computer.IsCpuEnabled = cpu;
-        _computer.IsMemoryEnabled = memory;
+        _memoryEnabled = memory;
         _computer.IsGpuEnabled = gpu;
     }
 
@@ -49,14 +53,23 @@ public sealed class LibreHardwareTree : IHardwareTree
     {
         var available = present.ToHashSet();
         foreach (var type in GpuPriority)
+        {
             if (available.Contains(type))
+            {
                 return type;
+            }
+        }
 
         return null;
     }
 
     public double? Read(HardwareKind device, SensorKind sensor, string nameContains)
     {
+        if (device == HardwareKind.Memory)
+        {
+            return _memoryEnabled ? ReadMemory(sensor, nameContains) : null;
+        }
+
         var hardware = Find(device);
         if (hardware is null) return null;
 
@@ -68,23 +81,44 @@ public sealed class LibreHardwareTree : IHardwareTree
         return match?.Value;
     }
 
+    private static double? ReadMemory(SensorKind sensor, string nameContains) =>
+        PhysicalMemory.Usage() is var (total, available)
+            ? MemoryReading(sensor, nameContains, total, available)
+            : null;
+
+    // Mirrors the "Memory Used" / "Memory Available" GiB sensors of LibreHardwareMonitor's "Total
+    // Memory" node, so HardwareSensorSource reads RAM the same way it always has.
+    public static double? MemoryReading(SensorKind sensor, string nameContains, ulong totalBytes, ulong availableBytes)
+    {
+        if (sensor != SensorKind.Data) return null;
+
+        const double bytesPerGib = 1024d * 1024d * 1024d;
+        (string Name, double Gib)[] sensors =
+        [
+            ("Memory Used", (totalBytes - availableBytes) / bytesPerGib),
+            ("Memory Available", availableBytes / bytesPerGib),
+        ];
+
+        foreach ((string name, double gib) in sensors)
+        {
+            if (name.Contains(nameContains, StringComparison.OrdinalIgnoreCase))
+            {
+                return gib;
+            }
+        }
+
+        return null;
+    }
+
     private IHardware? Find(HardwareKind device) => device switch
     {
         HardwareKind.Cpu => _computer.Hardware.FirstOrDefault(h => h.HardwareType == HardwareType.Cpu),
-
-        // LibreHardwareMonitor exposes two memory nodes: "Virtual Memory" (commit charge, includes the
-        // page file) and "Total Memory" (installed physical RAM). We want physical RAM.
-        HardwareKind.Memory =>
-            _computer.Hardware.FirstOrDefault(h =>
-                h.HardwareType == HardwareType.Memory &&
-                h.Name.Contains("Total", StringComparison.OrdinalIgnoreCase))
-            ?? _computer.Hardware.FirstOrDefault(h => h.HardwareType == HardwareType.Memory),
 
         HardwareKind.Gpu => PreferredGpuType(_computer.Hardware.Select(h => h.HardwareType)) is { } gpuType
             ? _computer.Hardware.FirstOrDefault(h => h.HardwareType == gpuType)
             : null,
 
-        _ => null
+        _ => null,
     };
 
     private static SensorType Map(SensorKind sensor) => sensor switch
@@ -94,7 +128,7 @@ public sealed class LibreHardwareTree : IHardwareTree
         SensorKind.Power => SensorType.Power,
         SensorKind.Data => SensorType.Data,
         SensorKind.SmallData => SensorType.SmallData,
-        _ => SensorType.Load
+        _ => SensorType.Load,
     };
 
     public void Dispose() => _computer.Close();
